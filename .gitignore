@@ -1,0 +1,14 @@
+LIMRAD/*.nc
+LIMRAD/**/*.png
+
+MIRA/**/*.nc
+MIRA/**/*.mira
+MIRA/**/*.mmclx
+MIRA/**/*.png
+
+
+*.log
+*.png
+
+.idea/*
+
