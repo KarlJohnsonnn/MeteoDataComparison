@@ -6,6 +6,13 @@ import netCDF4
 import matplotlib.pyplot as plt
 import matplotlib        as mpl
 
+from matplotlib              import rc
+
+rc('font',family='serif')
+## for Palatino and other serif fonts use:
+#rc('font',**{'family':'serif','serif':['Palatino']})
+rc('text', usetex=True)
+
 from matplotlib              import dates
 from matplotlib.font_manager import FontProperties
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -419,11 +426,38 @@ def extract_dataset(date,time,clock,fext):
 
     return time_samp, time_plot, height, Ze, mdv, sw
 
-def place_text(plot,x,y,text):
-    plot.text( x, y, text, fontweight = 'bold',
+def place_text(plot,pos,text):
+    plot.text( pos[0], pos[1], text, fontweight = 'bold',
                            horizontalalignment = 'left',
                            transform = plot.transAxes )
     return plot
+
+def place_statistics(plot,pos,stat,vn):
+    if vn=='Ze':
+        text  = r'$\mathrm{mean}_h(|\mathrm{Ze}_{\mathrm{lr}} - \mathrm{Ze}_{\mathrm{mi}} |) =$' + \
+                 '{:6.2f}'.format(stat[0]) + ' dBZ'
+        text2 = 'corr(lr, mi)'+ r'$=$' + '{:6.2f}'.format(stat[1])
+    if vn=='mdv':
+        text = r'$\mathrm{mean}_h(|\mathrm{mdv}_{\mathrm{lr}} - \mathrm{mdv}_{\mathrm{mi}} |) =$' \
+               + '{:6.2f}'.format(stat[0]) + ' m/s'
+        text2 = 'corr(lr, mi)'+ r'$=$'  + '{:6.2f}'.format(stat[1])
+    if vn=='sw':
+        text = r'$\mathrm{mean}_h(|\mathrm{sw}_{\mathrm{lr}} - \mathrm{sw}_{\mathrm{mi}} |) =$' \
+               +'{:6.2f}'.format(stat[0]) + ' m/s'
+        text2 = 'corr(lr, mi)'+ r'$=$'  + '{:6.2f}'.format(stat[1])
+
+    plot.text( pos[0], pos[1], text, fontweight = 'bold',
+               horizontalalignment = 'left',
+               transform = plot.transAxes,
+               bbox=dict(facecolor='none',
+                         edgecolor='black',
+                         pad=5.))
+    plot.text(pos[0]+0.72, pos[1], text2, fontweight='bold',
+              horizontalalignment='left',
+              transform=plot.transAxes,
+              bbox=dict(facecolor='none',
+                        edgecolor='black',
+                        pad=5.))
 
 def get_height_boundary(Array,hmin,hmax):
     i = 0
@@ -570,7 +604,7 @@ def findBasesTops(dbz_m, range_v):
 
 
 def plot_data_set(axh,text,x,y,z,vmi,vma,x_min,x_max,y_min,y_max,x_lab,y_lab,z_lab):
-    place_text(axh, .05, .9, text )
+    place_text(axh, [.05, .9], text )
     cp = axh.pcolormesh(x, y, z, vmin=vmi, vmax=vma, cmap='jet')
     axh.grid(linestyle=':')
     divider1 = make_axes_locatable(axh)
@@ -589,23 +623,26 @@ def plot_data_set(axh,text,x,y,z,vmi,vma,x_min,x_max,y_min,y_max,x_lab,y_lab,z_l
         axh.xaxis.set_major_formatter(mpl.dates.DateFormatter('%H:%M'))
         axh.set_xlabel(x_lab)
 
-def plot_avg_data_set(axh,text,x1,y1,x2,y2,label1,marker1,label2,marker2,x_min,x_max,y_min,y_max,x_lab,y_lab):
-    place_text(axh, .05, .9, text )
+def plot_avg_data_set(axh,text,x1,y1,x2,y2,label1,marker1,label2,marker2,x_min,x_max,y_min,y_max,x_lab,y_lab,ax):
+    place_text(axh, [.05, .9], text )
     axh.scatter(x1,y1,marker=marker1,label=label1)
     axh.scatter(x2,y2,marker=marker2,label=label2)
     axh.set_xlabel( x_lab )
     axh.set_ylabel( y_lab )
     axh.set_xlim( left = x_min, right = x_max )
     axh.grid(linestyle=':')
-    divider1 = make_axes_locatable(axh)
-    cax = divider1.append_axes("right", size="3%", pad=0.25)
     axh.legend(loc="upper right")
 
-    cax.set_facecolor('none')
-    for axis in ['top','bottom','left','right']:
-        cax.spines[axis].set_linewidth(0)
-    cax.set_xticks([])
-    cax.set_yticks([])
+    if ax == 'y':
+        divider1 = make_axes_locatable(axh)
+        cax = divider1.append_axes("right", size="3%", pad=0.25)
+        axh.legend(loc="upper right")
+
+        cax.set_facecolor('none')
+        for axis in ['top','bottom','left','right']:
+            cax.spines[axis].set_linewidth(0)
+        cax.set_xticks([])
+        cax.set_yticks([])
 
     # exceptions
     if  not (y_min==y_max):
@@ -614,7 +651,7 @@ def plot_avg_data_set(axh,text,x1,y1,x2,y2,label1,marker1,label2,marker2,x_min,x
         axh.xaxis.set_major_formatter(mpl.dates.DateFormatter('%H:%M'))
 
 def plot_phase_data_set(axh,text,x,y,marker,x_min,x_max,y_min,y_max,x_lab,y_lab):
-    place_text(axh, .05, .9, text )
+    place_text(axh, [.05, .9], text )
     axh.scatter(x,y,marker=marker)
     axh.set_xlabel( x_lab )
     axh.set_ylabel( y_lab )
@@ -637,22 +674,14 @@ def plot_phase_data_set(axh,text,x,y,marker,x_min,x_max,y_min,y_max,x_lab,y_lab)
         axh.xaxis.set_major_formatter(mpl.dates.DateFormatter('%H:%M'))
 
 def plot_interpol_data_set(axh,text,x1,y1,x2,y2,label1,marker1,label2,marker2,x_min,x_max,y_min,y_max,x_lab,y_lab):
-    place_text(axh, .05, .9, text )
+    place_text(axh, [.05, .9], text )
     axh.plot(x1,y1,marker1,label=label1)
     axh.plot(x2,y2,marker2,label=label2)
     axh.set_xlabel( x_lab )
     axh.set_ylabel( y_lab )
     axh.set_xlim( left = x_min, right = x_max )
     axh.grid(linestyle=':')
-    divider1 = make_axes_locatable(axh)
-    cax = divider1.append_axes("right", size="3%", pad=0.25)
     axh.legend(loc="upper right")
-
-    cax.set_facecolor('none')
-    for axis in ['top','bottom','left','right']:
-        cax.spines[axis].set_linewidth(0)
-    cax.set_xticks([])
-    cax.set_yticks([])
 
     # exceptions
     if  not (y_min==y_max):
@@ -661,19 +690,43 @@ def plot_interpol_data_set(axh,text,x1,y1,x2,y2,label1,marker1,label2,marker2,x_
         axh.xaxis.set_major_formatter(mpl.dates.DateFormatter('%H:%M'))
 
 
+
+def plot_scatter(axh,text,x,y,marker,x_min,x_max,y_min,y_max,x_lab,y_lab):
+    import matplotlib.ticker as ticker
+    from matplotlib.patches     import Polygon
+    from matplotlib.collections import PatchCollection
+
+    place_text(axh, [.05, .9], text )
+    axh.plot(x,y,marker)
+    axh.set_xlabel( x_lab )
+    axh.set_ylabel( y_lab )
+    axh.set_xlim( left = x_min,   right = x_max )
+    axh.set_ylim( bottom = y_min, top = y_max)
+    axh.xaxis.set_ticks((np.arange(x_min, x_max, (x_max-x_min)/4.0)))
+    axh.yaxis.set_ticks((np.arange(y_min, y_max, (y_max-y_min)/4.0)))
+    axh.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
+    axh.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
+    axh.grid(linestyle=':')
+    axh.legend(loc="upper right")
+    axh.set_aspect('equal', 'box')
+
+    # plot 1:1 line
+    N = 100
+    X = np.linspace(x_min, x_max, N)
+    axh.plot(X, X, 'k--')
+
+    # add patches
+    colors = [np.divide([31,119,180],255.) , np.divide([255,127,14],255.)]
+    patches = [ Polygon( [[x_min,y_min],[x_max,y_min],[x_max,y_max]], facecolor='C0', fill=True),
+                Polygon( [[x_min,y_min],[x_min,y_max],[x_max,y_max]], facecolor='C1', fill=True)]
+
+    p = PatchCollection(patches, alpha=0.25)
+    p.set_color(colors)
+    axh.add_collection(p)
+
 def get_plot_ybounds(y1,y2,pm):
     import math
-
-    tmp = [max(y1.min() - pm , y2.min() - pm) ,
-           min(y1.max() + pm , y2.max() + pm) ]
-
-    for i in range(2):
-        if tmp[i] < 0.0:
-            tmp[i] = math.floor(tmp[i])
-        else:
-            tmp[i] = math.ceil(tmp[i])
-
-    return tmp[0], tmp[1]
+    return max(y1.min(),y2.min())-pm, min(y1.max(),y2.max())+pm
 
 
 def gather_time_lists(dtime,dt_max):
@@ -1158,7 +1211,7 @@ if plot_comparisons:
                        mira_timeavg_Ze , mira_height ,
                        label1='LIMRad' , marker1='+' , label2='MIRA' ,   marker2='o' ,
                        x_min=x_lim_left_Ze , x_max=x_lim_right_Ze ,
-                       y_min=hmin , y_max=hmax , x_lab='dBZ' , y_lab='height (km)'      )
+                       y_min=hmin , y_max=hmax , x_lab='dBZ' , y_lab='height (km)', ax='y' )
 
 
     Comp_avgH_Ze_plot.set_title(' Average over height domain',fontweight = 'bold')
@@ -1168,7 +1221,7 @@ if plot_comparisons:
                        time_plot_mira , mira_heightavg_Ze ,
                        label1='LIMRad' , marker1='.' , label2='MIRA' ,   marker2='.' ,
                        x_min=x_lim_left_time , x_max=x_lim_right_time ,
-                       y_min=[] , y_max=[] , x_lab='Time (UTC)' , y_lab='dBZ'           )
+                       y_min=[] , y_max=[] , x_lab='Time (UTC)' , y_lab='dBZ' , ax='y' )
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -1187,7 +1240,7 @@ if plot_comparisons:
                        mira_timeavg_mdv , mira_height ,
                        label1='LIMRad' , marker1='+' , label2='MIRA' ,   marker2='o' ,
                        x_min=x_lim_left_mdv , x_max=x_lim_right_mdv ,
-                       y_min=hmin , y_max=hmax , x_lab='m/s' , y_lab='height (km)'      )
+                       y_min=hmin , y_max=hmax , x_lab='m/s' , y_lab='height (km)', ax='y' )
 
 
     plot_avg_data_set( Comp_avgH_mdv_plot , 'Doppler velocity' ,
@@ -1195,7 +1248,7 @@ if plot_comparisons:
                        time_plot_mira , mira_heightavg_mdv ,
                        label1='LIMRad' , marker1='.' , label2='MIRA' ,   marker2='.' ,
                        x_min=x_lim_left_time , x_max=x_lim_right_time ,
-                       y_min=[] , y_max=[] , x_lab='Time (UTC)' , y_lab='m/s'           )
+                       y_min=[] , y_max=[] , x_lab='Time (UTC)' , y_lab='m/s' , ax='y' )
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -1214,14 +1267,14 @@ if plot_comparisons:
                        mira_timeavg_sw , mira_height ,
                        label1='LIMRad' , marker1='+' , label2='MIRA' ,   marker2='o' ,
                        x_min=x_lim_left_sw , x_max=x_lim_right_sw ,
-                       y_min=hmin , y_max=hmax , x_lab='m/s' , y_lab='height (km)'      )
+                       y_min=hmin , y_max=hmax , x_lab='m/s' , y_lab='height (km)', ax='y' )
 
     plot_avg_data_set( Comp_avgH_sw_plot , 'Spectral width' ,
                        time_plot_LR   , LR_heightavg_sw ,
                        time_plot_mira , mira_heightavg_sw ,
                        label1='LIMRad' , marker1='.' , label2='MIRA' ,   marker2='.' ,
                        x_min=x_lim_left_time , x_max=x_lim_right_time ,
-                       y_min=[] , y_max=[] , x_lab='Time (UTC)' , y_lab='m/s'           )
+                       y_min=[] , y_max=[] , x_lab='Time (UTC)' , y_lab='m/s', ax='y' )
 
     if pts: print('\u2713\n')  # #print checkmark (✓) on screen)
 
@@ -1254,6 +1307,8 @@ if plot_phase_diagram_Ze:
 
     interp_meth = 'nearest'
     res_interp  = 5 # in [sec]
+    head_pos    = [0.05]
+    stat_pos    = [0.02 , -0.3]
 
 
     # preparations for interpolation plots
@@ -1291,31 +1346,30 @@ if plot_phase_diagram_Ze:
     cor_coef  = np.corrcoef(LR_ynew,mira_ynew)
 
 
-    plt.plot(LR_ynew,mira_ynew,'*')
-    plt.show
-
     print('    Generate subplots:\n')
+
+    font = FontProperties()
+    fig, ((h_Ze_plot,  interp_h_Ze_plot,  scatter_Ze),
+          (h_mdv_plot, interp_h_mdv_plot, scatter_mdv),
+          (h_sw_plot,  interp_h_sw_plot,  scatter_sw)) = plt.subplots(3,3,figsize=(16,12))
+
 
     ################################################################################################################
     #
     # comparsion of Radar Reflectivities LIMRAD-MIRA
     if pts: print('       -   Average reflectivity over height domain  ', end='', flush=True)
 
-    font = FontProperties()
-    fig, ((h_Ze_plot,  interp_h_Ze_plot),
-          (h_mdv_plot, interp_h_mdv_plot),
-          (h_sw_plot,  interp_h_sw_plot)) = plt.subplots(3,2,figsize=(16,12))
 
-    h_Ze_plot.set_title(' Actual Dataset\n Average (height) reflectivity',fontweight = 'bold')
+    h_Ze_plot.set_title(' Actual Dataset\n Mean-Height reflectivity',fontweight = 'bold')
 
     plot_avg_data_set( h_Ze_plot , '' ,
                        time_plot_LR   , LR_heightavg_Ze ,
                        time_plot_mira , mira_heightavg_Ze ,
                        label1='LIMRad' , marker1='.' , label2='MIRA' ,   marker2='.' ,
                        x_min=time_plot_LR[0], x_max=time_plot_LR[-1],
-                       y_min=y_min , y_max=y_max , x_lab='Time (UTC)' , y_lab='dBZ'           )
+                       y_min=y_min , y_max=y_max , x_lab='Time (UTC)' , y_lab='dBZ'  , ax='n' )
 
-    interp_h_Ze_plot.set_title('Interpolated Dataset\n Average (height) reflectivity',fontweight = 'bold')
+    interp_h_Ze_plot.set_title('Interpolated Dataset\n Mean-Height reflectivity',fontweight = 'bold')
 
     plot_interpol_data_set(interp_h_Ze_plot, '',
                            plot_time_xnew, LR_ynew,
@@ -1324,11 +1378,20 @@ if plot_phase_diagram_Ze:
                            x_min=time_plot_LR[0], x_max=time_plot_LR[-1],
                            y_min=y_min, y_max=y_max, x_lab='Time (UTC)', y_lab='dBZ')
 
-    place_text(interp_h_Ze_plot, .05, .9, 'Mean Absolute Difference ='+'{:6.2f}'.format(mean_diff)+' dBZ' )
-    place_text(interp_h_Ze_plot, .05, .8, 'Correlation Coefficient  ='+'{:6.2f}'.format(cor_coef[0,1]) )
+    place_statistics(interp_h_Ze_plot, stat_pos, [mean_diff,cor_coef[0,1]],'Ze')
+
+    scatter_Ze.set_title('Scatter plot of Mean-Height\n reflectivity ',fontweight = 'bold')
+
+    xy_min, xy_max = get_plot_ybounds(LR_ynew, mira_ynew, 7.0)
+
+    plot_scatter( scatter_Ze, '', LR_ynew, mira_ynew, '*'
+                , x_min=xy_min, x_max=xy_max,
+                  y_min=xy_min, y_max=xy_max,
+                  x_lab='LIMRad data in dBZ', y_lab='MIRA data in dBZ')
 
 
-    if pts: print('\u2713\n')  # #print checkmark (✓) on screen)
+
+    if pts: print('\u2713')  # #print checkmark (✓) on screen)
 
 
     # same for mean doppler velocity
@@ -1351,16 +1414,16 @@ if plot_phase_diagram_Ze:
     # comparsion of Mean Doppler velocities LIMRAD-MIRA
     if pts: print('       -   Average mean doppler velocity over height domain  ', end='', flush=True)
 
-    h_mdv_plot.set_title(' Actual Dataset\n Average (height) Mean Doppler Velocity', fontweight = 'bold')
+    h_mdv_plot.set_title(' Actual Dataset\n Mean-Height Mean Doppler Velocity', fontweight = 'bold')
 
     plot_avg_data_set( h_mdv_plot , '' ,
                        time_plot_LR   , LR_heightavg_mdv ,
                        time_plot_mira , mira_heightavg_mdv ,
                        label1='LIMRad' , marker1='.' , label2='MIRA' ,   marker2='.' ,
                        x_min=time_plot_LR[0], x_max=time_plot_LR[-1],
-                       y_min=y_min , y_max=y_max , x_lab='Time (UTC)' , y_lab='m/s'           )
+                       y_min=y_min , y_max=y_max , x_lab='Time (UTC)' , y_lab='m/s'  , ax='n' )
 
-    interp_h_mdv_plot.set_title('Interpolated Dataset\n Average (height) Mean Doppler Velocity', fontweight = 'bold')
+    interp_h_mdv_plot.set_title('Interpolated Dataset\n Mean-Height Mean Doppler Velocity', fontweight = 'bold')
 
     plot_interpol_data_set(interp_h_mdv_plot, '',
                            plot_time_xnew, LR_ynew,
@@ -1369,11 +1432,19 @@ if plot_phase_diagram_Ze:
                            x_min=time_plot_LR[0], x_max=time_plot_LR[-1],
                            y_min=y_min, y_max=y_max, x_lab='Time (UTC)', y_lab='m/s')
 
-    place_text(interp_h_mdv_plot, .05, .9, 'Mean Absolute Difference ='+'{:6.2f}'.format(mean_diff)+' m/s' )
-    place_text(interp_h_mdv_plot, .05, .8,  'Correlation Coefficient  ='+'{:6.2f}'.format(cor_coef[0,1]) )
+
+    place_statistics(interp_h_mdv_plot,  stat_pos, [mean_diff,cor_coef[0,1]],'mdv')
+    scatter_mdv.set_title('Scatter plot of Mean-Height\n Mean Doppler Velocity', fontweight='bold')
+
+    xy_min, xy_max = get_plot_ybounds(LR_ynew, mira_ynew, 0.1)
+
+    plot_scatter(scatter_mdv, '', LR_ynew, mira_ynew, '*',
+                 x_min=xy_min, x_max=xy_max,
+                 y_min=xy_min, y_max=xy_max,
+                 x_lab='LIMRad data in m/s', y_lab='MIRA data in m/s')
 
 
-    if pts: print('\u2713\n')  # #print checkmark (✓) on screen)
+    if pts: print('\u2713')  # #print checkmark (✓) on screen)
 
 
 
@@ -1387,7 +1458,7 @@ if plot_phase_diagram_Ze:
     mira_ynew = interpolate_data(mira_x, mira_y, xnew, interp_meth)
 
     # y width +-5
-    y_min, y_max = get_plot_ybounds(LR_y, mira_y, 0.03)
+    y_min, y_max = get_plot_ybounds(LR_y, mira_y, 0.02)
 
     # calculate the mean difference and covariance matrix
     mean_diff = np.mean(np.absolute(LR_ynew - mira_ynew))
@@ -1398,16 +1469,16 @@ if plot_phase_diagram_Ze:
     # comparsion of spectral width LIMRAD-MIRA
     if pts: print('       -   Average spectral width over height domain  ', end='', flush=True)
 
-    h_sw_plot.set_title(' Actual Dataset\n Average (height) Spectral Width', fontweight = 'bold')
+    h_sw_plot.set_title(' Actual Dataset\n Mean-Height Spectral Width', fontweight = 'bold')
 
     plot_avg_data_set( h_sw_plot , '' ,
                        time_plot_LR   , LR_heightavg_sw ,
                        time_plot_mira , mira_heightavg_sw ,
                        label1='LIMRad' , marker1='.' , label2='MIRA' ,   marker2='.' ,
                        x_min=time_plot_LR[0], x_max=time_plot_LR[-1],
-                       y_min=y_min , y_max=y_max , x_lab='Time (UTC)' , y_lab='m/s'           )
+                       y_min=y_min , y_max=y_max , x_lab='Time (UTC)' , y_lab='m/s' , ax='n' )
 
-    interp_h_sw_plot.set_title('Interpolated Dataset\n Average (height) Spectral Width', fontweight = 'bold')
+    interp_h_sw_plot.set_title('Interpolated Dataset\n Mean-Height Spectral Width', fontweight = 'bold')
 
     plot_interpol_data_set(interp_h_sw_plot, '',
                            plot_time_xnew, LR_ynew,
@@ -1416,9 +1487,16 @@ if plot_phase_diagram_Ze:
                            x_min=time_plot_LR[0], x_max=time_plot_LR[-1],
                            y_min=y_min, y_max=y_max, x_lab='Time (UTC)', y_lab='m/s')
 
-    place_text(interp_h_sw_plot, .05, .9, 'Mean Absolute Difference ='+'{:6.2f}'.format(mean_diff)+' m/s' )
-    place_text(interp_h_sw_plot, .05, .8,  'Correlation Coefficient  ='+'{:6.2f}'.format(cor_coef[0,1]) )
+    place_statistics(interp_h_sw_plot, stat_pos, [mean_diff,cor_coef[0,1]],'sw')
 
+    scatter_sw.set_title('Scatter plot of Mean-Height\n Spectral Width ', fontweight='bold')
+
+    xy_min, xy_max = get_plot_ybounds(LR_ynew, mira_ynew, 0.03)
+
+    plot_scatter(scatter_sw, '', LR_ynew, mira_ynew, '*',
+                 x_min=xy_min, x_max=xy_max,
+                 y_min=xy_min, y_max=xy_max,
+                 x_lab='LIMRad data in m/s', y_lab='MIRA data in m/s')
 
     if pts: print('\u2713\n')  # #print checkmark (✓) on screen)
 
@@ -1426,13 +1504,13 @@ if plot_phase_diagram_Ze:
     date_str = str(plotyear) + str(plotmonth).zfill(2) + str(plotday).zfill(2)
     plt.suptitle('Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,' +
                  ' from ' + str(time_int[0]) + '  to  ' + str(time_int[3]) + ' UTC\n' +
-                 'using ' + mira_file_extension + ';  no attenuation correction',
+                 'using ' + LIMRad_file_extension + ' and ' + mira_file_extension + ' data;  no attenuation correction',
                  fontweight='bold')  # place in title needs to be adjusted
 
 
 
     plt.tight_layout(rect=[0, 0.01, 1, 0.955])
-    plt.subplots_adjust(hspace=0.6)
+    plt.subplots_adjust(left=None, bottom=0.1, right=None, top=None, wspace=None, hspace=0.65)
 
     file = date_str + '_MIRA_LIMRad94_interp-avgheight_comp.png'
     print('    Save Figure to File :: ' + file + '\n')
