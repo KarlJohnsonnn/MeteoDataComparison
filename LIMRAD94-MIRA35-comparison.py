@@ -22,6 +22,7 @@ import glob
 import os
 
 import sys
+import warnings
 
 import time
 
@@ -37,8 +38,6 @@ import time
 #        #######   ######  ######## ##     ##    #### ##    ## ##         #######     ##
 #
 ##################################################################################################
-import warnings
-warnings.filterwarnings("ignore")
 
 # Logicals for different tasks
 pts = True # print to screen
@@ -56,23 +55,32 @@ mira_file_extension = '*.mmclx'
 #constants
 chirpTable_min_height = 0.1 # (km)
 
-## cirrus
-#hmin = 8.50 #(km)  - lower y-axis limit
-#hmax = 10.0 #(km) - upper y-axis limit, highest range gate may be higher
-#comp_date     = '180728'     # in YYMMDD
-#comp_time_int = '0740-0810'  # in HHMM-HHMM
+# gather arguments
+if len(sys.argv) == 6:
 
-##cummulis
-#hmin = 4.50 #(km)  - lower y-axis limit
-#hmax = 12.0 #(km) - upper y-axis limit, highest range gate may be higher
-#comp_date     = '180802'     # in YYMMDD
-#comp_time_int = '0200-1300'  # in HHMM-HHMM
+    hmin, hmax = float(sys.argv[1]), float(sys.argv[2])
+    comp_date  = str(sys.argv[3])
+    comp_time_int = str(sys.argv[4])+'-'+str(sys.argv[5])
 
-##nimbus
-hmin = 0.0 #(km)  - lower y-axis limit
-hmax = 4.50 #(km) - upper y-axis limit, highest range gate may be higher
-comp_date     = '180805'     # in YYMMDD
-comp_time_int = '0510-0620'  # in HHMM-HHMM
+else:
+
+    ## cirrus
+    hmin = 8.50 #(km)  - lower y-axis limit
+    hmax = 10.0 #(km) - upper y-axis limit, highest range gate may be higher
+    comp_date     = '180728'     # in YYMMDD
+    comp_time_int = '0740-0810'  # in HHMM-HHMM
+
+    ##cummulis
+    #hmin = 4.50 #(km)  - lower y-axis limit
+    #hmax = 12.0 #(km) - upper y-axis limit, highest range gate may be higher
+    #comp_date     = '180802'     # in YYMMDD
+    #comp_time_int = '0200-1300'  # in HHMM-HHMM
+
+    ##nimbus
+    #hmin = 0.0 #(km)  - lower y-axis limit
+    #hmax = 4.50 #(km) - upper y-axis limit, highest range gate may be higher
+    #comp_date     = '180805'     # in YYMMDD
+    #comp_time_int = '0510-0620'  # in HHMM-HHMM
 
 
 
@@ -851,14 +859,13 @@ print('')
 print('')
 
 
-# calculate the time in decimal hours
+warnings.filterwarnings("ignore")
 
+# calculate the time in decimal hours
 comp_hours    = [int(comp_time_int[0:2]) , int(comp_time_int[5:7])]
 comp_minutes  = [int(comp_time_int[2:4]) , int(comp_time_int[7:9])]
 
 clock_time  = np.array(comp_hours) + np.divide(comp_minutes, 60.) # [hours] + [minutes]/60#
-
-
 
 
 # -- gathering year, month, day for convertion to UTC time
@@ -1018,13 +1025,13 @@ if plot_RectBivariateSpline:
     fig, (LR_Ze_plot1,LR_Ze_plot2) = plt.subplots(nrows=2, ncols=1, figsize=(12,8))
 
 
-    plot_data_set( LR_Ze_plot1 , 'Radar reflectivity factor' ,
+    plot_data_set( LR_Ze_plot1 , 'Radar Reflectivity Factor' ,
                   time_plot_LR, LR_height, LR_Ze, vmi=-50, vma=20,
                   x_min=time_x2[0] , x_max=time_x2[-1] ,
                   y_min=hmin, y_max=hmax,
                   x_lab='', y_lab='height (km)', z_lab='dBZ')
 
-    plot_data_set(LR_Ze_plot2, 'Radar reflectivity factor',
+    plot_data_set(LR_Ze_plot2, 'Radar Reflectivity Factor',
                   time_x2, y2 , Z2 , vmi=-50 , vma=20 ,
                   x_min=time_x2[0] , x_max=time_x2[-1],
                   y_min=hmin , y_max=hmax ,
@@ -1074,12 +1081,12 @@ if plot_radar_results:
     ########################################################################################################
     ########################################################################################################
     #LR_Zelectivity plot
-    if pts: print('       -   Radar reflectivity factor   ', end='', flush=True)
+    if pts: print('       -   Radar Reflectivity Factor   ', end='', flush=True)
 
     # LIMRad reflectivity
-    LR_Ze_plot.set_title(r'\textbf{LIMRAD994')
+    LR_Ze_plot.set_title(r'\textbf{LIMRad94')
 
-    plot_data_set( LR_Ze_plot , 'Radar reflectivity factor' ,
+    plot_data_set( LR_Ze_plot , 'Radar Reflectivity Factor' ,
                    time_plot_LR , LR_height , LR_Ze , vmi=-50 , vma=20 ,
                    x_min=x_lim_left_LR , x_max=x_lim_right_LR ,
                    y_min=hmin , y_max=hmax ,
@@ -1088,11 +1095,11 @@ if plot_radar_results:
     # MIRA reflectivit
     mira_Ze_plot.set_title(r'\textbf{MIRA35}')
 
-    plot_data_set( mira_Ze_plot , 'Radar reflectivity factor' ,
+    plot_data_set( mira_Ze_plot , 'Radar Reflectivity Factor' ,
                    time_plot_mira , mira_height , mira_Ze , vmi=-50 , vma=20 ,
                    x_min=x_lim_left_mira , x_max=x_lim_right_mira ,
                    y_min=hmin , y_max=hmax ,
-                   x_lab=''   , y_lab='height (km)' , z_lab='dBZ'               )
+                   x_lab=''   , y_lab='Height (km)' , z_lab='dBZ'               )
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -1102,38 +1109,38 @@ if plot_radar_results:
     if pts: print('       -   Mean Doppler velocity   ', end='', flush=True)
 
     # LIMRad mean Doppler velocity
-    plot_data_set( LR_mdv_plot , 'Mean Doppler velocity' ,
+    plot_data_set( LR_mdv_plot , 'Mean Doppler Velocity' ,
                    time_plot_LR , LR_height , LR_mdv , vmi=-4 , vma=2 ,
                    x_min=x_lim_left_LR , x_max=x_lim_right_LR ,
                    y_min=hmin , y_max=hmax ,
-                   x_lab=''   , y_lab='height (km)' , z_lab='m/s'       )
+                   x_lab=''   , y_lab='Height (km)' , z_lab='m/s'       )
 
     # MIRA mean Doppler velocity
-    plot_data_set( mira_mdv_plot , 'Mean Doppler velocity' ,
+    plot_data_set( mira_mdv_plot , 'Mean Doppler Velocity' ,
                    time_plot_mira , mira_height , mira_mdv , vmi=-4 , vma=2 ,
                    x_min=x_lim_left_mira , x_max=x_lim_right_mira ,
                    y_min=hmin , y_max=hmax ,
-                   x_lab=''   , y_lab='height (km)' , z_lab='m/s'             )
+                   x_lab=''   , y_lab='Height (km)' , z_lab='m/s'             )
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
     ########################################################################################################
     #spectral width plot
-    if pts: print('       -   Spectral width   ', end='', flush=True)
+    if pts: print('       -   Spectral Width   ', end='', flush=True)
 
     # LIMRad spectral width
-    plot_data_set( LR_sw_plot , 'Spectral width' ,
+    plot_data_set( LR_sw_plot , 'Spectral Width' ,
                    time_plot_LR , LR_height , LR_sw , vmi=10**(-1.5) , vma=10**0.5 ,
                    x_min=x_lim_left_LR , x_max=x_lim_right_LR ,
                    y_min=hmin , y_max=hmax ,
-                   x_lab='Time (UTC)' , y_lab='height (km)' , z_lab='m/s'            )
+                   x_lab='Time (UTC)' , y_lab='Height (km)' , z_lab='m/s'            )
 
     # MIRA spectral width
-    plot_data_set( mira_sw_plot , 'Spectral width' ,
+    plot_data_set( mira_sw_plot , 'Spectral Width' ,
                    time_plot_mira , mira_height , mira_sw , vmi=10**(-1.5) , vma=10**0.5 ,
                    x_min=x_lim_left_mira , x_max=x_lim_right_mira ,
                    y_min=hmin , y_max=hmax ,
-                   x_lab='Time (UTC)' , y_lab='height (km)' , z_lab='m/s'                  )
+                   x_lab='Time (UTC)' , y_lab='Height (km)' , z_lab='m/s'                  )
 
     if pts: print('\u2713\n')  # #print checkmark (✓) on screen
 
@@ -1142,7 +1149,7 @@ if plot_radar_results:
     # Save figure to file
     date_str = str(plotyear)+str(plotmonth).zfill(2)+str(plotday).zfill(2)
     first_line  = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
-    second_line = r'from '+str(time_int[0])+' (UTC)  to  '+str(time_int[3])+' (UTC)'
+    second_line = r'from: '+str(time_int[0])+' (UTC)  to:  '+str(time_int[3])+' (UTC),'
     third_line  = r'using: ' + LIMRad_file_extension + ' and ' + mira_file_extension + ' data;  no attenuation correction'
 
     file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}\n' + r'\textbf{' + third_line + '}'
@@ -1196,12 +1203,12 @@ if plot_comparisons:
     ################################################################################################################
     #
     # PLOT LIMRAD and MIRA Reflectivity (Ze) DATASET
-    if pts: print('       -   Radar reflectivity factor   ', end='', flush=True)
+    if pts: print('       -   Radar Reflectivity Factor   ', end='', flush=True)
 
     # LIMRad reflectivity
-    LR_Ze_plot.set_title(r'\textbf{LIMRAD94}')
+    LR_Ze_plot.set_title(r'\textbf{LIMRad94}')
 
-    plot_data_set( LR_Ze_plot , 'Radar reflectivity factor' ,
+    plot_data_set( LR_Ze_plot , 'Radar Reflectivity Factor' ,
                    time_plot_LR , LR_height , LR_Ze , vmi=-50 , vma=20 ,
                    x_min=x_lim_left_time , x_max=x_lim_right_time ,
                    y_min=hmin , y_max=hmax ,
@@ -1210,7 +1217,7 @@ if plot_comparisons:
     # MIRA reflectivit
     mira_Ze_plot.set_title(r'\textbf{MIRA35}')
 
-    plot_data_set( mira_Ze_plot , 'Radar reflectivity factor' ,
+    plot_data_set( mira_Ze_plot , 'Radar Reflectivity Factor' ,
                    time_plot_mira , mira_height , mira_Ze , vmi=-50 , vma=20 ,
                    x_min=x_lim_left_time , x_max=x_lim_right_time ,
                    y_min=hmin , y_max=hmax ,
@@ -1221,15 +1228,15 @@ if plot_comparisons:
     ################################################################################################################
     #
     # comparsion of Radar Reflectivities LIMRAD-MIRA
-    if pts: print('       -   comp. Radar reflectivity factor   ', end='', flush=True)
+    if pts: print('       -   comp. Radar Reflectivity Factor   ', end='', flush=True)
 
     x_lim_left_Ze  = min([LR_timeavg_Ze.min(),mira_timeavg_Ze.min()])
     x_lim_right_Ze = max([LR_timeavg_Ze.max(),mira_timeavg_Ze.max()])
 
 
-    Comp_avgT_Ze_plot.set_title(r'\textbf{Average over time domain}')
+    Comp_avgT_Ze_plot.set_title(r'\textbf{Time-Mean}')
 
-    plot_avg_data_set( Comp_avgT_Ze_plot , 'Radar reflectivity factor' ,
+    plot_avg_data_set( Comp_avgT_Ze_plot , 'Radar Reflectivity Factor' ,
                        LR_timeavg_Ze   , LR_height ,
                        mira_timeavg_Ze , mira_height ,
                        label1='LIMRad' , marker1='+' , label2='MIRA' ,   marker2='o' ,
@@ -1237,9 +1244,9 @@ if plot_comparisons:
                        y_min=hmin , y_max=hmax , x_lab='dBZ' , y_lab='height (km)', ax='y' )
 
 
-    Comp_avgH_Ze_plot.set_title(r'\textbf{Average over height domain}')
+    Comp_avgH_Ze_plot.set_title(r'\textbf{Height-Mean}')
 
-    plot_avg_data_set( Comp_avgH_Ze_plot , 'Radar reflectivity factor' ,
+    plot_avg_data_set( Comp_avgH_Ze_plot , 'Radar Reflectivity Factor' ,
                        time_plot_LR   , LR_heightavg_Ze ,
                        time_plot_mira , mira_heightavg_Ze ,
                        label1='LIMRad' , marker1='.' , label2='MIRA' ,   marker2='.' ,
@@ -1252,13 +1259,13 @@ if plot_comparisons:
     ################################################################################################################
     #
     # comparsion of Mean Doppler velocities LIMRAD-MIRA
-    if pts: print('       -   comp. Mean Doppler velocity   ', end='', flush=True)
+    if pts: print('       -   comp. Mean Doppler Velocity   ', end='', flush=True)
 
     x_lim_left_mdv  = min([LR_timeavg_mdv.min(),mira_timeavg_mdv.min()])
     x_lim_right_mdv = max([LR_timeavg_mdv.max(),mira_timeavg_mdv.max()])
 
 
-    plot_avg_data_set( Comp_avgT_mdv_plot , 'Doppler velocity' ,
+    plot_avg_data_set( Comp_avgT_mdv_plot , 'Doppler Velocity' ,
                        LR_timeavg_mdv   , LR_height ,
                        mira_timeavg_mdv , mira_height ,
                        label1='LIMRad' , marker1='+' , label2='MIRA' ,   marker2='o' ,
@@ -1266,7 +1273,7 @@ if plot_comparisons:
                        y_min=hmin , y_max=hmax , x_lab='m/s' , y_lab='height (km)', ax='y' )
 
 
-    plot_avg_data_set( Comp_avgH_mdv_plot , 'Doppler velocity' ,
+    plot_avg_data_set( Comp_avgH_mdv_plot , 'Doppler Velocity' ,
                        time_plot_LR   , LR_heightavg_mdv ,
                        time_plot_mira , mira_heightavg_mdv ,
                        label1='LIMRad' , marker1='.' , label2='MIRA' ,   marker2='.' ,
@@ -1279,20 +1286,20 @@ if plot_comparisons:
     ################################################################################################################
     #
     # comparsion of Spectral Width LIMRAD-MIRA
-    if pts: print('       -   comp. Spectral width   ', end='', flush=True)
+    if pts: print('       -   comp. Spectral Width   ', end='', flush=True)
 
     x_lim_left_sw  = min([LR_timeavg_sw.min(),mira_timeavg_sw.min()])
     x_lim_right_sw = max([LR_timeavg_sw.max(),mira_timeavg_sw.max()])
 
 
-    plot_avg_data_set( Comp_avgT_sw_plot , 'Spectral width' ,
+    plot_avg_data_set( Comp_avgT_sw_plot , 'Spectral Width' ,
                        LR_timeavg_sw   , LR_height ,
                        mira_timeavg_sw , mira_height ,
                        label1='LIMRad' , marker1='+' , label2='MIRA' ,   marker2='o' ,
                        x_min=x_lim_left_sw , x_max=x_lim_right_sw ,
                        y_min=hmin , y_max=hmax , x_lab='m/s' , y_lab='height (km)', ax='y' )
 
-    plot_avg_data_set( Comp_avgH_sw_plot , 'Spectral width' ,
+    plot_avg_data_set( Comp_avgH_sw_plot , 'Spectral Width' ,
                        time_plot_LR   , LR_heightavg_sw ,
                        time_plot_mira , mira_heightavg_sw ,
                        label1='LIMRad' , marker1='.' , label2='MIRA' ,   marker2='.' ,
@@ -1305,7 +1312,7 @@ if plot_comparisons:
     # Save figure to file
     date_str = str(plotyear)+str(plotmonth).zfill(2)+str(plotday).zfill(2)
     first_line  = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
-    second_line = r'from '+str(time_int[0])+' (UTC)  to  '+str(time_int[3])+' (UTC)'
+    second_line = r'from: '+str(time_int[0])+' (UTC)  to:  '+str(time_int[3])+' (UTC),'
     third_line  = r'using: ' + LIMRad_file_extension + ' and ' + mira_file_extension + ' data;  no attenuation correction'
 
     file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}\n' + r'\textbf{' + third_line + '}'
@@ -1417,7 +1424,7 @@ if plot_phase_diagram_Ze:
 
     place_statistics(interp_h_Ze_plot, stat_pos, [mean_diff,cor_coef[0,1]],'Ze')
 
-    scatter_Ze.set_title('Scatter Plotof Mean-Height\n Reflectivity ')
+    scatter_Ze.set_title('Scatter Plot of Height-Mean\n Reflectivity ')
 
     xy_min, xy_max = get_plot_ybounds(LR_ynew, mira_ynew, 7.0)
 
@@ -1453,7 +1460,7 @@ if plot_phase_diagram_Ze:
     # comparsion of Mean Doppler velocities LIMRAD-MIRA
     if pts: print('       -   Average mean doppler velocity over height domain  ', end='', flush=True)
 
-    h_mdv_plot.set_title(r' \textbf{Mean-Height Mean Doppler Velocity}''\n''Actual Dataset')
+    h_mdv_plot.set_title(r' \textbf{Height-Mean Mean Doppler Velocity}''\n''Actual Dataset')
     plot_avg_data_set( h_mdv_plot , '' ,
                        time_plot_LR   , LR_heightavg_mdv ,
                        time_plot_mira , mira_heightavg_mdv ,
@@ -1472,7 +1479,7 @@ if plot_phase_diagram_Ze:
 
 
     place_statistics(interp_h_mdv_plot,  stat_pos, [mean_diff,cor_coef[0,1]],'mdv')
-    scatter_mdv.set_title('Scatter Plotof Mean-Height\n Mean Doppler Velocity')
+    scatter_mdv.set_title('Scatter Plot of Height-Mean\n Mean Doppler Velocity')
 
     xy_min, xy_max = get_plot_ybounds(LR_ynew, mira_ynew, 0.1)
 
@@ -1507,7 +1514,7 @@ if plot_phase_diagram_Ze:
     # comparsion of spectral width LIMRAD-MIRA
     if pts: print('       -   Average spectral width over height domain  ', end='', flush=True)
 
-    h_sw_plot.set_title(r'\textbf{Mean-Height Spectral Width}''\n''Actual Dataset')
+    h_sw_plot.set_title(r'\textbf{Height-Mean Spectral Width}''\n''Actual Dataset')
 
     plot_avg_data_set( h_sw_plot , '' ,
                        time_plot_LR   , LR_heightavg_sw ,
@@ -1527,7 +1534,7 @@ if plot_phase_diagram_Ze:
 
     place_statistics(interp_h_sw_plot, stat_pos, [mean_diff,cor_coef[0,1]],'sw')
 
-    scatter_sw.set_title('Scatter Plotof Mean-Height\n Spectral Width ')
+    scatter_sw.set_title('Scatter Plot of Height-Mean\n Spectral Width ')
 
     xy_min, xy_max = get_plot_ybounds(LR_ynew, mira_ynew, 0.03)
 
@@ -1541,8 +1548,8 @@ if plot_phase_diagram_Ze:
     # Save figure to file
     date_str = str(plotyear) + str(plotmonth).zfill(2) + str(plotday).zfill(2)
     first_line  = 'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
-    second_line = ' from: ' + str(time_int[0]) + ' (UTC)  to  ' + str(time_int[3]) + ' (UTC), '
-    third_line  = 'using: ' + LIMRad_file_extension + ' and ' + mira_file_extension + ' data;  no attenuation correction'
+    second_line = ' from: ' + str(time_int[0]) + ' (UTC)  to:x  ' + str(time_int[3]) + ' (UTC), '
+    third_line  = 'using: ' + LIMRad_file_extension + ' and ' + mira_file_extension + ' data,  no attenuation correction'
 
     file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}\n' + r'\textbf{'+third_line+'}'
     plt.suptitle(file_name)  # place in title needs to be adjusted
