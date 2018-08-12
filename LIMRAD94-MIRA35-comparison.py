@@ -40,12 +40,14 @@ import time
 ##################################################################################################
 
 # Logicals for different tasks
+plot_RectBivariateSpline   = False
+plot_radar_results         = False
+plot_comparisons           = False
+plot_interpolation_scatter = False
+plot_compare_mira_mmclx    = True
+
 pts = True # print to screen
 dbg = False
-plot_RectBivariateSpline = False
-plot_radar_results       = True
-plot_comparisons         = True
-plot_phase_diagram_Ze    = True
 
 # file type
 LIMRad_file_extension = '*.LV1.NC'
@@ -55,32 +57,6 @@ mira_file_extension = '*.mmclx'
 #constants
 chirpTable_min_height = 0.1 # (km)
 
-# gather arguments
-if len(sys.argv) == 6:
-
-    hmin, hmax = float(sys.argv[1]), float(sys.argv[2])
-    comp_date  = str(sys.argv[3])
-    comp_time_int = str(sys.argv[4])+'-'+str(sys.argv[5])
-
-else:
-
-    ## cirrus
-    hmin = 8.50 #(km)  - lower y-axis limit
-    hmax = 10.0 #(km) - upper y-axis limit, highest range gate may be higher
-    comp_date     = '180728'     # in YYMMDD
-    comp_time_int = '0740-0810'  # in HHMM-HHMM
-
-    ##cummulis
-    #hmin = 4.50 #(km)  - lower y-axis limit
-    #hmax = 12.0 #(km) - upper y-axis limit, highest range gate may be higher
-    #comp_date     = '180802'     # in YYMMDD
-    #comp_time_int = '0200-1300'  # in HHMM-HHMM
-
-    ##nimbus
-    #hmin = 0.0 #(km)  - lower y-axis limit
-    #hmax = 4.50 #(km) - upper y-axis limit, highest range gate may be higher
-    #comp_date     = '180805'     # in YYMMDD
-    #comp_time_int = '0510-0620'  # in HHMM-HHMM
 
 
 
@@ -143,11 +119,11 @@ def save_log_data(filename,meth,res_interp):
     file.write('    pts = ' + str(pts) + ' # print to screen\n')
     file.write('    dbg = ' + str(dbg) + ' # debugging flag, show some parameter\n')
     file.write('    plot_RectBivariateSpline = ' + str(plot_RectBivariateSpline) + ' # bivariate interpolation plot\n')
-    file.write('    plot_phase_diagram_Ze    = ' + str(plot_phase_diagram_Ze) + ' # phase diagram of eqv. radar reflectivity\n')
+    file.write('    plot_interpolation_scatter    = ' + str(plot_interpolation_scatter) + ' # phase diagram of eqv. radar reflectivity\n')
     file.write('    plot_radar_results = ' + str(plot_radar_results) + ' # plot radar data of LIMRad and MIRA (Ze, mdv, sw)\n')
     file.write('    plot_comparisons   = ' + str(plot_comparisons) + ' # plot time/height-averaged data'+'\n'*2)
 
-    if plot_phase_diagram_Ze:
+    if plot_interpolation_scatter:
         file.write(' # phase-diagram interpolation parameter\n')
         file.write('    interpolation method = ' + meth + '\n')
         file.write('    resolution of interpolated points = ' + str(res_interp) + '\n')
@@ -155,7 +131,7 @@ def save_log_data(filename,meth,res_interp):
     file.close()
 
 
-def extract_dataset(date,time,clock,fext):
+def extract_dataset(date,time,clock,fext,kind):
     '''
     Extract data from NetCDF files
     :param date: string of desired date 'YYMMDD'
@@ -270,11 +246,18 @@ def extract_dataset(date,time,clock,fext):
         imin_h, imax_h = get_height_boundary(height,hmin*1000,hmax*1000)
         #20180728_060014.mmclx
 
+        if kind == 'cl':
+            kind1 = 'e'
+            kind2 = 'cl'
+        else:
+            kind1 =kind
+            kind2 =kind
+
         # conversion from deciaml hour to datetime
         time_samp = np.array(get_nc_data(file, 'time'))
-        Ze  = np.array(get_nc_data(file, 'Zg'))
-        mdv = np.array(get_nc_data(file, 'VELg'))
-        sw  = np.array(get_nc_data(file, 'RMSg'))
+        Ze  = np.array(get_nc_data(file, 'Z'+kind1))
+        mdv = np.array(get_nc_data(file, 'VEL'+kind))
+        sw  = np.array(get_nc_data(file, 'RMS'+kind))
 
 
         i_nc_file = 0
@@ -285,9 +268,9 @@ def extract_dataset(date,time,clock,fext):
             if pts: print("    Loading MIRA35 NC-files ({} of {})".format(i_nc_file+1,n_nc_file), end="\r")
 
             time_samp = np.append(time_samp, get_nc_data(file,'time'))
-            Ze  = np.append(Ze,  get_nc_data(file, 'Zg'),  axis=0)
-            mdv = np.append(mdv, get_nc_data(file, 'VELg'), axis=0)
-            sw  = np.append(sw,  get_nc_data(file, 'RMSg'), axis=0)
+            Ze  = np.append(Ze,  get_nc_data(file, 'Z'+kind1),  axis=0)
+            mdv = np.append(mdv, get_nc_data(file, 'VEL'+kind2), axis=0)
+            sw  = np.append(sw,  get_nc_data(file, 'RMS'+kind2), axis=0)
 
 
         time_plot = [ datetime.datetime(1970, 1, 1, 0, 0, 0)
@@ -859,6 +842,33 @@ print('')
 print('')
 
 
+# gather arguments
+if len(sys.argv) == 6:
+
+    hmin, hmax = float(sys.argv[1]), float(sys.argv[2])
+    comp_date  = str(sys.argv[3])
+    comp_time_int = str(sys.argv[4])+'-'+str(sys.argv[5])
+
+else:
+
+    ## cirrus
+    #hmin = 8.50 #(km)  - lower y-axis limit
+    #hmax = 10.0 #(km) - upper y-axis limit, highest range gate may be higher
+    #comp_date     = '180728'     # in YYMMDD
+    #comp_time_int = '0740-0810'  # in HHMM-HHMM
+
+    ##cummulis
+    #hmin = 4.50 #(km)  - lower y-axis limit
+    #hmax = 12.0 #(km) - upper y-axis limit, highest range gate may be higher
+    #comp_date     = '180802'     # in YYMMDD
+    #comp_time_int = '0200-1300'  # in HHMM-HHMM
+
+    ##nimbus
+    hmin = 0.0 #(km)  - lower y-axis limit
+    hmax = 4.50 #(km) - upper y-axis limit, highest range gate may be higher
+    comp_date     = '180805'     # in YYMMDD
+    comp_time_int = '0510-0620'  # in HHMM-HHMM
+
 warnings.filterwarnings("ignore")
 
 # calculate the time in decimal hours
@@ -901,13 +911,13 @@ time_int[2] = time_int[3] - datetime.timedelta(seconds=15)
 # LIMRad 94GHz Radar data extraction
 
 LR_time, time_plot_LR, LR_height, \
-LR_Ze,   LR_mdv,       LR_sw      = extract_dataset(comp_date, time_int, clock_time, LIMRad_file_extension)
+LR_Ze,   LR_mdv,       LR_sw      = extract_dataset(comp_date, time_int, clock_time, LIMRad_file_extension, '')
 
 
 # MIRA 35GHz Radar data extraction
 
 mira_time, time_plot_mira, mira_height, \
-mira_Ze,   mira_mdv,       mira_sw      = extract_dataset(comp_date, time_int, clock_time, mira_file_extension)
+mira_Ze,   mira_mdv,       mira_sw      = extract_dataset(comp_date, time_int, clock_time, mira_file_extension , 'g')
 
 
 print('')
@@ -1330,7 +1340,7 @@ if plot_comparisons:
 
 
 
-if plot_phase_diagram_Ze:
+if plot_interpolation_scatter:
     ########################################################################
     ### plot comparison ###
     from matplotlib import colors
@@ -1404,8 +1414,7 @@ if plot_phase_diagram_Ze:
     if pts: print('       -   Average reflectivity over height domain  ', end='', flush=True)
 
 
-    h_Ze_plot.set_title(r' \textbf{Mean-Height Reflectivity}''\n''Actual Dataset')
-
+    h_Ze_plot.set_title(r' \textbf{Mean-Height Reflectivity}')
     plot_avg_data_set( h_Ze_plot , '' ,
                        time_plot_LR   , LR_heightavg_Ze ,
                        time_plot_mira , mira_heightavg_Ze ,
@@ -1413,8 +1422,8 @@ if plot_phase_diagram_Ze:
                        x_min=time_plot_LR[0], x_max=time_plot_LR[-1],
                        y_min=y_min , y_max=y_max , x_lab='Time (UTC)' , y_lab='dBZ'  , ax='n' )
 
-    interp_h_Ze_plot.set_title('Interpolated Dataset')
 
+    interp_h_Ze_plot.set_title(r' \textbf{Mean-Height Reflectivity}')
     plot_interpol_data_set(interp_h_Ze_plot, '',
                            plot_time_xnew, LR_ynew,
                            plot_time_xnew, mira_ynew,
@@ -1460,7 +1469,9 @@ if plot_phase_diagram_Ze:
     # comparsion of Mean Doppler velocities LIMRAD-MIRA
     if pts: print('       -   Average mean doppler velocity over height domain  ', end='', flush=True)
 
-    h_mdv_plot.set_title(r' \textbf{Height-Mean Mean Doppler Velocity}''\n''Actual Dataset')
+    place_text(h_mdv_plot, [-1.1, 1.2], r'\LARGE{\textbf{Actual Dataset}}')
+
+    h_mdv_plot.set_title(r' \textbf{Height-Mean Mean Doppler Velocity}')
     plot_avg_data_set( h_mdv_plot , '' ,
                        time_plot_LR   , LR_heightavg_mdv ,
                        time_plot_mira , mira_heightavg_mdv ,
@@ -1468,8 +1479,9 @@ if plot_phase_diagram_Ze:
                        x_min=time_plot_LR[0], x_max=time_plot_LR[-1],
                        y_min=y_min , y_max=y_max , x_lab='Time (UTC)' , y_lab='m/s'  , ax='n' )
 
-    interp_h_mdv_plot.set_title('Interpolated Dataset', fontweight = 'bold')
+    place_text(interp_h_mdv_plot, [-1.1, 1.2], r'\LARGE{\textbf{Interpolated Dataset}}')
 
+    interp_h_mdv_plot.set_title(r' \textbf{Height-Mean Mean Doppler Velocity}')
     plot_interpol_data_set(interp_h_mdv_plot, '',
                            plot_time_xnew, LR_ynew,
                            plot_time_xnew, mira_ynew,
@@ -1514,8 +1526,7 @@ if plot_phase_diagram_Ze:
     # comparsion of spectral width LIMRAD-MIRA
     if pts: print('       -   Average spectral width over height domain  ', end='', flush=True)
 
-    h_sw_plot.set_title(r'\textbf{Height-Mean Spectral Width}''\n''Actual Dataset')
-
+    h_sw_plot.set_title(r'\textbf{Height-Mean Spectral Width}')
     plot_avg_data_set( h_sw_plot , '' ,
                        time_plot_LR   , LR_heightavg_sw ,
                        time_plot_mira , mira_heightavg_sw ,
@@ -1523,8 +1534,8 @@ if plot_phase_diagram_Ze:
                        x_min=time_plot_LR[0], x_max=time_plot_LR[-1],
                        y_min=y_min , y_max=y_max , x_lab='Time (UTC)' , y_lab='m/s' , ax='n' )
 
-    interp_h_sw_plot.set_title('Interpolated Dataset', fontweight = 'bold')
 
+    interp_h_sw_plot.set_title(r'\textbf{Height-Mean Spectral Width}')
     plot_interpol_data_set(interp_h_sw_plot, '',
                            plot_time_xnew, LR_ynew,
                            plot_time_xnew, mira_ynew,
@@ -1554,8 +1565,8 @@ if plot_phase_diagram_Ze:
     file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}\n' + r'\textbf{'+third_line+'}'
     plt.suptitle(file_name)  # place in title needs to be adjusted
 
-    plt.tight_layout(rect=[0, 0.01, 1, 0.93])
-    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.65)
+    plt.tight_layout(rect=[0, 0.01, 1, 0.91])
+    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.55)
 
     file = date_str + '_MIRA_LIMRad94_interp-avgheight_comp.png'
     print('    Save Figure to File :: ' + file + '\n')
@@ -1563,6 +1574,157 @@ if plot_phase_diagram_Ze:
     plt.close()
 
     save_log_data(file[:-5], interp_meth, res_interp)
+
+
+if plot_compare_mira_mmclx:
+    print('    Generate subplots:\n')
+
+    font = FontProperties()
+
+    fig = plt.figure(figsize=(16, 9))
+
+    Z_plot  = plt.subplot2grid((3, 3), (0, 0))
+    Ze_plot = plt.subplot2grid((3, 3), (0, 1))  # , rowspan=2)
+    Zg_plot = plt.subplot2grid((3, 3), (0, 2))  # , rowspan=2)
+    VEL_plot   = plt.subplot2grid((3, 3), (1, 0))  # , colspan=2)
+    VELcl_plot = plt.subplot2grid((3, 3), (1, 1))  # , rowspan=2)
+    VELg_plot  = plt.subplot2grid((3, 3), (1, 2))  # , rowspan=2)
+    RMS_plot   = plt.subplot2grid((3, 3), (2, 0))  # , colspan=2, rowspan=2)
+    RMScl_plot = plt.subplot2grid((3, 3), (2, 1))  # , rowspan=2)
+    RMSg_plot  = plt.subplot2grid((3, 3), (2, 2))  # , rowspan=2)
+
+    # MIRA 35GHz Radar data extraction
+
+
+    mira_time, time_plot_mira, mira_height, \
+    mira_Z, mira_VEL, mira_RMS = extract_dataset(comp_date, time_int, clock_time, mira_file_extension, '')
+    mira_time, time_plot_mira, mira_height, \
+    mira_Ze, mira_VELcl, mira_RMScl = extract_dataset(comp_date, time_int, clock_time, mira_file_extension, 'cl')
+    mira_time, time_plot_mira, mira_height, \
+    mira_Zg, mira_VELg, mira_RMSg = extract_dataset(comp_date, time_int, clock_time, mira_file_extension, 'g')
+
+    height_describtion = [0.0, 1.3]
+    place_text(Z_plot, height_describtion,   'Z ... Radar Reflectivity Factor Z of Hydrometeors (Mie-corrected)\n '
+                                             'VEL ... Doppler Velocity VEL\n '
+                                             'RMS ... Peak Width RMS' )
+    place_text(Ze_plot, height_describtion,  'Ze ... Equivalent Radar Reflectivity Factor Ze of Hydrometeors\n' 
+                                             'VELcl ... Doppler Velocity VELcl\n'
+                                             'RMScl ... Peak Width RMScl')
+    place_text(Zg_plot, height_describtion,  'Zg ... Equivalent Radar Reflectivity Factor Ze of all Targets\n'
+                                             'VELg ... Doppler Velocity VELg\n'
+                                             'RMSg ... Peak Width RMSg')
+    ################################################################################################################
+    #
+    # comparsion of Radar Reflectivities LIMRAD-MIRA
+    if pts: print('       -   MIRA35 Reflectivity (Z)  ', end='', flush=True)
+    x_lim = [time_plot_mira[0], time_plot_mira[-1]]
+
+    Z_plot.set_title(r'\textbf{Radar Reflectivity Factor (Z)}')
+    plot_data_set( Z_plot , '' ,
+                   time_plot_mira , mira_height , mira_Z , vmi=-70 , vma=30 ,
+                   x_min=x_lim[0] , x_max=x_lim[-1]  ,
+                   y_min=hmin ,     y_max=hmax ,
+                   x_lab='Time (UTC)'   ,     y_lab='height (km)' , z_lab='dBZ' )
+
+    Ze_plot.set_title(r'\textbf{Radar Reflectivity Factor (Ze)}')
+    plot_data_set( Ze_plot , '' ,
+                   time_plot_mira , mira_height , mira_Ze , vmi=-70 , vma=30 ,
+                   x_min=x_lim[0] , x_max=x_lim[-1]  ,
+                   y_min=hmin ,     y_max=hmax ,
+                   x_lab='Time (UTC)'   ,     y_lab='height (km)' , z_lab='dBZ' )
+
+    Zg_plot.set_title(r'\textbf{Radar Reflectivity Factor (Zg)}')
+    plot_data_set( Zg_plot , '' ,
+                   time_plot_mira , mira_height , mira_Zg , vmi=-70 , vma=30 ,
+                   x_min=x_lim[0] , x_max=x_lim[-1]  ,
+                   y_min=hmin ,     y_max=hmax ,
+                   x_lab='Time (UTC)'   ,     y_lab='height (km)' , z_lab='dBZ' )
+
+    if pts: print('\u2713')  # #print checkmark (✓) on screen)
+
+
+    ################################################################################################################
+    #
+    # comparsion of Radar Reflectivities LIMRAD-MIRA
+    if pts: print('       -   MIRA35 Mean Doppler Velocity (VEL)  ', end='', flush=True)
+    x_lim = [time_plot_mira[0], time_plot_mira[-1]]
+
+    VEL_plot.set_title(r'\textbf{Mean Doppler Velocity (VEL)}')
+    plot_data_set( VEL_plot , '' ,
+                   time_plot_mira , mira_height , mira_VEL , vmi=-8 , vma=8 ,
+                   x_min=x_lim[0] , x_max=x_lim[-1]  ,
+                   y_min=hmin ,     y_max=hmax ,
+                   x_lab='Time (UTC)'   ,     y_lab='height (km)' , z_lab='m/s' )
+
+    VELcl_plot.set_title(r'\textbf{Mean Doppler Velocity (VELcl)}')
+    plot_data_set( VELcl_plot , '' ,
+                   time_plot_mira , mira_height , mira_VELcl , vmi=-8 , vma=8 ,
+                   x_min=x_lim[0] , x_max=x_lim[-1]  ,
+                   y_min=hmin ,     y_max=hmax ,
+                   x_lab='Time (UTC)'   ,     y_lab='height (km)' , z_lab='m/s' )
+
+    VELg_plot.set_title(r'\textbf{Mean Doppler Velocity (VELg)}')
+    plot_data_set( VELg_plot , '' ,
+                   time_plot_mira , mira_height , mira_VELg , vmi=-8 , vma=8 ,
+                   x_min=x_lim[0] , x_max=x_lim[-1]  ,
+                   y_min=hmin ,     y_max=hmax ,
+                   x_lab='Time (UTC)'   ,     y_lab='height (km)' , z_lab='m/s' )
+
+    if pts: print('\u2713')  # #print checkmark (✓) on screen)
+
+
+
+    ################################################################################################################
+    #
+    # comparsion of Radar Reflectivities LIMRAD-MIRA
+    if pts: print('       -   MIRA35 Spectral Width (RMS)  ', end='', flush=True)
+    x_lim = [time_plot_mira[0], time_plot_mira[-1]]
+
+    RMS_plot.set_title(r'\textbf{Spectral Width (RMS)}')
+    plot_data_set( RMS_plot , '' ,
+                   time_plot_mira , mira_height , mira_RMS , vmi=0 , vma=3 ,
+                   x_min=x_lim[0] , x_max=x_lim[-1]  ,
+                   y_min=hmin ,     y_max=hmax ,
+                   x_lab='Time (UTC)'   ,     y_lab='height (km)' , z_lab='m/s' )
+
+    RMScl_plot.set_title(r'\textbf{Spectral Width (RMScl)}')
+    plot_data_set( RMScl_plot , '' ,
+                   time_plot_mira , mira_height , mira_RMScl ,vmi=0 , vma=3 ,
+                   x_min=x_lim[0] , x_max=x_lim[-1]  ,
+                   y_min=hmin ,     y_max=hmax ,
+                   x_lab='Time (UTC)'   ,     y_lab='height (km)' , z_lab='m/s' )
+
+    RMSg_plot.set_title(r'\textbf{Spectral Width (RMSg)}')
+    plot_data_set( RMSg_plot , '' ,
+                   time_plot_mira , mira_height , mira_RMSg , vmi=0 , vma=3 ,
+                   x_min=x_lim[0] , x_max=x_lim[-1]  ,
+                   y_min=hmin ,     y_max=hmax ,
+                   x_lab='Time (UTC)'   ,     y_lab='height (km)' , z_lab='m/s' )
+
+    if pts: print('\u2713\n')  # #print checkmark (✓) on screen)
+
+
+    # Save figure to file
+    date_str = str(plotyear) + str(plotmonth).zfill(2) + str(plotday).zfill(2)
+    first_line  = 'Comparison of different MIRA 35GHz Radar Data Modes, Leipzig, Germany,'
+    second_line = ' from: ' + str(time_int[0]) + ' (UTC)  to:  ' + str(time_int[3]) + ' (UTC), '
+    third_line  = 'using: ' + mira_file_extension + ' data,  no attenuation correction'
+
+    file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}\n' + r'\textbf{'+third_line+'}'
+    plt.suptitle(file_name)  # place in title needs to be adjusted
+
+    plt.tight_layout(rect=[0, 0.01, 1, 0.825])
+    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.5)
+
+    file = date_str + '_MIRA_compare_modes.png'
+    print('    Save Figure to File :: ' + file + '\n')
+    fig.savefig(file, dpi=300)
+
+    plt.close()
+
+
+    if pts: print('\u2713')  # #print checkmark (✓) on screen)
+
 
 
 
