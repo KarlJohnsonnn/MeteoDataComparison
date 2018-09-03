@@ -49,7 +49,8 @@ Program Settings:
     - dbg = False                         # if True some more information is printed to screen (array dimensions, ...)
 
     - LIMRad_file_extension = '*.LV1.NC'  # this is a fixed parameter, do not alter
-    - mira_file_extension   = '*.mmclx'   # either:  '*mira.nc'   processed data, or:  '*.mmclx'   processed and unprocessed data
+    - mira_file_extension   = '*mira.nc'  # processed data of MIRA35 GHz Radar
+    - mmclx_file_extension  = '*.mmclx'   # contains processed and unprocessed of MIRA35 GHz Radar
 
     - chirpTable_min_height = 0.1         # minimum height of the first chirp sequence of LIMRad94 in [km], will be automated in the future
   
