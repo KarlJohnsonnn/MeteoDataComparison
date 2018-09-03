@@ -1,4 +1,4 @@
-# LIMRAD94-MIRA35-comparison.py
+# Main-Comparison.py
 This is version 0.1 of "LIMRAD94-MIRA35-comparison" and has the perpous of the quick investigation of differnces between the RPG 94GHz FMCW Radar 'LIMRad94' and the Metek 35GHz Pulse Radar 'MIRA35'.
 
 The analysis is done by comparing three main radar moments: 
@@ -28,7 +28,7 @@ Execution:
     - from ........ (integer) starting time of the desired date in UTC, format: HHMM, e.g.: 0710
     - to .......... (integer) end time of the desired date in UTC, format: HHMM, e.g.: 1240
 
-  $ python3 LIMRAD94-MIRA35-comparison.py minheight maxheight date from to
+  $ python Main-Comparison.py minheight maxheight date from to
 
 
 Program Settings:
