@@ -8,7 +8,6 @@ import glob
 import os
 
 import sys
-import warnings
 
 import time
 
@@ -353,11 +352,14 @@ def extract_dataset(date,time,clock,h_bounds,fext,kind):
     else:
         sys.exit('Error!  Unknown data file extension.')
 
+    # convert datetime to unix time (seconds since 1.1.1970)
+    time_samp = [(ts.replace(tzinfo=timezone.utc).timestamp()) for ts in time_plot]
+
     return time_samp, time_plot, height, Ze, mdv, sw
 
 
 
-def save_log_data(filename,meth,res_interp):
+def save_log_data(filename,meth,res_interp,hmin,hmax,comp_date,comp_time_int):
     file = open(filename + '.log', 'w')
 
     file.write('')
@@ -373,14 +375,16 @@ def save_log_data(filename,meth,res_interp):
     file.write(' # Logicals \n')
     file.write('    pts = ' + str(pts) + ' # print to screen\n')
     file.write('    dbg = ' + str(dbg) + ' # debugging flag, show some parameter\n')
-    file.write('    plot_RectBivariateSpline = ' + str(plot_RectBivariateSpline) + ' # bivariate interpolation plot\n')
-    file.write('    plot_interpolation_scatter    = ' + str(plot_interpolation_scatter) + ' # phase diagram of eqv. radar reflectivity\n')
+    file.write('    plot_RectBivariateSpline   = ' + str(plot_RectBivariateSpline) + ' # bivariate interpolation plot\n')
+    file.write('    plot_interpolation_scatter = ' + str(plot_interpolation_scatter) + ' # phase diagram of eqv. radar reflectivity\n')
+    file.write('    plot_compare_mira_mmclx    = ' + str(plot_compare_mira_mmclx) + ' # plot Ze, mdv, sw of LIMRad and MIRA (all targes, only hydrometeors)\n')
     file.write('    plot_radar_results = ' + str(plot_radar_results) + ' # plot radar data of LIMRad and MIRA (Ze, mdv, sw)\n')
-    file.write('    plot_comparisons   = ' + str(plot_comparisons) + ' # plot time/height-averaged data'+'\n'*2)
+    file.write('    plot_comparisons   = ' + str(plot_comparisons) + ' # plot time/height-averaged data\n')
+    file.write('    plot_interp2d      = ' + str(plot_interp2d) + ' # plot 2D interpolation; LIMRad data onto MIRA grid and vice versa'+'\n'*2)
 
     if plot_interpolation_scatter:
         file.write(' # phase-diagram interpolation parameter\n')
         file.write('    interpolation method = ' + meth + '\n')
-        file.write('    resolution of interpolated points = ' + str(res_interp) + '\n')
+        #file.write('    resolution of interpolated points = ' + str(res_interp) + '\n')
 
     file.close()

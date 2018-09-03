@@ -3,7 +3,7 @@ import numpy as np
 
 import netCDF4
 
-from IO_Mod        import extract_dataset
+from IO_Mod        import *
 from Parameter_Mod import *
 from Graphics_Mod  import *
 
@@ -19,7 +19,6 @@ import glob, os, sys, warnings, time
 
 import pandas as pd
 from scipy import interpolate
-from scipy.interpolate import RectBivariateSpline
 
 
 ##################################################################################################
@@ -75,10 +74,11 @@ def correlation(v1,v2):
 
     return np.ma.masked_invalid(cor_coef)
 
-def lookupNearest(x0, y0):
-   xi = numpy.abs(x-x0).argmin()
-   yi = numpy.abs(y-y0).argmin()
-   return data[yi,xi]
+def lookupNearest(x0, y0, x, y, data):
+
+    xi = numpy.abs(x-x0).argmin()
+    yi = numpy.abs(y-y0).argmin()
+    return data[yi,xi]
 
 
 def np_NaN(n,m):
@@ -100,7 +100,7 @@ def interpolate_data(x,y,xnew,method):
 
     return ynew
 
-def Interpolate_2D(x1,y1,z1,x2,y2):
+def Interpolate_2D(x1,y1,z1,x2,y2,method):
     len_x1 = len(x1);   len_x2 = len(x2)
     len_y1 = len(y1);   len_y2 = len(y2)
 
@@ -271,9 +271,6 @@ mira_time, UTC_time_mira, mira_height, \
 mira_Zg, mira_VELg, mira_RMSg        = extract_dataset(comp_date, time_int, clock_time, height, '*.mmclx', 'g')
 
 
-# convert datetime to unix time (seconds since 1.1.1970)
-LR_unix_t   = [(ts.replace(tzinfo=timezone.utc).timestamp()) for ts in UTC_time_LR]
-mira_unix_t = [(ts.replace(tzinfo=timezone.utc).timestamp()) for ts in UTC_time_mira]
 
 print('')
 
@@ -324,9 +321,10 @@ if plot_interp2d:
     npts =  500
     stat_pos    = [0.2 , -0.4]
 
-    LRtoMIRA_Ze = Interpolate_2D(LR_unix_t,   LR_height,   LR_Ze,   mira_unix_t, mira_height, method)
-    MIRAtoLR_Zg = Interpolate_2D(mira_unix_t, mira_height, mira_Ze, LR_unix_t,   LR_height,   method)
+    LRtoMIRA_Ze = Interpolate_2D(LR_time,   LR_height,   LR_Ze,   mira_time, mira_height, method)
+    MIRAtoLR_Zg = Interpolate_2D(mira_time, mira_height, mira_Ze, LR_time,   LR_height,   method)
 
+    # converting back to linear untis for mean difference calculation
     LR_Ze_mm6m3_I   = np.power(np.divide(LRtoMIRA_Ze,10.0), 10.0)
     LR_Ze_mm6m3     = np.power(np.divide(LR_Ze,10.0), 10.0)
     mira_Zg_mm6m3_I = np.power(np.divide(MIRAtoLR_Zg, 10.0), 10.0)
@@ -335,10 +333,11 @@ if plot_interp2d:
     #mean_diff_LRtoM = np.mean(LRtoMIRA_Ze - mira_Zg)
     #mean_diff_MtoLR = np.mean(LR_Ze - MIRAtoLR_Zg)
 
+    # display mean difference in dBZ again
     mean_diff_LRtoM = 10*np.log10( np.mean(mira_Zg_mm6m3 - LR_Ze_mm6m3_I) )
     mean_diff_MtoLR = 10*np.log10( np.mean(mira_Zg_mm6m3_I - LR_Ze_mm6m3) )
 
-
+    # correlation is calculated with logarithmic units
     correlation_LR_MIRA = correlation(LRtoMIRA_Ze, mira_Zg)
     correlation_MIRA_LR = correlation(LR_Ze,   MIRAtoLR_Zg)
 
@@ -478,7 +477,7 @@ if plot_RectBivariateSpline:
     Z = LR_Ze[:,:]
 
     #grid the data
-    interp_spline = RectBivariateSpline(x, y ,Z)
+    interp_spline = interpolate.RectBivariateSpline(x, y ,Z)
 
     # define grid
     x2 = np.arange( LR_time[0], LR_time[-1], 1 )
@@ -813,15 +812,9 @@ if plot_interpolation_scatter:
     stat_pos    = [0.25 , -0.3]
 
 
-    # preparations for interpolation plots
-
-    LR_unix_t   = [(ts.replace(tzinfo=timezone.utc).timestamp()) for ts in UTC_time_LR]
-    mira_unix_t = [(ts.replace(tzinfo=timezone.utc).timestamp()) for ts in UTC_time_mira]
-
-
     # create an array with evenly spaced gridsize
-    xnew = np.arange(max(LR_unix_t[0], mira_unix_t[0]) ,
-                     min(LR_unix_t[-1],mira_unix_t[-1]),
+    xnew = np.arange(max(LR_time[0], mira_time[0]) ,
+                     min(LR_time[-1],mira_time[-1]),
                      res_interp)
 
 
@@ -831,7 +824,7 @@ if plot_interpolation_scatter:
 
 
     # what do you want to interpolate
-    LR_x   = LR_unix_t;        mira_x = mira_unix_t
+    LR_x   = LR_time;        mira_x = mira_time
     LR_y   = LR_heightavg_Ze;  mira_y = mira_heightavg_Ze
 
 
@@ -850,9 +843,6 @@ if plot_interpolation_scatter:
     print('    Generate subplots:\n')
 
     font = FontProperties()
-    #fig, ((h_Ze_plot,  interp_h_Ze_plot,  scatter_Ze),
-    #      (h_mdv_plot, interp_h_mdv_plot, scatter_mdv),
-    #      (h_sw_plot,  interp_h_sw_plot,  scatter_sw)) = plt.subplots(3,3,figsize=(16,12))
 
     fig = plt.figure(figsize=(16,12))
 
@@ -1031,7 +1021,6 @@ if plot_interpolation_scatter:
     fig.savefig(file, dpi=dpi_val)
     plt.close()
 
-    save_log_data(file[:-5], interp_meth, res_interp)
 
 
 if plot_compare_mira_mmclx:
@@ -1225,4 +1214,5 @@ if plot_compare_mira_mmclx:
 
     plt.close()
 
+save_log_data(file[:-5], interp_meth, res_interp, hmin, hmax, comp_date, comp_time_int)
 print('    Elapsed Time = {0:0.3f}'.format(time.clock()-start_time),'[sec]\n')

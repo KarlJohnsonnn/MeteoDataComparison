@@ -14,3 +14,11 @@ dpi_val = 200
 LIMRad_file_extension = '*.LV1.NC'
 mira_file_extension   = '*mira.nc'
 mmclx_file_extension  = '*.mmclx'
+
+
+plot_interp2d              = False
+plot_RectBivariateSpline   = False           #interp2 testen
+plot_radar_results         = False
+plot_comparisons           = False
+plot_interpolation_scatter = False
+plot_compare_mira_mmclx    = False
