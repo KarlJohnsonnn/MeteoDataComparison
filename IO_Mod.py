@@ -69,7 +69,7 @@ def extract_dataset(date,time,clock,h_bounds,fext,kind):
     :return:
     '''
     if fext == '*mira.nc':
-        os.chdir('MIRA')  # path to data needs to be fit to the devices file structure
+        os.chdir(meteo_path+'MIRA/calibrated')  # path to data needs to be fit to the devices file structure
         ncfiles = glob.glob('20' + date + '*mira.nc')
 
         if pts: print("    Loading MIRA35 (mira.nc) NC-files ({} of {})".format(0, 1), end="\r")
@@ -126,12 +126,12 @@ def extract_dataset(date,time,clock,h_bounds,fext,kind):
         sw = np.ma.masked_invalid(sw)
         sw = np.ma.masked_less_equal(sw, -999.)
 
-        os.chdir('../')  # path to data needs to be fit to the devices file structure
+        os.chdir('../../')  # path to data needs to be fit to the devices file structure
         if pts: print("    Loading MIRA35 (mira.nc) NC-files ({} of {})".format(1, 1))
 
     elif fext == '*.mmclx':
 
-        os.chdir('MIRA')  # path to data needs to be fit to the devices file structure
+        os.chdir(meteo_path+'MIRA/mmclx')  # path to data needs to be fit to the devices file structure
 
         #ncfiles = glob.glob('20' + date + '*.mmclx')     # 20180727_000013.mmclx
 
@@ -150,7 +150,7 @@ def extract_dataset(date,time,clock,h_bounds,fext,kind):
             ncfiles.append(file_name[2:-2])
 
         if file_name[2:-2] == '':
-            print('   Error!  File: "'+file+'" not found --> exit!')
+            print('   Error!  File not found --> exit!')
             print('   Check LIMRAD folder!')
             exit(0)
 
@@ -223,12 +223,12 @@ def extract_dataset(date,time,clock,h_bounds,fext,kind):
         sw  = np.ma.masked_invalid(sw).T
 
 
-        os.chdir('../')  # path to data needs to be fit to the devices file structure
+        os.chdir('../../')  # path to data needs to be fit to the devices file structure
 
 
     elif fext == '*.LV1.NC':
 
-        os.chdir('LIMRAD')  # path to data needs to be fit to the devices file structure
+        os.chdir(meteo_path+'LIMRad94/')  # path to data needs to be fit to the devices file structure
 
         first_file = int(clock[0])
         if clock[1]-int(clock[1]) > 0.0:
@@ -359,7 +359,7 @@ def extract_dataset(date,time,clock,h_bounds,fext,kind):
 
 
 
-def save_log_data(filename,meth,res_interp,hmin,hmax,comp_date,comp_time_int):
+def save_log_data(filename,meth,hmin,hmax,comp_date,comp_time_int):
     file = open(filename + '.log', 'w')
 
     file.write('')

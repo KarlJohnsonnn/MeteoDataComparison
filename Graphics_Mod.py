@@ -50,9 +50,9 @@ def plot_correlation_matrix(axh,text,z,vmi,vma,x_lab,y_lab,z_lab):
     axh.grid(linestyle=':')
     divider1 = make_axes_locatable(axh)
     cax0 = divider1.append_axes("right", size="3%", pad=0.1)
-    cbar= fig.colorbar(cp, cax=cax0, ax=axh)
-    cbar.set_label(z_lab)
-    axh.axes.tick_params(axis='both', direction='inout', length=10, width=1.5)
+    #cbar= fig.colorbar(cp, cax=cax0, ax=axh)
+    #cbar.set_label(z_lab)
+    Axh.axes.tick_params(axis='both', direction='inout', length=10, width=1.5)
 
     # exceptions
     #axh.axes.xaxis.set_ticklabels([]) if x_lab == '' else axh.set_xlabel(x_lab)
@@ -149,7 +149,7 @@ def plot_interpol_data_set(axh,text,x1,y1,x2,y2,label1,marker1,label2,marker2,x_
     axh.legend(loc="upper right")
 
     # exceptions
-    if  not (y_min==y_max):
+    if not (y_max == y_min):
         axh.set_ylim( bottom = y_min, top = y_max )
     if x_lab == 'Time (UTC)':
         axh.xaxis.set_major_formatter(mpl.dates.DateFormatter('%H:%M'))
@@ -172,7 +172,7 @@ def plot_scatter(axh,text,x,y,marker,x_min,x_max,y_min,y_max,x_lab,y_lab):
     axh.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.2f'))
     axh.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.2f'))
     axh.grid(linestyle=':')
-    axh.legend(loc="upper right")
+    #axh.legend(loc="upper right")
     axh.set_aspect('equal', 'box')
 
     # plot 1:1 line

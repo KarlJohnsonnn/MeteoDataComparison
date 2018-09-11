@@ -1,4 +1,6 @@
 
+import numpy as np
+from Parameter_Mod import *
 
 def findBasesTops(dbz_m, range_v):
     """
@@ -116,3 +118,16 @@ def findBasesTops(dbz_m, range_v):
 
 
     return bases, tops, base_m, top_m, thickness
+
+
+
+
+def np_NaN(n, m):
+    mat = np.zeros((n, m))
+    mat[:, :] = np.nan
+    return mat
+
+def lookupNearest(x0, y0, x, y, data):
+    xi = np.abs(x - x0).argmin()
+    yi = np.abs(y - y0).argmin()
+    return data[yi, xi]

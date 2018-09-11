@@ -22,3 +22,9 @@ plot_radar_results         = False
 plot_comparisons           = False
 plot_interpolation_scatter = False
 plot_compare_mira_mmclx    = False
+
+
+# path to meteorological data
+meteo_path = '/Users/willi/MeteoData/'
+
+interp_meth = 'NearestNeighbour'
