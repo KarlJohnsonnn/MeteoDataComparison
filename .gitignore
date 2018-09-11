@@ -12,3 +12,6 @@ MIRA/**/*.png
 
 .idea/*
 
+
+__pycache__/**/*.pyc
+
