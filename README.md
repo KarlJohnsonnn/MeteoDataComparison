@@ -1,4 +1,4 @@
-# LIMRAD94-MIRA35-comparison.py
+# Main-Comparison.py
 This is version 0.1 of "LIMRAD94-MIRA35-comparison" and has the perpous of the quick investigation of differnces between the RPG 94GHz FMCW Radar 'LIMRad94' and the Metek 35GHz Pulse Radar 'MIRA35'.
 
 The analysis is done by comparing three main radar moments: 
@@ -13,7 +13,7 @@ Installation:
 
   1.  make sure to install Python 3.6 or a later verison
   
-  2.  the following packages are nessessarry ( type:  pip3 install [packagename] )
+  2.  the following packages are nessessarry ( type:  pip install [packagename] )
         - numpy
         - matplotlib
         - netCDF4
@@ -28,7 +28,7 @@ Execution:
     - from ........ (integer) starting time of the desired date in UTC, format: HHMM, e.g.: 0710
     - to .......... (integer) end time of the desired date in UTC, format: HHMM, e.g.: 1240
 
-  $ python3 LIMRAD94-MIRA35-comparison.py minheight maxheight date from to
+  $ python Main-Comparison.py minheight maxheight date from to
 
 
 Program Settings:
@@ -39,19 +39,20 @@ Program Settings:
 
   possible scenario:
 
-  plot_RectBivariateSpline   = False    # interpolates 2D radar reflectivity data (experimental)
-  plot_radar_results         = True     # plotting the radar moments (Ze,mdv,sw) of LIMRad94 and MIRA35 NetCDF data
-  plot_comparisons           = True     # computes hight and time-averaged data of LIMRad94 and MIRA35 and plots the results
-  plot_interpolation_scatter = True     # interpolating mean-height onto a uniformly spaced grid, calulation of means and correlation coefficient, scatter plot
-  plot_compare_mira_mmclx    = True     # comparision of different MIRA35 modes (considering all targets, only hydrometeors, ...)
+    - plot_RectBivariateSpline   = False    # interpolates 2D radar reflectivity data (experimental)
+    - plot_radar_results         = True     # plotting the radar moments (Ze,mdv,sw) of LIMRad94 and MIRA35 NetCDF data
+    - plot_comparisons           = True     # computes hight and time-averaged data of LIMRad94 and MIRA35 and plots the results
+    - plot_interpolation_scatter = True     # interpolating mean-height onto a uniformly spaced grid, calulation of means and correlation coefficient, scatter plot
+    - plot_compare_mira_mmclx    = True     # comparision of different MIRA35 modes (considering all targets, only hydrometeors, ...)
 
-  pts = True                          # print some information to screen (progress, file names of .png output)
-  dbg = False                         # if True some more information is printed to screen (array dimensions, ...)
+    - pts = True                          # print some information to screen (progress, file names of .png output)
+    - dbg = False                         # if True some more information is printed to screen (array dimensions, ...)
 
-  LIMRad_file_extension = '*.LV1.NC'  # this is a fixed parameter, do not alter
-  mira_file_extension   = '*.mmclx'   # either:  '*mira.nc'   processed data, or:  '*.mmclx'   processed and unprocessed data
+    - LIMRad_file_extension = '*.LV1.NC'  # this is a fixed parameter, do not alter
+    - mira_file_extension   = '*mira.nc'  # processed data of MIRA35 GHz Radar
+    - mmclx_file_extension  = '*.mmclx'   # contains processed and unprocessed of MIRA35 GHz Radar
 
-  chirpTable_min_height = 0.1         # minimum height of the first chirp sequence of LIMRad94 in [km], will be automated in the future
+    - chirpTable_min_height = 0.1         # minimum height of the first chirp sequence of LIMRad94 in [km], will be automated in the future
   
 
 
