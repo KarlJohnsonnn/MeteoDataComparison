@@ -5,7 +5,7 @@ dbg = False # debug ouput flag
 
 
 # constants
-chirpTable_min_height = 0.1 # (km)
+chirpTable_min_height = 100.0    # (m)
 
 # dots per inch parameter for .png
 dpi_val = 200
@@ -25,6 +25,8 @@ plot_compare_mira_mmclx    = False
 
 
 # path to meteorological data
-meteo_path = '/Users/willi/MeteoData/'
+meteo_path  = '/Users/willi/MeteoData/'
+LIMRad_path = '/Users/willi/MeteoData/LIMRad94'
+MIRA_path   = '/Users/willi/MeteoData/MIRA'
 
 interp_meth = 'NearestNeighbour'

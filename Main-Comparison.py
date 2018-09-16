@@ -12,6 +12,8 @@ import sys, warnings, time
 import pandas as pd
 from scipy import interpolate
 
+import NetCDF_Tool as nc
+
 ##################################################################################################
 #
 #       ##     ##  ######  ######## ########     #### ##    ## ########  ##     ## ########
@@ -78,6 +80,7 @@ def interpolate_data(x, y, xnew, method):
 
 
 def Interpolate_2D(x1, y1, z1, x2, y2, method):
+    global interp_z
     len_x1 = len(x1)
     len_x2 = len(x2)
     len_y1 = len(y1)
@@ -150,62 +153,62 @@ print('')
 if len(sys.argv) == 6:
 
     hmin, hmax = float(sys.argv[1]), float(sys.argv[2])
-    comp_date = str(sys.argv[3])
-    comp_time_int = str(sys.argv[4]) + '-' + str(sys.argv[5])
+    date = str(sys.argv[3])
+    time_intervall = str(sys.argv[4]) + '-' + str(sys.argv[5])
 
 else:
 
     ## cirrus
     #hmin = 8.50  # (km)  - lower y-axis limit
     #hmax = 10.0  # (km) - upper y-axis limit, highest range gate may be higher
-    #comp_date = '180728'  # in YYMMDD
-    #comp_time_int = '0740-0805'  # in HHMM-HHMM
+    #date = '180728'  # in YYMMDD
+    #time_intervall = '0740-0805'  # in HHMM-HHMM
 
     ##cummulis
     #hmin = 5.0  #(km)  - lower y-axis limit
     #hmax = 12.0  #(km) - upper y-axis limit, highest range gate may be higher
-    #comp_date     = '180802'     # in YYMMDD
-    #comp_time_int = '0330-1200'  # in HHMM-HHM
+    #date     = '180802'     # in YYMMDD
+    #time_intervall = '0330-1200'  # in HHMM-HHM
 
     hmin = 0.0 #(km)  - lower y-axis limit
     hmax = 12.00 #(km) - upper y-axis limit, highest range gate may be higher
-    comp_date     = '180729'     # in YYMMDD
-    comp_time_int = '2200-2359'  # in HHMM-HHMMM
+    date     = '180729'     # in YYMMDD
+    time_intervall = '2200-2359'  # in HHMM-HHMMM
 
     ##nimbus
     # hmin = 0.0 #(km)  - lower y-axis limit
     # hmax = 3.00 #(km) - upper y-axis limit, highest range gate may be higher
-    # comp_date     = '180805'     # in YYMMDD
-    # comp_time_int = '0510-0620'  # in HHMM-HHMM
+    # date     = '180805'     # in YYMMDD
+    # time_intervall = '0510-0620'  # in HHMM-HHMM
 
     # hmin = 0.0 #(km)  - lower y-axis limit
     # hmax = 3.00 #(km) - upper y-axis limit, highest range gate may be higher
-    # comp_date     = '180805'     # in YYMMDD
-    # comp_time_int = '1030-1200'  # in HHMM-HHMM
+    # date     = '180805'     # in YYMMDD
+    # time_intervall = '1030-1200'  # in HHMM-HHMM
 
     # hmin = 1.0 #(km)  - lower y-axis limit
     # hmax = 2.5 #(km) - upper y-axis limit, highest range gate may be higher
-    # comp_date     = '180805'     # in YYMMDD
-    # comp_time_int = '0700-1210'  # in HHMM-HHMM
+    # date     = '180805'     # in YYMMDD
+    # time_intervall = '0700-1210'  # in HHMM-HHMM
 
     ##nimbus
     # hmin = 0.0 #(km)  - lower y-axis limit
     # hmax = 12.00 #(km) - upper y-axis limit, highest range gate may be higher
-    # comp_date     = '180808'     # in YYMMDD
-    # comp_time_int = '1330-1700'  # in HHMM-HHMM
+    # date     = '180808'     # in YYMMDD
+    # time_intervall = '1330-1700'  # in HHMM-HHMM
 
 warnings.filterwarnings("ignore")
 
 # calculate the time in decimal hours
-comp_hours = [int(comp_time_int[0:2]), int(comp_time_int[5:7])]
-comp_minutes = [int(comp_time_int[2:4]), int(comp_time_int[7:9])]
+comp_hours = [int(time_intervall[0:2]), int(time_intervall[5:7])]
+comp_minutes = [int(time_intervall[2:4]), int(time_intervall[7:9])]
 
 clock_time = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
 
 # -- gathering year, month, day for convertion to UTC time
-plotyear = int('20' + comp_date[:2])
-plotmonth = int(comp_date[2:4])
-plotday = int(comp_date[4:6])
+plotyear = int('20' + date[:2])
+plotmonth = int(date[2:4])
+plotday = int(date[4:6])
 
 time_int = [0, 0, 0, 0]
 time_int[0] = datetime.datetime(plotyear, plotmonth, plotday,
@@ -233,20 +236,23 @@ height = [hmin, hmax]
 # ----- LIMRad 94GHz Radar data extraction
 
 LR_time, UTC_time_LR, LR_height, \
-LR_Ze, LR_mdv, LR_sw = extract_dataset(comp_date, time_int, clock_time, height, '*.LV1.NC', '')
+LR_Ze, LR_mdv, LR_sw = extract_dataset(date, time_int, clock_time, height, '*.LV1.NC', '')
+
+LR_data = nc.LIMRad94_LV1(date, time_intervall, [hmin, hmax])
+print(' huhu      ', LR_data.ncfiles)
 
 # ----- MIRA 35GHz Radar data extraction
 
 # mira.nc data file (processed data)
 mira_timeNC, UTC_time_miraNC, mira_heightNC, \
-miraNC_Z, miraNC_VEL, miraNC_RMS = extract_dataset(comp_date, time_int, clock_time, height, '*mira.nc', '')
+miraNC_Z, miraNC_VEL, miraNC_RMS = extract_dataset(date, time_int, clock_time, height, '*mira.nc', '')
 
 # .mmclx data file (hydrometeors only)
-_, _, _, mira_Ze, mira_VEL, mira_RMS = extract_dataset(comp_date, time_int, clock_time, height, '*.mmclx', '')
+_, _, _, mira_Ze, mira_VEL, mira_RMS = extract_dataset(date, time_int, clock_time, height, '*.mmclx', '')
 
 # .mmclx data file (all targets)
 mira_time, UTC_time_mira, mira_height, \
-mira_Zg, mira_VELg, mira_RMSg = extract_dataset(comp_date, time_int, clock_time, height, '*.mmclx', 'g')
+mira_Zg, mira_VELg, mira_RMSg = extract_dataset(date, time_int, clock_time, height, '*.mmclx', 'g')
 
 print('')
 
@@ -1125,5 +1131,5 @@ if plot_compare_mira_mmclx:
 
     plt.close()
 
-save_log_data(file[:-5], interp_meth, hmin, hmax, comp_date, comp_time_int)
+save_log_data(file[:-5], interp_meth, hmin, hmax, date, time_intervall)
 print('    Elapsed Time = {0:0.3f}'.format(time.clock() - start_time), '[sec]\n')
