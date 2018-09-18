@@ -1,6 +1,7 @@
 
 import numpy as np
 from Parameter_Mod import *
+import pandas as pd
 
 def findBasesTops(dbz_m, range_v):
     """
@@ -119,7 +120,9 @@ def findBasesTops(dbz_m, range_v):
 
     return bases, tops, base_m, top_m, thickness
 
-
+def dim(a):
+    if not type(a) == list:  return []
+    return [len(a)] + dim(a[0])
 
 
 def np_NaN(n, m):
@@ -131,3 +134,13 @@ def lookupNearest(x0, y0, x, y, data):
     xi = np.abs(x - x0).argmin()
     yi = np.abs(y - y0).argmin()
     return data[yi, xi]
+
+
+def correlation(v1, v2):
+    rho = np.array([[]])
+    for i in range(len(v1[0, :])):
+        df_v1 = pd.DataFrame(v1[:, i])
+        df_v2 = pd.DataFrame(v2[:, i])
+        rho = np.append(rho, df_v1.corrwith(df_v2))
+
+    return np.ma.masked_invalid(rho)
