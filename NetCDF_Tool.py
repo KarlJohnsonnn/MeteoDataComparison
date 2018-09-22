@@ -1,9 +1,9 @@
 import numpy as np
-import netCDF4, datetime, glob, os
+import netCDF4, datetime, glob, os, time
 
 from scipy         import interpolate
 from datetime      import timezone
-from Parameter_Mod import meteo_path, chirpTable_min_height, pts
+from Parameter_Mod import meteo_path, chirpTable_min_height, pts, LIMRad_path
 
 # class LIMRad94_LV1 contains the radar data for a given time intervall within one self.day
 # reflectivity is converted into log unit [dBZ], chirps and file transitions will
@@ -41,6 +41,7 @@ class LIMRad94_LV1():
         clock = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
+        self.time_int = time_int
         self.year = int('20' + date[:2])
         self.month = int(date[2:4])
         self.day = int(date[4:6])
@@ -78,10 +79,15 @@ class LIMRad94_LV1():
         # also find the resolution of each chirp and
         # calculate the vector containing the height-steps
 
-        no_c = nc_data_set.dimensions['Chirp'].size
+        self.TAlt = nc_data_set.dimensions['TAlt'].size
+        self.HAlt = nc_data_set.dimensions['HAlt'].size
+        self.no_c = nc_data_set.dimensions['Chirp'].size
+        self.Time = nc_data_set.dimensions['Time'].size
+        
 
-        self.range_gates     = np.zeros((no_c,),     dtype='int')
-        self.cum_range_gates = np.zeros((no_c + 1,), dtype='int')
+        self.range_gates = np.zeros((self.no_c,), dtype='int')
+        self.vel_gates   = np.zeros((self.no_c,), dtype='int')
+        self.cum_range_gates = np.zeros((self.no_c + 1,), dtype='int')
         self.range_res = np.array(nc_data_set.variables['RangeRes'])
         self.height    = [chirpTable_min_height]
 
@@ -91,8 +97,9 @@ class LIMRad94_LV1():
 
         self.DoppMax = np.array(nc_data_set.variables['MaxVel'][:])
 
-        for ichirp in range(0, no_c):
+        for ichirp in range(0, self.no_c):
             self.range_gates[ichirp] = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Range'].size
+            self.vel_gates[ichirp]   = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Vel'].size
             self.cum_range_gates[ichirp + 1] = self.cum_range_gates[ichirp] + self.range_gates[ichirp]
             n_height = len(self.height)
             for i in range(n_height, self.range_gates[ichirp] + n_height):
@@ -140,7 +147,6 @@ class LIMRad94_LV1():
         # gahter radar data values and stack them together
 
         Ze_chirps   = np.zeros((self.n_time, self.n_height))        # Equivalent radar reflectivity factor [mm6/m3]
-        #Ze45_chirps = np.zeros((self.n_time, self.n_height))        # Slanted equivalent radar reflectivity factor[mm6/m3] Ze=Ze45 for vertical pointing radar
         ZDR_chirps  = np.zeros((self.n_time, self.n_height))        # Differential reflectivity [dB]
         mdv_chirps  = np.zeros((self.n_time, self.n_height))        # Mean Doppler velocity [m/s]
         sw_chirps   = np.zeros((self.n_time, self.n_height))        # Spectrum width [m/s]
@@ -160,11 +166,10 @@ class LIMRad94_LV1():
             lb_t = self.cum_time_gates[i_nc_file]
             ub_t = self.cum_time_gates[i_nc_file + 1]
 
-            for ichirp in range(no_c):
+            for ichirp in range(self.no_c):
                 lb_h = self.cum_range_gates[ichirp]
                 ub_h = self.cum_range_gates[ichirp + 1]
                 Ze_chirps[lb_t:ub_t, lb_h:ub_h]   = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'ZE'])
-                #Ze45_chirps[lb_t:ub_t, lb_h:ub_h] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'ZE45'])
                 ZDR_chirps[lb_t:ub_t, lb_h:ub_h]  = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'ZDR'])
                 mdv_chirps[lb_t:ub_t, lb_h:ub_h]  = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'MeanVel'])
                 sw_chirps[lb_t:ub_t, lb_h:ub_h]   = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'SpecWidth'])
@@ -184,45 +189,36 @@ class LIMRad94_LV1():
                      + datetime.timedelta(seconds=int(time_samp[i])) for i in range(len(time_samp))]
 
         min_t, max_t = get_time_boundary(time_plot, time)
+        min_h, max_h = get_height_boundary(self.height, np.multiply(1000.0, h_bounds[:]))
 
         self.t_plt = time_plot[min_t:max_t]
         self.t_unix = [ts.replace(tzinfo=timezone.utc).timestamp() for ts in self.t_plt]
+        self.n_time = len(self.t_unix)
 
-        min_h, max_h = get_height_boundary(self.height, 1000*h_bounds)
         self.height = np.divide(self.height[min_h:max_h], 1000)
+        self.n_height = len(self.height)
 
-        # build stacked chirps
-        self.Ze = np.array(Ze_chirps[min_t:max_t, min_h:max_h]).T
-        self.Ze = np.ma.masked_less_equal(self.Ze, 0.)
-        self.Ze = np.ma.log10(self.Ze) * 10.
+        # build stacked chirps and prune arrays
+        self.CBH  = self.CBH[min_t:max_t]
+        self.DDTb = self.DDTb[min_t:max_t]
+        self.LWP  = self.LWP[min_t:max_t]
+        self.Rain = self.Rain[min_t:max_t]
 
-        #self.Ze45 = np.array(Ze45_chirps[min_t:max_t, min_h:max_h]).T
-        #self.Ze45 = np.ma.masked_less_equal(self.Ze, 0.)
-        #self.Ze45 = np.ma.log10(self.Ze45) * 10
+        self.SurfPres   = self.SurfPres[min_t:max_t]
+        self.SurfRelHum = self.SurfRelHum[min_t:max_t]
+        self.SurfTemp   = self.SurfTemp[min_t:max_t]
+        self.SurfWD = self.SurfWD[min_t:max_t]
+        self.SurfWS = self.SurfWS[min_t:max_t]
 
-        self.ZDR = np.array(ZDR_chirps[min_t:max_t, min_h:max_h]).T
-        self.ZDR = np.ma.masked_less_equal(self.ZDR, -999.)
-
-        self.mdv = np.array(mdv_chirps[min_t:max_t, min_h:max_h]).T
-        self.mdv = np.ma.masked_less_equal(self.mdv, -999.)
-
-        self.sw = np.array(sw_chirps[min_t:max_t, min_h:max_h]).T
-        self.sw = np.ma.masked_less_equal(self.sw, -999.)
-
-        self.ldr = np.array(ldr_chirps[min_t:max_t, min_h:max_h]).T
-        self.ldr = np.ma.masked_less_equal(self.ldr, -999.)
-
-        self.kurt = np.array(kurt_chirps[min_t:max_t, min_h:max_h]).T
-        self.kurt = np.ma.masked_less_equal(self.kurt, -999.)   # fill value correct?
-
-        self.DiffAtt = np.array(DiffAtt_chirps[min_t:max_t, min_h:max_h]).T
-        self.DiffAtt = np.ma.masked_less_equal(self.DiffAtt, -999.) # fill value correct?
-
-        self.Skew = np.array(Skew_chirps[min_t:max_t, min_h:max_h]).T
-        self.Skew = np.ma.masked_less_equal(self.Skew, -999.)
-
-        self.kurt = np.array(kurt_chirps[min_t:max_t, min_h:max_h]).T
-        self.kurt = np.ma.masked_less_equal(self.kurt, -999.)
+        self.Ze  = np.ma.log10(np.ma.masked_less_equal(Ze_chirps[min_t:max_t, min_h:max_h].T, 0.)) * 10.0
+        self.ZDR = np.ma.masked_less_equal(ZDR_chirps[min_t:max_t, min_h:max_h].T, -999.)
+        self.mdv = np.ma.masked_less_equal(mdv_chirps[min_t:max_t, min_h:max_h].T, -999.)
+        self.sw  = np.ma.masked_less_equal(sw_chirps[min_t:max_t, min_h:max_h].T, -999.)
+        self.ldr = np.ma.masked_less_equal(ldr_chirps[min_t:max_t, min_h:max_h].T, -999.)
+        self.kurt = np.ma.masked_less_equal(kurt_chirps[min_t:max_t, min_h:max_h].T, -999.)   # fill value correct?
+        self.Skew = np.ma.masked_less_equal(Skew_chirps[min_t:max_t, min_h:max_h].T, -999.)
+        self.kurt = np.ma.masked_less_equal(kurt_chirps[min_t:max_t, min_h:max_h].T, -999.)
+        self.DiffAtt = np.ma.masked_less_equal(DiffAtt_chirps[min_t:max_t, min_h:max_h].T, -999.) # fill value correct?
 
     def avg_time(self):
 
@@ -236,6 +232,83 @@ class LIMRad94_LV1():
         self.heightavg_Ze  = np.average(self.Ze,  axis=0)
         self.heightavg_mdv = np.average(self.mdv, axis=0)
         self.heightavg_sw  = np.average(self.sw,  axis=0)
+
+    def save(self, path):
+
+        ds_name = path + str(self.year) + str(self. month) + str(self.day) + '_' + self.time_int + '_LIMRad94.nc'
+        ds = netCDF4.Dataset(ds_name, "w", format="NETCDF4")
+
+        ds.description = 'Condensed data files of LIMRad94 - FMCW Radar'
+        ds.history  = 'Created ' + time.ctime(time.time())
+        ds.source   = ''
+
+
+        ds.createDimension('TAlt', self.TAlt)
+        ds.createDimension('HAlt', self.HAlt)
+        ds.createDimension('Chirp', self.no_c)
+        ds.createDimension('time', len(self.t_unix))
+        ds.createDimension('height', len(self.height))
+
+        for ic in range(self.no_c):
+            ds.createDimension('C'+str(ic+1)+'Range', self.range_gates[ic])
+            ds.createDimension('C'+str(ic+1)+'Vel',   self.vel_gates[ic])
+
+
+        self.nc_add_variable(ds, 'time',   np.int,     ('time',),   'Seconds since 01.01.1970 00:00 UTC', '[sec]', self.t_unix)
+        self.nc_add_variable(ds, 'height', np.float32, ('height',), 'height', '[m]', np.copy(np.multiply(1000.0, self.height)))
+
+
+        self.nc_add_variable(ds, 'Ze',   np.float32, ('time', 'height',), 'Equivalent radar reflectivity factor', '[mm^6/m^3]', self.Ze, -999.)
+        self.nc_add_variable(ds, 'mdv',  np.float32, ('time', 'height',), 'Mean Doppler velocity',                '[m/s]',      self.mdv, -999.)
+        self.nc_add_variable(ds, 'sw',   np.float32, ('time', 'height',), 'Spectrum width',                       '[m/s]',      self.sw, -999.)
+        self.nc_add_variable(ds, 'ldr',  np.float32, ('time', 'height',), 'Slanted linear depolarization ratio',  '[dB]',       self.ldr, -999.)
+        self.nc_add_variable(ds, 'kurt', np.float32, ('time', 'height',), 'Kurtosis',                             '[linear]',   self.kurt, -999.)
+        self.nc_add_variable(ds, 'Skew', np.float32, ('time', 'height',), 'Skewness',                             '[linear]',   self.Skew, -999.)
+        self.nc_add_variable(ds, 'DiffAtt', np.float32, ('time', 'height',), 'Differential attenuation',          '[dB/km]',    self.DiffAtt, -999.)
+
+        self.nc_add_variable(ds, 'latitude',  np.float32, (), 'GPS latitude',  '[deg]', self.latitude)
+        self.nc_add_variable(ds, 'longitude', np.float32, (), 'GPS longitude', '[deg]', self.longitude)
+        self.nc_add_variable(ds, 'DoppMax',   np.float32, ('Chirp',), 'Unambiguous Doppler velocity (+/-)', '[m/s]', self.DoppMax)
+
+        self.nc_add_variable(ds, 'CBH',   np.float32, ('time',), 'Cloud Bottom Height', '[m]', self.CBH)
+        self.nc_add_variable(ds, 'DDTb',  np.float32, ('time',), 'Direct detection brightness temperature', '[m]', self.DDTb)
+        self.nc_add_variable(ds, 'LWP',   np.float32, ('time',), 'Liquid water path', '[g/m^2]', self.LWP)
+        self.nc_add_variable(ds, 'Rain',  np.float32, ('time',), 'Rain rate from weather station', '[mm/h]', self.Rain)
+
+        self.nc_add_variable(ds, 'SurfPres',   np.float32, ('time',), 'Surface atmospheric pressure from weather station', '[hPa]', self.SurfPres)
+        self.nc_add_variable(ds, 'SurfRelHum', np.float32, ('time',), 'Relative humidity from weather station', '[%]', self.SurfRelHum)
+        self.nc_add_variable(ds, 'SurfTemp',   np.float32, ('time',), 'Surface temperature from weather station', '[K]', self.SurfTemp)
+        self.nc_add_variable(ds, 'SurfWD',     np.float32, ('time',), 'Surface wind direction from weather station', '[deg]', self.SurfWD)
+        self.nc_add_variable(ds, 'SurfWS',     np.float32, ('time',), 'Surface wind speed from weather station', '[deg]', self.SurfWS)
+
+        ds.close()
+
+
+    def nc_add_variable(self, *args):
+
+        if len(args) < 7:
+            print(' check arguments for adding a netCDF variable')
+
+        elif len(args) >= 7:
+            datastruct = args[0]
+            var_name = args[1]
+            type = args[2]
+            dim = args[3]
+            long_name = args[4]
+            unit = args[5]
+            data = np.copy(args[6]).T
+            fillval = None
+
+            if len(args) == 8:
+                fillval = args[7]
+                data[data == np.ma.masked] = fillval
+
+
+        var = datastruct.createVariable(var_name, type, dim, fill_value=fillval)
+        var.long_name = long_name
+        var.unit = unit
+        var[:] = data
+
 
 
 class MIRA35_LV1():
@@ -269,9 +342,9 @@ class MIRA35_LV1():
         clock = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
-        self.year = int('20' + date[:2])
+        self.year  = int('20' + date[:2])
         self.month = int(date[2:4])
-        self.day = int(date[4:6])
+        self.day   = int(date[4:6])
 
         time = [0, 0, 0, 0]
         time[0] = datetime.datetime(self.year, self.month, self.day, hour=int(comp_hours[0]), minute=int(comp_minutes[0]))
@@ -336,20 +409,16 @@ class MIRA35_LV1():
             self.ldr  = self.ldr[min_t:max_t, min_h:max_h]
 
             # stack variables of individual chirps
-            self.Ze = np.transpose(self.Ze)
-            self.Ze = np.ma.masked_less_equal(self.Ze, -999.)
+            self.Ze = np.ma.masked_less_equal(self.Ze, -999.).T
 
             # conversion to numpy array for truncation
-            self.mdv = np.transpose(self.mdv)
-            self.mdv = np.ma.masked_less_equal(self.mdv, -999.)
+            self.mdv = np.ma.masked_less_equal(self.mdv, -999.).T
 
-            self.sw = np.transpose(self.sw)
             self.sw = np.ma.masked_invalid(self.sw)
-            self.sw = np.ma.masked_less_equal(self.sw, -999.)
+            self.sw = np.ma.masked_less_equal(self.sw, -999.).T
 
-            self.ldr = np.transpose(self.ldr)
             self.ldr = np.ma.masked_invalid(self.ldr)
-            self.ldr = np.ma.masked_less_equal(self.ldr, -999.)
+            self.ldr = np.ma.masked_less_equal(self.ldr, -999.).T
 
             nc_data_set.close()
             if pts: print("    Loading MIRA35 (mira.nc) NC-files ({} of {})".format(1, 1))
@@ -385,7 +454,7 @@ class MIRA35_LV1():
                 exit(0)
 
 
-            # conversion from deciaml hour to datetime
+            # conversion from decimal hour to datetime
             i_nc_file  = 0
             n_nc_files = len(self.ncfiles)
 
@@ -407,7 +476,7 @@ class MIRA35_LV1():
                          + datetime.timedelta(seconds=int(time_samp[i])) for i in range(len(time_samp))]
 
             height = np.array(get_nc_data(file, 'range'))
-            min_h, max_h = get_height_boundary(height, 1000*h_bounds)
+            min_h, max_h = get_height_boundary(height, np.multiply(1000.0, h_bounds[:]))
             min_t, max_t = get_time_boundary(time_plot, time)
 
             # gahter radar data values and stack them together
@@ -512,12 +581,12 @@ def get_nc_data(thisfile, varname):
 def get_nc_date(thisfile):
     # #if pts: print('loading variable '+varname +' from ' + thisfile)
     ncfile = netCDF4.Dataset(thisfile, 'r')
-    self.year = ncfile.self.year
-    self.month = ncfile.self.month
-    self.day = ncfile.self.day
+    year = ncfile.self.year
+    month = ncfile.self.month
+    day = ncfile.self.day
 
     if ncfile.isopen == 1: ncfile.close()
-    return self.year, self.month, self.day
+    return year, month, day
 
 
 def get_nc_dimension(thisfile, dim_name):

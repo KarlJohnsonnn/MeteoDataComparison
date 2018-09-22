@@ -30,8 +30,8 @@ import sys, warnings, time
 plot_interp2d = False
 plot_RectBivariateSpline = False  # interp2 testen
 plot_radar_results = True
-plot_comparisons = True
-plot_interpolation_scatter = True
+plot_comparisons = False
+plot_interpolation_scatter = False
 plot_compare_mira_mmclx = False
 
 
@@ -173,7 +173,8 @@ LR_data  = nc.LIMRad94_LV1(date, time_intervall, [hmin, hmax])
 MIRA_data  = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax])
 MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
 
-print(' time with classes = ', time.clock()-time1)
+LR_data.save(LIMRad_path)
+#print(' time with classes = ', time.clock()-time1)
 
 print('')
 
@@ -195,10 +196,12 @@ interp_meth = 'nearest'
     # calculate Ze, mdv, sw (time averaged)
 LR_data.avg_time()
 MIRA_data.avg_time()
+MMCLX_data.avg_time()
 
     # calculate Ze, mdv, sw (height averaged)
 LR_data.avg_height()
 MIRA_data.avg_height()
+MMCLX_data.avg_height()
 
 
 ####################################################################################################################
@@ -406,13 +409,13 @@ if plot_interp2d:
 
 if plot_radar_results:
 
-    fig, plt = Plot_Radar_Results(LR_data, MIRA_data)
+    fig, plt = Plot_Radar_Results(LR_data, MMCLX_data)
 
     ########################################################################################################
     # Save figure to file
     date_str = str(LR_data.year) + str(LR_data.month).zfill(2) + str(LR_data.day).zfill(2)
     file = date_str + '_MIRA_LIMRad_profiles_timeseries.png'
-    fig.savefig('C:/'+meteo_path+file, dpi=dpi_val)
+    fig.savefig( meteo_path + file, dpi=dpi_val)
     plt.close()
 
     print('    Save Figure to File :: ' + meteo_path + file + '\n')
@@ -431,12 +434,12 @@ if plot_radar_results:
 
 if plot_comparisons:
 
-    fig, plt = Plot_Comparison(LR_data, MIRA_data)
+    fig, plt = Plot_Comparison(LR_data, MMCLX_data)
 
     date_str = str(LR_data.year) + str(LR_data.month).zfill(2) + str(LR_data.day).zfill(2)
     file = date_str + '_MIRA_LIMRad94_avg_time_height.png'
     print('    Save Figure to File :: ' + meteo_path + file + '\n')
-    fig.savefig(file, dpi=dpi_val)
+    fig.savefig(meteo_path + file, dpi=dpi_val)
     plt.close()
 
 if plot_interpolation_scatter:
@@ -445,12 +448,12 @@ if plot_interpolation_scatter:
 
 
 
-    fig, plt = Plot_Scatter(LR_data, MIRA_data)
+    fig, plt = Plot_Scatter(LR_data, MMCLX_data)
 
     date_str = str(LR_data.year) + str(LR_data.month).zfill(2) + str(LR_data.day).zfill(2)
     file = date_str + '_MIRA_LIMRad94_interp-avgheight_comp.png'
     print('    Save Figure to File :: ' + meteo_path + file + '\n')
-    fig.savefig(file, dpi=dpi_val)
+    fig.savefig(meteo_path + file, dpi=dpi_val)
     plt.close()
 
 if plot_compare_mira_mmclx:
@@ -631,7 +634,7 @@ if plot_compare_mira_mmclx:
 
     file = date_str + '_MIRA_mmclx_comparison.png'
     print('    Save Figure to File :: ' + meteo_path + file + '\n')
-    fig.savefig(file, dpi=dpi_val)
+    fig.savefig(meteo_path + file, dpi=dpi_val)
 
     plt.close()
 

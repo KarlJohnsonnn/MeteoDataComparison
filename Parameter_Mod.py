@@ -25,8 +25,8 @@ plot_compare_mira_mmclx    = False
 
 
 # path to meteorological data
-meteo_path  = '/Users/willi/MeteoData/'
-LIMRad_path = '/Users/willi/MeteoData/LIMRad94'
-MIRA_path   = '/Users/willi/MeteoData/MIRA'
+meteo_path  = '/Users/willi/data/MeteoData/'
+LIMRad_path = '/Users/willi/data/MeteoData/LIMRad94/'
+MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'
 
 interp_meth = 'NearestNeighbour'

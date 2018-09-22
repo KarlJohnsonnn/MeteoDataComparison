@@ -510,8 +510,8 @@ def Plot_Scatter(ds1, ds2):
     LR_y = ds1.heightavg_Ze
     mira_y = ds2.heightavg_Ze
 
-    LR_ynew = interpolate_data(ds1.t_unix, ds1.Ze, xnew, interp_meth)
-    mira_ynew = interpolate_data(ds2.t_unix, ds2.Ze, xnew, interp_meth)
+    LR_ynew   = interpolate_data(ds1.t_unix, ds1.heightavg_Ze, xnew, interp_meth)
+    mira_ynew = interpolate_data(ds2.t_unix, ds2.heightavg_Ze, xnew, interp_meth)
 
     # y width +-5
     y_min, y_max = get_plot_ybounds(LR_y, mira_y, 7.0)
@@ -550,7 +550,7 @@ def Plot_Scatter(ds1, ds2):
     plot_avg_data_set(h_Ze_plot, '',
                       ds1.t_plt, ds1.heightavg_Ze, ds2.t_plt, ds2.heightavg_Ze,
                       label1='LIMRad', marker1='.', label2='MIRA', marker2='.',
-                      x_min=xb1[0], x_max=xb1[1], ymin=yb1[0], y_max=yb1[1],
+                      x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
                       x_lab='Time (UTC)', y_lab='dBZ', ax='n')
 
     interp_h_Ze_plot.set_title(r' \textbf{Mean-Height Reflectivity}')
@@ -672,7 +672,7 @@ def Plot_Scatter(ds1, ds2):
     # Save figure to file
 
     first_line = 'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
-    second_line = ' from: ' + str(xb1[0]) + ' (UTC)  to:x  ' + str(xb1[3]) + ' (UTC), no attenuation correction '
+    second_line = ' from: ' + str(xb1[0]) + ' (UTC)  to:x  ' + str(xb1[1]) + ' (UTC), no attenuation correction '
 
     file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}'
     plt.suptitle(file_name)  # place in title needs to be adjusted
