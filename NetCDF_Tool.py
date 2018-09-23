@@ -481,7 +481,9 @@ class MIRA35_LV1():
 
             # gahter radar data values and stack them together
 
-
+            nc_data_set = netCDF4.Dataset(file, 'r')
+            self.drg = nc_data_set.variables['drg'][:]
+            nc_data_set.close()
             self.t_unix = time_samp
             self.t_plt  = time_plot
             self.height = np.divide(height, 1000.0)
@@ -572,7 +574,7 @@ class MIRA35_LV1():
 def get_nc_data(thisfile, varname):
     # #if pts: print('loading variable '+varname +' from ' + thisfile)
     ncfile = netCDF4.Dataset(thisfile, 'r')
-    var = ncfile.variables[varname]
+    var = ncfile.variables[varname][:]
 
     if ncfile.isopen == 1: ncfile.close()
     return var

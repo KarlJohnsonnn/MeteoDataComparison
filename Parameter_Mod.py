@@ -2,6 +2,7 @@
 
 pts = True # print to screen
 dbg = False # debug ouput flag
+create_nc_file = False
 
 
 # constants
@@ -29,4 +30,5 @@ meteo_path  = '/Users/willi/data/MeteoData/'
 LIMRad_path = '/Users/willi/data/MeteoData/LIMRad94/'
 MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'
 
+#interp_meth = 'linear'
 interp_meth = 'NearestNeighbour'
