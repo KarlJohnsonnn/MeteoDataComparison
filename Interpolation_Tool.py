@@ -1,8 +1,8 @@
-import numpy as np
 import time
 
+import numpy as np
 from scipy import interpolate
-from Parameter_Mod import interp_meth
+
 
 def Interpolate_2D(x1, y1, z1, x2, y2, method):
     len_x1 = len(x1)
@@ -83,8 +83,10 @@ def Interpolate_2D_neu(ds1, z_inter, ds2, method):
                 coord[cnt, 1] = y2[j]
                 cnt += 1
 
-        if method == 'NearestNeighbour': mth = 'constant'
-        if method == 'biliniear': mth = 'linear'
+        if method == 'biliniear':
+            mth = 'linear'
+        else:
+            mth = 'constant'
 
         interp_z = interpolate2d(x1, y1, z1.T, coord, mode=mth, bounds_error=False)
 

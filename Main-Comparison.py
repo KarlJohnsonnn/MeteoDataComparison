@@ -1,14 +1,10 @@
-from Functions_Mod import *
-from Graphics_Mod import *
-from IO_Mod       import *
-from Parameter_Mod import *
-from Interpolation_Tool import *
 import NetCDF_Tool  as nc
+from Graphics_Mod import *
+from IO_Mod import *
+from Parameter_Mod import *
 
 rc('font', family='serif')
 rc('text', usetex=True)
-
-import datetime
 
 import sys, warnings, time
 
@@ -28,8 +24,8 @@ import sys, warnings, time
 
 # Logicals for different tasks
 plot_radar_results = False
-plot_comparisons = True
-plot_interpolation_scatter = True
+plot_comparisons = False
+plot_interpolation_scatter = False
 plot_interp2d = False
 #plot_compare_mira_mmclx = False
 
@@ -80,10 +76,10 @@ else:
     #date     = '180802'     # in YYMMDD
     #time_intervall = '0330-1200'  # in HHMM-HHM
 
-    hmin = 0.0 #(km)  - lower y-axis limit
-    hmax = 12.00 #(km) - upper y-axis limit, highest range gate may be higher
+    hmin = 3.0  # (km)  - lower y-axis limit
+    hmax = 8.00  # (km) - upper y-axis limit, highest range gate may be higher
     date     = '180729'     # in YYMMDD
-    time_intervall = '2200-2359'  # in HHMM-HHMMM
+    time_intervall = '2200-2359'  # in HHMM-HHMM
 
     ##nimbus
     # hmin = 0.0 #(km)  - lower y-axis limit
@@ -125,13 +121,17 @@ warnings.filterwarnings("ignore")
 
 
 # ----- LIMRad 94GHz Radar data extraction
-LR_data  = nc.LIMRad94_LV1(date, time_intervall, [hmin, hmax])
+LR_data = nc.LIMRad94_LV1(date, time_intervall, [hmin, hmax])
 
-## ----- MIRA 35GHz Radar data extraction
+if interpolate_cn: LR_data.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
+if create_nc_file:
+    LR_data.save(LIMRad_path)
+    exit(0)
+
+# ----- MIRA 35GHz Radar data extraction
 MIRA_data  = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax])
 MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
 
-if create_nc_file: LR_data.save(LIMRad_path)
 
 print('')
 
@@ -190,7 +190,7 @@ if plot_radar_results:
 
     date_str = str(LR_data.year) + str(LR_data.month).zfill(2) + str(LR_data.day).zfill(2)
     file = date_str + '_profiles_timeseries.png'
-    fig.savefig( meteo_path + file, dpi=dpi_val)
+    fig.savefig(meteo_path + file, dpi=dpi_val)
     plt.close()
 
     print('    Save Figure to File :: ' + meteo_path + file + '\n')

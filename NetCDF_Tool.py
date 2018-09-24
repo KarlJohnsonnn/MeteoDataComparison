@@ -1,9 +1,15 @@
-import numpy as np
-import netCDF4, datetime, glob, os, time
+import datetime
+import glob
+import os
+import time
+from datetime import timezone
 
-from scipy         import interpolate
-from datetime      import timezone
-from Parameter_Mod import meteo_path, chirpTable_min_height, pts, LIMRad_path
+import netCDF4
+import numpy as np
+
+from Interpolation_Tool import interpolate2d
+from Parameter_Mod import *
+
 
 # class LIMRad94_LV1 contains the radar data for a given time intervall within one self.day
 # reflectivity is converted into log unit [dBZ], chirps and file transitions will
@@ -78,6 +84,8 @@ class LIMRad94_LV1():
         # find the number of range gates per chirp sequence,
         # also find the resolution of each chirp and
         # calculate the vector containing the height-steps
+
+        self.nc_VariableList = list(nc_data_set.variables.keys())
 
         self.TAlt = nc_data_set.dimensions['TAlt'].size
         self.HAlt = nc_data_set.dimensions['HAlt'].size
@@ -220,6 +228,11 @@ class LIMRad94_LV1():
         self.kurt = np.ma.masked_less_equal(kurt_chirps[min_t:max_t, min_h:max_h].T, -999.)
         self.DiffAtt = np.ma.masked_less_equal(DiffAtt_chirps[min_t:max_t, min_h:max_h].T, -999.) # fill value correct?
 
+        self.VarDict = {'CBH': False, 'DDTb': False, 'LWP': False, 'Rain': False,
+                        'SurfPres': False, 'SurfRelHum': False, 'SurfTemp': False, 'SurfWD': False, 'SurfWS': False,
+                        'Ze': True, 'ZDR': False, 'mdv': True, 'sw': True, 'ldr': True, 'kurt': True, 'Skew': True,
+                        'DiffAtt': False}
+
     def avg_time(self):
 
         self.timeavg_Ze  = np.average(self.Ze,  axis=1)
@@ -238,7 +251,7 @@ class LIMRad94_LV1():
         ds_name = path + str(self.year) + str(self. month) + str(self.day) + '_' + self.time_int + '_LIMRad94.nc'
         ds = netCDF4.Dataset(ds_name, "w", format="NETCDF4")
 
-        ds.description = 'Condensed data files of LIMRad94 - FMCW Radar'
+        ds.description = 'Concatenated data files of LIMRad 94GHz - FMCW Radar'
         ds.history  = 'Created ' + time.ctime(time.time())
         ds.source   = ''
 
@@ -257,8 +270,8 @@ class LIMRad94_LV1():
         self.nc_add_variable(ds, 'time',   np.int,     ('time',),   'Seconds since 01.01.1970 00:00 UTC', '[sec]', self.t_unix)
         self.nc_add_variable(ds, 'height', np.float32, ('height',), 'height', '[m]', np.copy(np.multiply(1000.0, self.height)))
 
-
-        self.nc_add_variable(ds, 'Ze',   np.float32, ('time', 'height',), 'Equivalent radar reflectivity factor', '[mm^6/m^3]', self.Ze, -999.)
+        self.nc_add_variable(ds, 'Ze', np.float32, ('time', 'height',), 'Equivalent radar reflectivity factor', '[dBZ]',
+                             self.Ze, -999.)
         self.nc_add_variable(ds, 'mdv',  np.float32, ('time', 'height',), 'Mean Doppler velocity',                '[m/s]',      self.mdv, -999.)
         self.nc_add_variable(ds, 'sw',   np.float32, ('time', 'height',), 'Spectrum width',                       '[m/s]',      self.sw, -999.)
         self.nc_add_variable(ds, 'ldr',  np.float32, ('time', 'height',), 'Slanted linear depolarization ratio',  '[dB]',       self.ldr, -999.)
@@ -281,10 +294,36 @@ class LIMRad94_LV1():
         self.nc_add_variable(ds, 'SurfWD',     np.float32, ('time',), 'Surface wind direction from weather station', '[deg]', self.SurfWD)
         self.nc_add_variable(ds, 'SurfWS',     np.float32, ('time',), 'Surface wind speed from weather station', '[deg]', self.SurfWS)
 
+        if interpolate_cn:
+            ds.createDimension('time_interp', len(self.t_unix_interp))
+            ds.createDimension('height_interp', len(self.height_interp))
+
+            self.nc_add_variable(ds, 'time_interp_res', np.float32, (), 'Time resolution of interpolated data', '[sec]',
+                                 interp_time_res)
+            self.nc_add_variable(ds, 'range_interp_res', np.float32, (), 'Range resolution of interpolated data', '[m]',
+                                 interp_range_res)
+
+            self.nc_add_variable(ds, 'time_interp', np.int, ('time_interp',),
+                                 'Seconds since 01.01.1970 00:00 UTC (interpolated)', '[sec]', self.t_unix_interp)
+            self.nc_add_variable(ds, 'height_interp', np.float32, ('height_interp',), 'height (interpolated)', '[m]',
+                                 np.copy(np.multiply(1000.0, self.height_interp)))
+
+            self.nc_add_variable(ds, 'Ze_interp', np.float32, ('time_interp', 'height_interp',),
+                                 'Equivalent radar reflectivity factor (interpolated)', '[dBZ]', self.Ze_interp, -999.)
+            self.nc_add_variable(ds, 'mdv_interp', np.float32, ('time_interp', 'height_interp',),
+                                 'Mean Doppler velocity (interpolated)', '[m/s]', self.mdv_interp, -999.)
+            self.nc_add_variable(ds, 'sw_interp', np.float32, ('time_interp', 'height_interp',),
+                                 'Spectrum width (interpolated)', '[m/s]', self.sw_interp, -999.)
+            self.nc_add_variable(ds, 'ldr_interp', np.float32, ('time_interp', 'height_interp',),
+                                 'Slanted linear depolarization ratio (interpolated)', '[dB]', self.ldr_interp, -999.)
+
         ds.close()
 
+        print('')
+        print('    Concatenated nc file written: ', ds_name)
 
-    def nc_add_variable(self, *args):
+    @staticmethod
+    def nc_add_variable(*args):
 
         if len(args) < 7:
             print(' check arguments for adding a netCDF variable')
@@ -308,6 +347,62 @@ class LIMRad94_LV1():
         var.long_name = long_name
         var.unit = unit
         var[:] = data
+
+    def interpolate_cn(self, t_res, r_res, method):
+
+        self.t_unix_interp = np.arange(self.t_unix[0], self.t_unix[-1], t_res)
+        self.height_interp = np.arange(self.height[0], self.height[-1], np.divide(r_res, 1000.0))
+        len_t = len(self.t_unix_interp)
+        len_h = len(self.height_interp)
+
+        coordinates = np.empty((len_t * len_h, 2))
+
+        cnt = 0
+        for iTime in self.t_unix_interp:
+            for iRange in self.height_interp:
+                coordinates[cnt, 0] = iTime
+                coordinates[cnt, 1] = iRange
+                cnt += 1
+
+        if method == 'biliniear':
+            mth = 'linear'
+        else:
+            mth = 'constant'
+
+        # for var in self.VarDict:
+        #    if var:  interp_z = interpolate2d(self.t_unix, self.height, z1.T, coordinates, mode=mth, bounds_error=False)
+
+        if self.VarDict['Ze']:  interp_Ze = interpolate2d(self.t_unix, self.height, self.Ze.T, coordinates, mode=mth,
+                                                          bounds_error=False)
+        if self.VarDict['mdv']: interp_mdv = interpolate2d(self.t_unix, self.height, self.mdv.T, coordinates, mode=mth,
+                                                           bounds_error=False)
+        if self.VarDict['sw']:  interp_sw = interpolate2d(self.t_unix, self.height, self.sw.T, coordinates, mode=mth,
+                                                          bounds_error=False)
+        if self.VarDict['ldr']: interp_ldr = interpolate2d(self.t_unix, self.height, self.ldr.T, coordinates, mode=mth,
+                                                           bounds_error=False)
+
+        # interp_z = np.ma.masked_equal(interp_Ze, 0.0)
+
+        interp_Ze = np.ma.masked_less_equal(interp_Ze, -80.0)
+        interp_Ze = np.ma.masked_invalid(interp_Ze)
+        interp_Ze = np.reshape(interp_Ze, (len_t, len_h)).T
+
+        interp_mdv = np.ma.masked_less_equal(interp_mdv, -30.0)
+        interp_mdv = np.ma.masked_invalid(interp_mdv)
+        interp_mdv = np.reshape(interp_mdv, (len_t, len_h)).T
+
+        interp_sw = np.ma.masked_less_equal(interp_sw, -30.0)
+        interp_sw = np.ma.masked_invalid(interp_sw)
+        interp_sw = np.reshape(interp_sw, (len_t, len_h)).T
+
+        interp_ldr = np.ma.masked_less_equal(interp_ldr, -30.0)
+        interp_ldr = np.ma.masked_invalid(interp_ldr)
+        interp_ldr = np.reshape(interp_ldr, (len_t, len_h)).T
+
+        self.Ze_interp = interp_Ze
+        self.mdv_interp = interp_mdv
+        self.sw_interp = interp_sw
+        self.ldr_interp = interp_ldr
 
 
 

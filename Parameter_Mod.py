@@ -2,7 +2,15 @@
 
 pts = True # print to screen
 dbg = False # debug ouput flag
-create_nc_file = False
+
+interpolate_cn = True
+create_nc_file = True
+
+plot_interp2d = False
+plot_radar_results = False
+plot_comparisons = False
+plot_interpolation_scatter = False
+plot_compare_mira_mmclx = False
 
 
 # constants
@@ -17,12 +25,6 @@ mira_file_extension   = '*mira.nc'
 mmclx_file_extension  = '*.mmclx'
 
 
-plot_interp2d              = False
-plot_RectBivariateSpline   = False           #interp2 testen
-plot_radar_results         = False
-plot_comparisons           = False
-plot_interpolation_scatter = False
-plot_compare_mira_mmclx    = False
 
 
 # path to meteorological data
@@ -32,3 +34,6 @@ MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'
 
 #interp_meth = 'linear'
 interp_meth = 'NearestNeighbour'
+
+interp_time_res = 10  # in seconds
+interp_range_res = 30  # in meter

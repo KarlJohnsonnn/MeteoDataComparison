@@ -1,9 +1,10 @@
-import datetime, math
-import matplotlib.pyplot as plt
-import matplotlib        as mpl
+import datetime
+import math
 
-from matplotlib import rc
+import matplotlib        as mpl
+import matplotlib.pyplot as plt
 from matplotlib import colors
+from matplotlib import rc
 
 rc('font', family='serif')
 ## for Palatino and other serif fonts use:
@@ -46,7 +47,6 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
 
 
 def plot_correlation_matrix(axh, text, z, vmi, vma, x_lab, y_lab, z_lab):
-    from pylab import pcolor
     # text = r'\textbf{'+text+'}'
     # place_text(axh, [.02, 1.05], text )
     # z = z[1500:2000,1500:2000]
@@ -223,13 +223,13 @@ def place_statistics(plot, pos, stat, vn):
                '{:6.2f}'.format(stat[0]) + ' dBZ'
         text2 = r'$\rho(Z_e^{94}, Z_g^{35}) = $' + '{:6.2f}'.format(stat[1])
     if vn == 'mdv':
-        text = r'$\overline{\mathrm{mdv}^{94} - \mathrm{mdv}^{35} } =$' \
+        text = r'$\overline{v_m^{94} - v_m^{35} } =$' \
                + '{:6.2f}'.format(stat[0]) + ' m/s'
-        text2 = 'corr(lr, mi)' + r'$=$' + '{:6.2f}'.format(stat[1])
+        text2 = r'$\rho(v_m^{94},v_m^{35})=$' + '{:6.2f}'.format(stat[1])
     if vn == 'sw':
         text = r'$\overline{\mathrm{sw}^{94}  - \mathrm{sw}^{35}  } =$' \
                + '{:6.2f}'.format(stat[0]) + ' m/s'
-        text2 = 'corr(lr, mi)' + r'$=$' + '{:6.2f}'.format(stat[1])
+        text2 = r'$\rho(sw_m^{94},sw_m^{35})=$' + '{:6.2f}'.format(stat[1])
 
     plot.text(pos[0], pos[1], text, fontweight='bold',
               horizontalalignment='center',
