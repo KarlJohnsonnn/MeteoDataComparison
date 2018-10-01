@@ -39,14 +39,11 @@ Program Settings:
 
   possible scenario:
 
-    - plot_RectBivariateSpline   = False    # interpolates 2D radar reflectivity data (experimental)
     - plot_radar_results         = True     # plotting the radar moments (Ze,mdv,sw) of LIMRad94 and MIRA35 NetCDF data
     - plot_comparisons           = True     # computes hight and time-averaged data of LIMRad94 and MIRA35 and plots the results
     - plot_interpolation_scatter = True     # interpolating mean-height onto a uniformly spaced grid, calulation of means and correlation coefficient, scatter plot
-    - plot_compare_mira_mmclx    = True     # comparision of different MIRA35 modes (considering all targets, only hydrometeors, ...)
 
     - pts = True                          # print some information to screen (progress, file names of .png output)
-    - dbg = False                         # if True some more information is printed to screen (array dimensions, ...)
 
     - LIMRad_file_extension = '*.LV1.NC'  # this is a fixed parameter, do not alter
     - mira_file_extension   = '*mira.nc'  # processed data of MIRA35 GHz Radar
