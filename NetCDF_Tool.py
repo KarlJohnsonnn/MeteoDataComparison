@@ -248,7 +248,9 @@ class LIMRad94_LV1():
 
     def save(self, path):
 
-        ds_name = path + str(self.year) + str(self. month) + str(self.day) + '_' + self.time_int + '_LIMRad94.nc'
+        ds_name = path + str(self.year) + str(self.month).zfill(2) \
+                  + str(self.day).zfill(2) + '_' + self.time_int + '_LIMRad94.nc'
+
         ds = netCDF4.Dataset(ds_name, "w", format="NETCDF4")
 
         ds.description = 'Concatenated data files of LIMRad 94GHz - FMCW Radar'
