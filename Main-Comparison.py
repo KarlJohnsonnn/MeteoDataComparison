@@ -1,6 +1,6 @@
 import NetCDF_Tool  as nc
+from Functions_Mod import *
 from Graphics_Mod import *
-from Parameter_Mod import *
 
 rc('font', family='serif')
 rc('text', usetex=True)
@@ -22,10 +22,12 @@ import sys, warnings, time, os
 ##################################################################################################
 
 # Logicals for different tasks
-plot_radar_results = True
-plot_comparisons = True
+plot_radar_results = False
+plot_for_poster = False
+plot_comparisons = False
 plot_interpolation_scatter = False
 plot_interp2d = False
+plot_doppler_spectra = True
 #plot_compare_mira_mmclx = False
 
 interpolate_cn = False
@@ -80,7 +82,7 @@ else:
     hmin = 0.0  # (km)  - lower y-axis limit
     hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
     date     = '180729'     # in YYMMDD
-    time_intervall = '2200-2359'  # in HHMM-HHMM
+    time_intervall = '0000-2359'  # in HHMM-HHMM
 
     ##nimbus
     # hmin = 0.0 #(km)  - lower y-axis limit
@@ -120,18 +122,27 @@ warnings.filterwarnings("ignore")
 ######################################################################################################
 
 
+# ----- LIMRAD 94GHz Radar data extraction
+# NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
 
-# ----- LIMRad 94GHz Radar data extraction
-LR_data = nc.LIMRad94_LV1(date, time_intervall, [hmin, hmax])
+hmin_lv0 = 0.0  # (km)  - lower y-axis limit
+hmax_lv0 = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+date_lv0 = '180810'  # in YYMMDD
+time_intervall_lv0 = '0500-0600'  # in HHMM-HHMM
 
-if interpolate_cn: LR_data.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
-if create_nc_file: LR_data.save(LIMRad_path)
+LR_lv0 = nc.LIMRAD94_LV0(date_lv0, time_intervall_lv0, [hmin_lv0, hmax_lv0])
+
+# LR_data = nc.LIMRAD94_LV1(date, time_intervall, [hmin, hmax])
+
+
+# if interpolate_cn: LR_data.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
+# if create_nc_file: LR_data.save(LIMRAD_path)
 
 
 
 # ----- MIRA 35GHz Radar data extraction
 # MIRA_data  = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax])
-MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
+#MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
 
 if pts: print('')
 
@@ -150,14 +161,14 @@ if pts: print('')
 
 # time averaged values
     # calculate Ze, mdv, sw (time averaged)
-LR_data.avg_time()
+#LR_data.avg_time()
 #MIRA_data.avg_time()
-MMCLX_data.avg_time()
+#MMCLX_data.avg_time()
 
     # calculate Ze, mdv, sw (height averaged)
-LR_data.avg_height()
+#LR_data.avg_height()
 #MIRA_data.avg_height()
-MMCLX_data.avg_height()
+#MMCLX_data.avg_height()
 
 
 ####################################################################################################################
@@ -172,14 +183,26 @@ MMCLX_data.avg_height()
 #
 ####################################################################################################################
 
-date_str = str(LR_data.year) + str(LR_data.month).zfill(2) + str(LR_data.day).zfill(2)
+# date_str = str(LR_data.year) + str(LR_data.month).zfill(2) + str(LR_data.day).zfill(2)
+
+
+if plot_for_poster:
+
+    fig, plt = Plot_for_poster(LR_data)
+
+    file = '/Users/willi/Google Drive/RemoterSensing/Poster/' + date_str + '_radar_LIMRAD94_units_dummy.png'
+    fig.savefig(file, dpi=dpi_val, format='png')
+    plt.close()
+
+    if pts: print('')
+    if pts: print('    Save Figure to File :: ' + file + '\n')
 
 if plot_interp2d:
 
     fig, plt = Plot_2D_Interpolation(LR_data, MMCLX_data)
 
     file = date_str + '_2D-Interpolation.png'
-    fig.savefig(meteo_path + file, dpi=dpi_val)
+    fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
     plt.close()
 
     if pts: print('')
@@ -191,7 +214,7 @@ if plot_radar_results:
     fig, plt = Plot_Radar_Results(LR_data, MMCLX_data)
 
     file = date_str + '_profiles_timeseries.png'
-    fig.savefig(meteo_path + file, dpi=dpi_val)
+    fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
     plt.close()
 
     if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
@@ -202,7 +225,7 @@ if plot_comparisons:
     fig, plt = Plot_Comparison(LR_data, MMCLX_data)
 
     file = date_str + '_avg_time_height.png'
-    fig.savefig(meteo_path + file, dpi=dpi_val)
+    fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
     plt.close()
 
     if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
@@ -212,11 +235,55 @@ if plot_interpolation_scatter:
     fig, plt = Plot_Scatter(LR_data, MMCLX_data)
 
     file = date_str + '_interp-avgheight_comp.png'
-    fig.savefig(meteo_path + file, dpi=dpi_val)
+    fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
     plt.close()
 
     if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
 
 
 #save_log_data(file[:-5], interp_meth, hmin, hmax, date, time_intervall)
+
+if plot_doppler_spectra:
+    # fix parameters for testing stuff
+    c = 2
+    h0 = 55
+    t0 = 50
+
+    i_png = 1
+    n_spectra = LR_lv0.n_time * LR_lv0.n_height
+
+    tstart = time.time()
+
+    doppler_dBZ = np.multiply(np.ma.log10(LR_lv0.VHSpec[c]), 10.0)
+    zbound = [doppler_dBZ.min(), doppler_dBZ.max()]
+
+    # for c in range(len(dopplerspec)):
+    # for h0 in range(len(height_neu[c])):
+    # for t0 in range(len(t_unix)):
+
+    mean, threshold, var, nnoise = estimate_noise_hs74(LR_lv0.VHSpec[c][t0, h0, :], navg=LR_lv0.no_av[c])
+
+    fig, plt = Plot_Doppler_Spectra(LR_lv0, c, t0, h0, zbound, threshold, mean)
+
+    # fig, plt = Plot_Doppler_Spectra(LR_lv0.DopplerBins[c], LR_lv0.VHSpec[c][t0, h0, :], LR_lv0.t_unix,
+    #                               LR_lv0.height[c], t0, h0, zbound, threshold, mean)
+
+    date_str = str(datetime_from_seconds(LR_lv0.t_unix[t0]))
+    date_str = date_str[11:].replace(':', '_')
+
+    file = '/Users/willi/code/python/spectra_to_moment/PNG/spectra_sorted_' \
+           + str(round(LR_lv0.height[c][h0], 4)) + '_' + date_str + '.png'
+
+    fig.savefig(file, dpi=100, format='png')
+    plt.close()
+
+    print("    File {} of {} written.".format(i_png, n_spectra), end="\r")
+    i_png += 1
+
+    print('\n' * 2)
+    tend = time.time()
+
+    print(f'Elapsed time = {tend-tstart:.2f} sec.')
+
+
 if pts: print('    Elapsed Time = {0:0.3f}'.format(time.clock() - start_time), '[sec]\n')

@@ -1,9 +1,11 @@
 import time
 
 import numpy as np
+from numba import jit
 from scipy import interpolate
 
 
+@jit(nopython=True, fastmath=True)
 def Interpolate_2D(x1, y1, z1, x2, y2, method):
     len_x1 = len(x1)
     len_x2 = len(x2)
@@ -54,6 +56,8 @@ def Interpolate_2D(x1, y1, z1, x2, y2, method):
 
     return interp_z
 
+
+@jit(nopython=True, fastmath=True)
 def Interpolate_2D_neu(ds1, z_inter, ds2, method):
     len_x1 = ds1.n_time;    len_x2 = ds2.n_time
     len_y1 = ds1.n_height;  len_y2 = ds2.n_height
@@ -97,6 +101,8 @@ def Interpolate_2D_neu(ds1, z_inter, ds2, method):
 
     return interp_z
 
+
+@jit(nopython=True, fastmath=True)
 def interpolate_data(x, y, xnew, method):
     # create a callable function from the actual data
     fnew = interpolate.interp1d(x, y, kind=method)
@@ -127,6 +133,8 @@ This module
 See end of this file for documentation of the mathematical derivation used.
 """
 
+
+@jit(nopython=True, fastmath=True)
 def interpolate2d(x, y, Z, points, mode='linear', bounds_error=False):
     """Fundamental 2D interpolation routine
 
@@ -248,6 +256,7 @@ def interpolate2d(x, y, Z, points, mode='linear', bounds_error=False):
     return r
 
 
+@jit(nopython=True, fastmath=True)
 def interpolate_raster(x, y, Z, points, mode='linear', bounds_error=False):
     """2D interpolation of raster data
 

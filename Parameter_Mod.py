@@ -17,10 +17,10 @@ plot_compare_mira_mmclx = False
 chirpTable_min_height = 100.0    # (m)
 
 # dots per inch parameter for .png
-dpi_val = 200
+dpi_val = 400
 
 # file extensions of different NetCDF datasets
-LIMRad_file_extension = '*.LV1.NC'
+LIMRAD_file_extension = '*.LV1.NC'
 mira_file_extension   = '*mira.nc'
 mmclx_file_extension  = '*.mmclx'
 
@@ -29,7 +29,7 @@ mmclx_file_extension  = '*.mmclx'
 
 # path to meteorological data
 meteo_path  = '/Users/willi/data/MeteoData/'
-LIMRad_path = '/Users/willi/data/MeteoData/LIMRad94/'
+LIMRAD_path = '/Users/willi/data/MeteoData/LIMRAD94/'
 MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'
 
 #interp_meth = 'linear'

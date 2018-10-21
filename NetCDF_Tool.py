@@ -11,12 +11,261 @@ from Interpolation_Tool import interpolate2d
 from Parameter_Mod import *
 
 
-# class LIMRad94_LV1 contains the radar data for a given time intervall within one self.day
+# class LIMRAD94_LV1 contains the radar data for a given time intervall within one self.day
 # reflectivity is converted into log unit [dBZ], chirps and file transitions will
 # concatinate automaticly
 #
 
-class LIMRad94_LV1():
+
+class LIMRAD94_LV0():
+    frequency = 94.0  # [GHz]
+    radar_wavelength = 0.00319  # [m]
+    beamwidth = 0.48  # []
+
+    def __init__(self, *args):
+
+        os.chdir(meteo_path + 'LIMRad94/NoiseFac0')  # path to data needs to be fit to the devices file structure
+
+        if len(args) < 1:
+            print('You need to specify a date at least!')
+            exit(0)
+
+        elif len(args) == 1:
+            date = args[0]
+            time_int = '0000-2400'
+            h_bounds = [0.0, 12.0]
+
+        else:
+            date = args[0]
+            time_int = args[1]
+            h_bounds = args[2]
+
+        comp_hours = [int(time_int[0:2]), int(time_int[5:7])]
+        comp_minutes = [int(time_int[2:4]), int(time_int[7:9])]
+
+        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
+
+        # -- gathering self.year, self.month, self.day for convertion to UTC time
+        self.time_int = time_int
+        self.year = int('20' + date[:2])
+        self.month = int(date[2:4])
+        self.day = int(date[4:6])
+
+        time = [0, 0, 0, 0]
+        time[0] = datetime.datetime(self.year, self.month, self.day, hour=int(comp_hours[0]),
+                                    minute=int(comp_minutes[0]))
+        time[1] = time[0] + datetime.timedelta(seconds=15)
+        time[3] = datetime.datetime(self.year, self.month, self.day, hour=int(comp_hours[1]),
+                                    minute=int(comp_minutes[1]))
+        time[2] = time[3] - datetime.timedelta(seconds=15)
+
+        first_file = int(clock[0])
+        if clock[1] - int(clock[1]) > 0.0:
+            last_file = int(clock[1]) + 1
+        else:
+            last_file = int(clock[1])
+
+        range_file_list = list(range(first_file, last_file, 1))
+
+        self.ncfiles = []
+        for il in range_file_list:
+            file_name = str(glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV0.NC'))
+            self.ncfiles.append(file_name[2:-2])
+
+            if file_name[2:-2] == '':
+                print('   Error!  File: "' + file_name + '" not found --> exit!')
+                print('   Check LIMRAD folder!')
+                exit(0)
+
+        n_nc_files = len(self.ncfiles)
+
+        file = self.ncfiles[0]
+        nc_data_set = netCDF4.Dataset(file, 'r')
+
+        # find the number of range gates per chirp sequence,
+        # also find the resolution of each chirp and
+        # calculate the vector containing the height-steps
+
+        self.nc_VariableList = list(nc_data_set.variables.keys())
+
+        self.TAlt = nc_data_set.dimensions['TAlt'].size
+        self.HAlt = nc_data_set.dimensions['HAlt'].size
+        self.no_c = nc_data_set.dimensions['Chirp'].size
+        self.Time = nc_data_set.dimensions['Time'].size
+
+        self.cum_range_gates = np.zeros((self.no_c + 1,), dtype='int')
+        self.range_gates = np.zeros((self.no_c,), dtype='int')
+        self.vel_gates = np.zeros((self.no_c,), dtype='int')
+        self.range_res = np.array(nc_data_set.variables['RangeRes'])
+        self.maxvel = np.array(nc_data_set.variables['MaxVel'])
+        self.doplen = np.array(nc_data_set.variables['DoppLen'])
+        self.height = [None] * self.no_c  # [chirpTable_min_height]
+        self.n_height = [None] * self.no_c  # [chirpTable_min_height]
+        self.latitude = float(nc_data_set.variables['GPSLat'][:])
+        self.longitude = float(nc_data_set.variables['GPSLon'][:])
+        self.DopplerBins = [None] * self.no_c
+
+        self.no_avg = np.array(nc_data_set.variables['AvgNum'][
+                               :])  # Number of chirps averaged (coherently and non-coherently) for a single time sample
+        self.no_av = np.divide(self.no_avg, self.doplen)
+
+        self.DoppMax = np.array(nc_data_set.variables['MaxVel'][:])
+
+        for ichirp in range(self.no_c):
+            self.range_gates[ichirp] = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Range'].size
+            self.vel_gates[ichirp] = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Vel'].size
+            self.cum_range_gates[ichirp + 1] = self.cum_range_gates[ichirp] + self.range_gates[ichirp]
+
+            # And the number of Doppler bins
+            # Evenly space between the minimum and maximum unambiguous Doppler velocity
+            # The number of Doppler bins for each of the chirps
+            self.DopplerBins[ichirp] = np.linspace(-self.maxvel[ichirp], self.maxvel[ichirp], self.vel_gates[ichirp])
+
+            # for each chirp, get the range (height) dimension
+            range_dummy = get_nc_data(file, 'C' + str(ichirp + 1) + 'Range')
+
+            self.height[ichirp] = np.divide(np.array(range_dummy), 1000.0)
+            self.n_height[ichirp] = len(range_dummy)
+
+        nc_data_set.close()
+
+        self.cum_time_gates = np.zeros((n_nc_files + 1,), dtype='int')
+        time_samp = []
+        self.CBH = []
+        self.DDTb = []
+        self.LWP = []
+        self.Rain = []
+        self.SurfPres = []
+        self.SurfRelHum = []
+        self.SurfTemp = []
+        self.SurfWD = []
+        self.SurfWS = []
+
+        i_nc_file = 0
+        for file in self.ncfiles:
+            nc_data_set = netCDF4.Dataset(file, 'r')
+
+            time_chirp = np.array(nc_data_set.variables['Time'])  # Number of seconds since 1/1/2001 00:00:00 [UTC]
+            time_samp = np.append(time_samp, time_chirp)
+            self.cum_time_gates[i_nc_file + 1] = self.cum_time_gates[i_nc_file] + len(time_chirp)
+
+            self.CBH = np.append(self.CBH, np.array(nc_data_set.variables['CBH']))  # Cloud Bottom Height [m]
+            self.DDTb = np.append(self.DDTb, np.array(
+                nc_data_set.variables['DDTb']))  # Direct detection brightness temperature [K]
+            self.LWP = np.append(self.LWP, np.array(nc_data_set.variables['LWP']))  # Liquid Water Path [g/m2]
+            self.Rain = np.append(self.Rain,
+                                  np.array(nc_data_set.variables['Rain']))  # Rain rate from weather station [mm/h]
+
+            self.SurfPres = np.append(self.SurfPres, np.array(
+                nc_data_set.variables['SurfPres']))  # Surface atmospheric pressure from weather station [hPa]
+            self.SurfRelHum = np.append(self.SurfRelHum, np.array(
+                nc_data_set.variables['SurfRelHum']))  # Relative humidity from weather station [%]
+            self.SurfTemp = np.append(self.SurfTemp, np.array(
+                nc_data_set.variables['SurfTemp']))  # Surface temperature from weather station [K]
+            self.SurfWD = np.append(self.SurfWD, np.array(
+                nc_data_set.variables['SurfWD']))  # Surface wind direction from weather station [deg]
+            self.SurfWS = np.append(self.SurfWS, np.array(
+                nc_data_set.variables['SurfWS']))  # Surface wind speed from weather station [m/s]
+
+            i_nc_file += 1
+            nc_data_set.close()
+
+        self.n_time = len(time_samp)
+
+        # gahter radar data values and stack them together
+        # Fr_chirps = np.zeros((self.n_time, self.n_height))  # Range factor
+
+        VHSpec_chirps = [None] * self.no_c  # Doppler spectrum at vertical+horizontal polarization [mm6/m3]
+        ReVHSpec_chirps = [None] * self.no_c  # Real part of covariance spectrum [mm6/m3]
+        ImVHSpec_chirps = [None] * self.no_c  # Imaginary part of covariance spectrum [mm6/m3]
+        HSpec_chirps = [None] * self.no_c  # Doppler spectrum at horizontal polarization [mm6/m3 ]
+        SLh_chirps = [None] * self.no_c  # Sensitivity limit for horizontal polarization [mm6/m3]
+        SLv_chirps = [None] * self.no_c  # Sensitivity limit for vertical polarization [mm6/m3]
+
+        for ichirp in range(self.no_c):
+            VHSpec_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp], self.vel_gates[ichirp]))
+            ReVHSpec_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp], self.vel_gates[ichirp]))
+            ImVHSpec_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp], self.vel_gates[ichirp]))
+            HSpec_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp], self.vel_gates[ichirp]))
+            SLh_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp]))
+            SLv_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp]))
+
+        i_nc_file = 0
+        n_nc_file = len(self.ncfiles)
+
+        for file in self.ncfiles:
+            if pts: print("    Loading LIMRAD94 (LV0.NC) NC-files ({} of {})".format(i_nc_file, n_nc_file), end="\r")
+
+            nc_data_set = netCDF4.Dataset(file, 'r')
+
+            lb_t = self.cum_time_gates[i_nc_file]
+            ub_t = self.cum_time_gates[i_nc_file + 1]
+
+            for ichirp in range(self.no_c):
+                VHSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(
+                    nc_data_set.variables['C' + str(ichirp + 1) + 'VSpec'])
+                ReVHSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(
+                    nc_data_set.variables['C' + str(ichirp + 1) + 'ReVHSpec'])
+                ImVHSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(
+                    nc_data_set.variables['C' + str(ichirp + 1) + 'ImVHSpec'])
+                HSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'HSpec'])
+                SLh_chirps[ichirp][lb_t:ub_t, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'SLh'])
+                SLv_chirps[ichirp][lb_t:ub_t, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'SLv'])
+
+            nc_data_set.close()
+            i_nc_file += 1
+
+        if pts: print("    Loading LIMRAD94 (LV0.NC) NC-files ({} of {})".format(n_nc_file, n_nc_file))
+
+        # convert times in datetime format
+
+        time_plot = [datetime.datetime(2001, 1, 1, 0, 0, 0)
+                     + datetime.timedelta(seconds=int(time_samp[i])) for i in range(len(time_samp))]
+
+        min_t, max_t = get_time_boundary(time_plot, time)
+        min_h, max_h = [0, -1]
+
+        self.t_plt = time_plot[min_t:max_t]
+        self.t_unix = [ts.replace(tzinfo=timezone.utc).timestamp() for ts in self.t_plt]
+        self.n_time = len(self.t_unix)
+
+        # self.height = list(np.divide(self.height[:][min_h:max_h], 1000))
+        # self.n_height = len(self.height)
+
+        # build stacked chirps and prune arrays
+        self.CBH = self.CBH[min_t:max_t]
+        self.DDTb = self.DDTb[min_t:max_t]
+        self.LWP = self.LWP[min_t:max_t]
+        self.Rain = self.Rain[min_t:max_t]
+
+        self.SurfPres = self.SurfPres[min_t:max_t]
+        self.SurfRelHum = self.SurfRelHum[min_t:max_t]
+        self.SurfTemp = self.SurfTemp[min_t:max_t]
+        self.SurfWD = self.SurfWD[min_t:max_t]
+        self.SurfWS = self.SurfWS[min_t:max_t]
+
+        self.VHSpec = []
+        self.ReVHSpec = []
+        self.ImVHSpec = []
+        self.HSpec = []
+        self.SLh = []
+        self.SLv = []
+
+        for ic in range(self.no_c):
+            self.VHSpec.append(np.array(np.ma.masked_less_equal(VHSpec_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
+            self.ReVHSpec.append(np.array(np.ma.masked_less_equal(ReVHSpec_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
+            self.ImVHSpec.append(np.array(np.ma.masked_less_equal(ImVHSpec_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
+            self.HSpec.append(np.array(np.ma.masked_less_equal(HSpec_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
+            self.SLh.append(np.array(np.ma.masked_less_equal(SLh_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
+            self.SLv.append(np.array(np.ma.masked_less_equal(SLv_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
+
+        # self.VarDict = {'CBH': False, 'DDTb': False, 'LWP': False, 'Rain': False,
+        #                'SurfPres': False, 'SurfRelHum': False, 'SurfTemp': False, 'SurfWD': False, 'SurfWS': False,
+        #                'Ze': True, 'ZDR': False, 'mdv': True, 'sw': True, 'ldr': True, 'kurt': True, 'Skew': True,
+        #                'DiffAtt': False}
+
+
+class LIMRAD94_LV1():
 
 
     frequency = 94.0            # [GHz]
@@ -25,7 +274,7 @@ class LIMRad94_LV1():
 
     def __init__(self, *args):
 
-        os.chdir(meteo_path + 'LIMRad94/')  # path to data needs to be fit to the devices file structure
+        os.chdir(meteo_path + 'LIMRAD94/')  # path to data needs to be fit to the devices file structure
 
         if len(args) < 1:
             print('You need to specify a date at least!')
@@ -248,12 +497,12 @@ class LIMRad94_LV1():
 
     def save(self, path):
 
-        ds_name = path + str(self.year) + str(self.month).zfill(2) \
-                  + str(self.day).zfill(2) + '_' + self.time_int + '_LIMRad94.nc'
+        ds_name = path + 'concatinated/' + str(self.year) + str(self.month).zfill(2) \
+                  + str(self.day).zfill(2) + '_' + self.time_int + '_LIMRAD94.nc'
 
         ds = netCDF4.Dataset(ds_name, "w", format="NETCDF4")
 
-        ds.description = 'Concatenated data files of LIMRad 94GHz - FMCW Radar'
+        ds.description = 'Concatenated data files of LIMRAD 94GHz - FMCW Radar'
         ds.history  = 'Created ' + time.ctime(time.time())
         ds.source   = ''
 
@@ -262,33 +511,38 @@ class LIMRad94_LV1():
         ds.createDimension('HAlt', self.HAlt)
         ds.createDimension('Chirp', self.no_c)
         ds.createDimension('time', len(self.t_unix))
-        ds.createDimension('height', len(self.height))
+        ds.createDimension('range', len(self.height))
 
         for ic in range(self.no_c):
             ds.createDimension('C'+str(ic+1)+'Range', self.range_gates[ic])
             ds.createDimension('C'+str(ic+1)+'Vel',   self.vel_gates[ic])
 
 
-        self.nc_add_variable(ds, 'time',   np.int,     ('time',),   'Seconds since 01.01.1970 00:00 UTC', '[sec]', self.t_unix)
-        self.nc_add_variable(ds, 'height', np.float32, ('height',), 'height', '[m]', np.copy(np.multiply(1000.0, self.height)))
+        self.nc_add_variable(ds, 'time', np.int, ('time',),   'Seconds since 01.01.1970 00:00 UTC', '[sec]', self.t_unix)
+        self.nc_add_variable(ds, 'range', np.float32, ('range',), 'range', '[m]',
+                             np.copy(np.multiply(1000.0, self.height)))
 
-        self.nc_add_variable(ds, 'Ze', np.float32, ('time', 'height',), 'Equivalent radar reflectivity factor', '[dBZ]',
+        self.nc_add_variable(ds, 'Ze', np.float32, ('time', 'range',), 'Equivalent radar reflectivity factor', '[dBZ]',
                              self.Ze, -999.)
-        self.nc_add_variable(ds, 'mdv',  np.float32, ('time', 'height',), 'Mean Doppler velocity',                '[m/s]',      self.mdv, -999.)
-        self.nc_add_variable(ds, 'sw',   np.float32, ('time', 'height',), 'Spectrum width',                       '[m/s]',      self.sw, -999.)
-        self.nc_add_variable(ds, 'ldr',  np.float32, ('time', 'height',), 'Slanted linear depolarization ratio',  '[dB]',       self.ldr, -999.)
-        self.nc_add_variable(ds, 'kurt', np.float32, ('time', 'height',), 'Kurtosis',                             '[linear]',   self.kurt, -999.)
-        self.nc_add_variable(ds, 'Skew', np.float32, ('time', 'height',), 'Skewness',                             '[linear]',   self.Skew, -999.)
-        self.nc_add_variable(ds, 'DiffAtt', np.float32, ('time', 'height',), 'Differential attenuation',          '[dB/km]',    self.DiffAtt, -999.)
+        self.nc_add_variable(ds, 'vm', np.float32, ('time', 'range',), 'Mean Doppler velocity', '[m/s]', self.mdv,
+                             -999.)
+        self.nc_add_variable(ds, 'sigma', np.float32, ('time', 'range',), 'Spectrum width', '[m/s]', self.sw, -999.)
+        self.nc_add_variable(ds, 'ldr', np.float32, ('time', 'range',), 'Slanted linear depolarization ratio', '[dB]',
+                             self.ldr, -999.)
+        self.nc_add_variable(ds, 'kurt', np.float32, ('time', 'range',), 'Kurtosis', '[linear]', self.kurt, -999.)
+        self.nc_add_variable(ds, 'Skew', np.float32, ('time', 'range',), 'Skewness', '[linear]', self.Skew, -999.)
+        self.nc_add_variable(ds, 'DiffAtt', np.float32, ('time', 'range',), 'Differential attenuation', '[dB/km]',
+                             self.DiffAtt, -999.)
 
         self.nc_add_variable(ds, 'latitude',  np.float32, (), 'GPS latitude',  '[deg]', self.latitude)
         self.nc_add_variable(ds, 'longitude', np.float32, (), 'GPS longitude', '[deg]', self.longitude)
-        self.nc_add_variable(ds, 'DoppMax',   np.float32, ('Chirp',), 'Unambiguous Doppler velocity (+/-)', '[m/s]', self.DoppMax)
+        self.nc_add_variable(ds, 'DoppMax', np.float32, ('Chirp',), 'Unambiguous Doppler velocity (+/-)', '[m/s]', self.DoppMax)
 
-        self.nc_add_variable(ds, 'CBH',   np.float32, ('time',), 'Cloud Bottom Height', '[m]', self.CBH)
-        self.nc_add_variable(ds, 'DDTb',  np.float32, ('time',), 'Direct detection brightness temperature', '[m]', self.DDTb)
-        self.nc_add_variable(ds, 'LWP',   np.float32, ('time',), 'Liquid water path', '[g/m^2]', self.LWP)
-        self.nc_add_variable(ds, 'Rain',  np.float32, ('time',), 'Rain rate from weather station', '[mm/h]', self.Rain)
+        self.nc_add_variable(ds, 'cbh', np.float32, ('time',), 'Cloud Bottom Height', '[m]', self.CBH)
+        self.nc_add_variable(ds, 'bt', np.float32, ('time',), 'Direct detection brightness temperature', '[m]',
+                             self.DDTb)
+        self.nc_add_variable(ds, 'lwp', np.float32, ('time',), 'Liquid water path', '[g/m^2]', self.LWP)
+        self.nc_add_variable(ds, 'rain', np.float32, ('time',), 'Rain rate from weather station', '[mm/h]', self.Rain)
 
         self.nc_add_variable(ds, 'SurfPres',   np.float32, ('time',), 'Surface atmospheric pressure from weather station', '[hPa]', self.SurfPres)
         self.nc_add_variable(ds, 'SurfRelHum', np.float32, ('time',), 'Relative humidity from weather station', '[%]', self.SurfRelHum)
@@ -298,7 +552,7 @@ class LIMRad94_LV1():
 
         if interpolate_cn:
             ds.createDimension('time_interp', len(self.t_unix_interp))
-            ds.createDimension('height_interp', len(self.height_interp))
+            ds.createDimension('range_interp', len(self.height_interp))
 
             self.nc_add_variable(ds, 'time_interp_res', np.float32, (), 'Time resolution of interpolated data', '[sec]',
                                  interp_time_res)
@@ -307,16 +561,16 @@ class LIMRad94_LV1():
 
             self.nc_add_variable(ds, 'time_interp', np.int, ('time_interp',),
                                  'Seconds since 01.01.1970 00:00 UTC (interpolated)', '[sec]', self.t_unix_interp)
-            self.nc_add_variable(ds, 'height_interp', np.float32, ('height_interp',), 'height (interpolated)', '[m]',
+            self.nc_add_variable(ds, 'range_interp', np.float32, ('range_interp',), 'height (interpolated)', '[m]',
                                  np.copy(np.multiply(1000.0, self.height_interp)))
 
-            self.nc_add_variable(ds, 'Ze_interp', np.float32, ('time_interp', 'height_interp',),
+            self.nc_add_variable(ds, 'Ze_interp', np.float32, ('time_interp', 'range_interp',),
                                  'Equivalent radar reflectivity factor (interpolated)', '[dBZ]', self.Ze_interp, -999.)
-            self.nc_add_variable(ds, 'mdv_interp', np.float32, ('time_interp', 'height_interp',),
+            self.nc_add_variable(ds, 'vm_interp', np.float32, ('time_interp', 'range_interp',),
                                  'Mean Doppler velocity (interpolated)', '[m/s]', self.mdv_interp, -999.)
-            self.nc_add_variable(ds, 'sw_interp', np.float32, ('time_interp', 'height_interp',),
+            self.nc_add_variable(ds, 'sigma_interp', np.float32, ('time_interp', 'range_interp',),
                                  'Spectrum width (interpolated)', '[m/s]', self.sw_interp, -999.)
-            self.nc_add_variable(ds, 'ldr_interp', np.float32, ('time_interp', 'height_interp',),
+            self.nc_add_variable(ds, 'ldr_interp', np.float32, ('time_interp', 'range_interp',),
                                  'Slanted linear depolarization ratio (interpolated)', '[dB]', self.ldr_interp, -999.)
 
         ds.close()
