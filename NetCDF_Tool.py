@@ -11,12 +11,6 @@ from Interpolation_Tool import interpolate2d
 from Parameter_Mod import *
 
 
-# class LIMRAD94_LV1 contains the radar data for a given time intervall within one self.day
-# reflectivity is converted into log unit [dBZ], chirps and file transitions will
-# concatinate automaticly
-#
-
-
 class LIMRAD94_LV0():
     frequency = 94.0  # [GHz]
     radar_wavelength = 0.00319  # [m]
@@ -105,9 +99,16 @@ class LIMRAD94_LV0():
         self.longitude = float(nc_data_set.variables['GPSLon'][:])
         self.DopplerBins = [None] * self.no_c
 
-        self.no_avg = np.array(nc_data_set.variables['AvgNum'][
-                               :])  # Number of chirps averaged (coherently and non-coherently) for a single time sample
+        # "Number of chirps averaged (coherently and non-coherently) for a single time sample"
+        self.no_avg = np.array(nc_data_set.variables['AvgNum'][:])
+
+        # From Nils' Code:
+        # nAvg = data.SeqAvg./data.DoppLen; % number of spectral averages
         self.no_av = np.divide(self.no_avg, self.doplen)
+        # Alexander Myagkov:
+        # As you certainly know the standard deviation of the noise power density goes down by sqrt(Nav)
+        # in the case of non-coherent averaging and this fact the Hildebrand algorithm takes into account.
+        # So you need to use Nav which is AvgNum / DoppLen for the corresponding chirp sequence.
 
         self.DoppMax = np.array(nc_data_set.variables['MaxVel'][:])
 
@@ -155,7 +156,6 @@ class LIMRAD94_LV0():
             self.LWP = np.append(self.LWP, np.array(nc_data_set.variables['LWP']))  # Liquid Water Path [g/m2]
             self.Rain = np.append(self.Rain,
                                   np.array(nc_data_set.variables['Rain']))  # Rain rate from weather station [mm/h]
-
             self.SurfPres = np.append(self.SurfPres, np.array(
                 nc_data_set.variables['SurfPres']))  # Surface atmospheric pressure from weather station [hPa]
             self.SurfRelHum = np.append(self.SurfRelHum, np.array(
@@ -229,9 +229,6 @@ class LIMRAD94_LV0():
         self.t_unix = [ts.replace(tzinfo=timezone.utc).timestamp() for ts in self.t_plt]
         self.n_time = len(self.t_unix)
 
-        # self.height = list(np.divide(self.height[:][min_h:max_h], 1000))
-        # self.n_height = len(self.height)
-
         # build stacked chirps and prune arrays
         self.CBH = self.CBH[min_t:max_t]
         self.DDTb = self.DDTb[min_t:max_t]
@@ -244,20 +241,12 @@ class LIMRAD94_LV0():
         self.SurfWD = self.SurfWD[min_t:max_t]
         self.SurfWS = self.SurfWS[min_t:max_t]
 
-        self.VHSpec = []
-        self.ReVHSpec = []
-        self.ImVHSpec = []
-        self.HSpec = []
-        self.SLh = []
-        self.SLv = []
-
-        for ic in range(self.no_c):
-            self.VHSpec.append(np.array(np.ma.masked_less_equal(VHSpec_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
-            self.ReVHSpec.append(np.array(np.ma.masked_less_equal(ReVHSpec_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
-            self.ImVHSpec.append(np.array(np.ma.masked_less_equal(ImVHSpec_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
-            self.HSpec.append(np.array(np.ma.masked_less_equal(HSpec_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
-            self.SLh.append(np.array(np.ma.masked_less_equal(SLh_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
-            self.SLv.append(np.array(np.ma.masked_less_equal(SLv_chirps[ic][min_t:max_t, min_h:max_h], 0.)))
+        self.VHSpec = list(block for block in VHSpec_chirps)
+        self.ReVHSpec = list(block for block in ReVHSpec_chirps)
+        self.ImVHSpec = list(block for block in ImVHSpec_chirps)
+        self.HSpec = list(block for block in HSpec_chirps)
+        self.SLh = list(block for block in SLh_chirps)
+        self.SLv = list(block for block in SLv_chirps)
 
         # self.VarDict = {'CBH': False, 'DDTb': False, 'LWP': False, 'Rain': False,
         #                'SurfPres': False, 'SurfRelHum': False, 'SurfTemp': False, 'SurfWD': False, 'SurfWS': False,
@@ -274,7 +263,7 @@ class LIMRAD94_LV1():
 
     def __init__(self, *args):
 
-        os.chdir(meteo_path + 'LIMRAD94/')  # path to data needs to be fit to the devices file structure
+        os.chdir(meteo_path + 'LIMRAD94/NoiseFac0')  # path to data needs to be fit to the devices file structure
 
         if len(args) < 1:
             print('You need to specify a date at least!')
@@ -317,7 +306,7 @@ class LIMRAD94_LV1():
 
         self.ncfiles = []
         for il in range_file_list:
-            file_name = str(glob.glob(date + '_' + str(il).zfill(2) + '*.LV1.NC'))
+            file_name = str(glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV1.NC'))
             self.ncfiles.append(file_name[2:-2])
 
             if file_name[2:-2] == '':

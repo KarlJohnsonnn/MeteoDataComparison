@@ -310,14 +310,14 @@ def Plot_for_poster(ds):
     plt_vm = plt.subplot2grid((2, 1), (1, 0))  # , rowspan=2)
 
     x_label = 'Time (UTC)'
-    y_label = 'IWV (kg/m )      2'
-    z_label = 'LWP (g/m )'
+    y_label = 'Height (km)'
+    z_label = 'Reflectivity (dBZ)'
 
     xb = [ds.t_plt[0], ds.t_plt[-1]]
 
     yb = [ds.height[0], ds.height[-1]]
 
-    plt_Ze.set_title('LIMCUBE, Leipzig, Germany, 20181001', size=20)
+    plt_Ze.set_title('LIMRAD94, Leipzig, Germany', size=20)
     plot_data_set(fig, plt_Ze, '',
                   ds.t_plt, ds.height, ds.Ze, vmi=-50, vma=20,
                   x_min=xb[0], x_max=xb[1], y_min=yb[0], y_max=yb[1],
@@ -335,7 +335,7 @@ def Plot_for_poster(ds):
         right=False,  # ticks along the top edge are off
         labelbottom=False)
 
-    z_label = 'v_D (m/s)'
+    z_label = 'mean Doppler velocity (m/s)'
 
     plot_data_set(fig, plt_vm, '',
                   ds.t_plt, ds.height, ds.mdv, vmi=-4, vma=2,

@@ -189,8 +189,6 @@ P. H. Hildebrand and R. S. Sekhon, Objective Determination of the Noise
 Level in Doppler Spectra. Journal of Applied Meteorology, 1974, 13,
 808-811.
 """
-
-
 @jit(nopython=True, fastmath=True)
 def estimate_noise_hs74(spectrum, navg=1):
     sorted_spectrum = np.sort(spectrum)
