@@ -23,16 +23,17 @@ from Functions_Mod import correlation
 import numpy as np
 
 
-def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max, x_lab, y_lab, z_lab):
+def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max, x_lab, y_lab, z_lab, p='r'):
     if text: text = r'\huge{\textbf{' + text + '}}'
     if text.find('sw') > 0 or text.find('Spectral Width') > 0:
         cp = axh.pcolormesh(x, y, z, norm=mcolors.LogNorm(vmin=vmi, vmax=vma), cmap='jet')
-        divider1 = make_axes_locatable(axh)
-        cax3 = divider1.append_axes("right", size="3%", pad=0.1)
-        formatter = LogFormatter(10, labelOnlyBase=False)
-        cbar = fig.colorbar(cp, cax=cax3, ax=axh, format=formatter, ticks=[0.1, 0.2, 0.5, 1, 2])
-        cbar.set_ticklabels([0.1, 0.2, 0.5, 1, 2])
-        cbar.set_label(z_lab)
+        if p == 'r':
+            divider1 = make_axes_locatable(axh)
+            cax3 = divider1.append_axes("right", size="3%", pad=0.1)
+            formatter = LogFormatter(10, labelOnlyBase=False)
+            cbar = fig.colorbar(cp, cax=cax3, ax=axh, format=formatter, ticks=[0.1, 0.2, 0.5, 1, 2])
+            cbar.set_ticklabels([0.1, 0.2, 0.5, 1, 2])
+            cbar.set_label(z_lab)
     elif text.find('ldr') > 0 or text.find('Linear Depolarisation Ratio') > 0:
         colors1 = plt.cm.binary(np.linspace(0.5, 0.5, 1))
         colors2 = plt.cm.jet(np.linspace(0, 0, 178))
@@ -42,24 +43,29 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
 
         place_text(axh, [.02, 1.075], text)
         cp = axh.pcolormesh(x, y, z, vmin=vmi, vmax=vma, cmap=mymap)
-        divider1 = make_axes_locatable(axh)
-        cax4 = divider1.append_axes("right", size="3%", pad=0.1)
-        bounds = np.linspace(-30, 0, 500)
-        cbar = fig.colorbar(cp, cax=cax4, ax=axh, boundaries=bounds, ticks=[-30, -25, -20, -15, -10, -5, 0])
-        cbar.set_ticklabels([-30, -25, -20, -15, -10, -5, 0])
-        cbar.set_label(z_lab)
+        if p == 'r':
+            divider1 = make_axes_locatable(axh)
+            cax4 = divider1.append_axes("right", size="3%", pad=0.1)
+            bounds = np.linspace(-30, 0, 500)
+            cbar = fig.colorbar(cp, cax=cax4, ax=axh, boundaries=bounds, ticks=[-30, -25, -20, -15, -10, -5, 0])
+            cbar.set_ticklabels([-30, -25, -20, -15, -10, -5, 0])
+            cbar.set_label(z_lab)
     else:
         place_text(axh, [.02, 1.075], text)
         cp = axh.pcolormesh(x, y, z, vmin=vmi, vmax=vma, cmap='jet')
-        divider1 = make_axes_locatable(axh)
-        cax0 = divider1.append_axes("right", size="3%", pad=0.1)
-        cbar = fig.colorbar(cp, cax=cax0, ax=axh)
-        cbar.set_label(z_lab)
+        if p == 'r':
+            divider1 = make_axes_locatable(axh)
+            cax0 = divider1.append_axes("right", size="3%", pad=0.1)
+            cbar = fig.colorbar(cp, cax=cax0, ax=axh)
+            cbar.set_label(z_lab)
     axh.grid(linestyle=':')
-    axh.axes.tick_params(axis='both', direction='inout', length=10, width=1.5)
-    axh.set_ylabel(y_lab)
+    axh.axes.tick_params(axis='x', direction='inout', length=10, width=1.5)
+    if p == 'r': axh.set_yticklabels([])
     axh.set_xlim(left=x_min, right=x_max)
-    axh.set_ylim(bottom=y_min, top=y_max, )
+    if p == 'l':
+        axh.set_ylabel(y_lab)
+        axh.set_ylim(bottom=y_min, top=y_max, )
+        axh.axes.tick_params(axis='Y', direction='inout', length=10, width=1.5)
 
     # exceptions
     if x_lab == '':
@@ -397,7 +403,7 @@ def Plot_Radar_Results(ds1, ds2):
     plot_data_set(fig, LR_Ze_plot, '',
                   ds1.t_plt, ds1.height, ds1.Ze, vmi=-50, vma=20,
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
+                  x_lab='', y_lab=y_label, z_lab=z_label, p='l')
 
     mira_Zg_plot.set_title(r'\large{\textbf{MIRA 35GHz Radar}}')
     plot_data_set(fig, mira_Zg_plot, '',
@@ -417,7 +423,7 @@ def Plot_Radar_Results(ds1, ds2):
     plot_data_set(fig, LR_mdv_plot, '',
                   ds1.t_plt, ds1.height, ds1.mdv, vmi=-4, vma=2,
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
+                  x_lab='', y_lab=y_label, z_lab=z_label, p='l')
 
     # MIRA mean Doppler velocity
     plot_data_set(fig, mira_VELg_plot, '',
@@ -436,7 +442,7 @@ def Plot_Radar_Results(ds1, ds2):
     plot_data_set(fig, LR_sw_plot, 'sw',
                   ds1.t_plt, ds1.height, ds1.sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
+                  x_lab='', y_lab=y_label, z_lab=z_label, p='l')
 
     # MIRA spectral width
     plot_data_set(fig, mira_RMSg_plot, 'sw',
@@ -456,7 +462,7 @@ def Plot_Radar_Results(ds1, ds2):
     plot_data_set(fig, LR_ldr_plot, '',
                   ds1.t_plt, ds1.height, ds1.ldr, vmi=-30, vma=0,
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label)
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='l')
 
     # MIRA linear depolarization ratio
     # mira_ldr_plot.set_title(r'\textbf{Linear Depolarization Ratio}')
@@ -475,7 +481,7 @@ def Plot_Radar_Results(ds1, ds2):
     plt.suptitle(file_name)
 
     plt.tight_layout(rect=[0, 0.01, 1, 0.90])
-    plt.subplots_adjust(hspace=0.05)
+    plt.subplots_adjust(hspace=0.025, wspace=0.0075)
 
     return fig, plt
 
