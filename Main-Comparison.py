@@ -22,8 +22,8 @@ import sys, warnings, time, os
 ##################################################################################################
 
 # Logicals for different tasks
-plot_radar_results = False
-plot_for_poster = True
+plot_radar_results = True
+plot_for_poster = False
 plot_comparisons = False
 plot_interpolation_scatter = False
 plot_interp2d = False
@@ -61,9 +61,9 @@ if pts:
 
 # gather arguments
 if len(sys.argv) == 6:
-    hmin, hmax = float(sys.argv[1]), float(sys.argv[2])
-    date = str(sys.argv[3])
-    time_intervall = str(sys.argv[4]) + '-' + str(sys.argv[5])
+    date = str(sys.argv[1])
+    time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
+    hmin, hmax = float(sys.argv[4]), float(sys.argv[5])
 
 else:
 
@@ -79,16 +79,15 @@ else:
     #date     = '180802'     # in YYMMDD
     #time_intervall = '0330-1200'  # in HHMM-HHM
 
-    # hmin = 0.0  # (km)  - lower y-axis limit
-    # hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    # date     = '180729'     # in YYMMDD
-    # time_intervall = '0000-2359'  # in HHMM-HHMM
-
-
     hmin = 0.0  # (km)  - lower y-axis limit
     hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '180810'  # in YYMMDD
-    time_intervall = '0500-0600'  # in HHMM-HHMM
+    date = '180729'  # in YYMMDD
+    time_intervall = '0000-0100'  # in HHMM-HHMM
+
+#    hmin = 0.0  # (km)  - lower y-axis limit
+#    hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+#    date = '180810'  # in YYMMDD
+#    time_intervall = '0500-0600'  # in HHMM-HHMM
 
     ##nimbus
     # hmin = 0.0 #(km)  - lower y-axis limit
@@ -138,17 +137,16 @@ time_intervall_lv0 = '0500-0600'  # in HHMM-HHMM
 
 LR_lv0 = nc.LIMRAD94_LV0(date_lv0, time_intervall_lv0, [hmin_lv0, hmax_lv0])
 
-LR_data = nc.LIMRAD94_LV1(date, time_intervall, [hmin, hmax])
+LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [hmin, hmax])
 
-
-# if interpolate_cn: LR_data.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
-# if create_nc_file: LR_data.save(LIMRAD_path)
+# if interpolate_cn: LR_lv1.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
+# if create_nc_file: LR_lv1.save(LIMRAD_path)
 
 
 
 # ----- MIRA 35GHz Radar data extraction
 # MIRA_data  = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax])
-#MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
+MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
 
 if pts: print('')
 
@@ -167,12 +165,12 @@ if pts: print('')
 
 # time averaged values
     # calculate Ze, mdv, sw (time averaged)
-#LR_data.avg_time()
+# LR_lv1.avg_time()
 #MIRA_data.avg_time()
 #MMCLX_data.avg_time()
 
     # calculate Ze, mdv, sw (height averaged)
-#LR_data.avg_height()
+#LR_lv1.avg_height()
 #MIRA_data.avg_height()
 #MMCLX_data.avg_height()
 
@@ -189,14 +187,14 @@ if pts: print('')
 #
 ####################################################################################################################
 
-date_str = str(LR_data.year) + str(LR_data.month).zfill(2) + str(LR_data.day).zfill(2)
+date_str = str(LR_lv1.year) + str(LR_lv1.month).zfill(2) + str(LR_lv1.day).zfill(2)
 
 
 if plot_for_poster:
 
-    fig, plt = Plot_for_poster(LR_data)
+    fig, plt = Plot_for_poster(LR_lv1)
 
-    file = LIMRAD_path + date_str + '_radar_LIMRAD94_vergleich.png'
+    file = meteo_path + date_str + '_radar_LIMRAD94_vergleich.png'
     fig.savefig(file, dpi=dpi_val, format='png')
     plt.close()
 
@@ -205,7 +203,7 @@ if plot_for_poster:
 
 if plot_interp2d:
 
-    fig, plt = Plot_2D_Interpolation(LR_data, MMCLX_data)
+    fig, plt = Plot_2D_Interpolation(LR_lv1, MMCLX_data)
 
     file = date_str + '_2D-Interpolation.png'
     fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
@@ -217,9 +215,9 @@ if plot_interp2d:
 
 if plot_radar_results:
 
-    fig, plt = Plot_Radar_Results(LR_data, MMCLX_data)
+    fig, plt = Plot_Radar_Results(LR_lv1, MMCLX_data)
 
-    afile = date_str + '_profiles_timeseries.png'
+    file = date_str + '_profiles_timeseries.png'
     fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
     plt.close()
 
@@ -228,7 +226,7 @@ if plot_radar_results:
 
 if plot_comparisons:
 
-    fig, plt = Plot_Comparison(LR_data, MMCLX_data)
+    fig, plt = Plot_Comparison(LR_lv1, MMCLX_data)
 
     file = date_str + '_avg_time_height.png'
     fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
@@ -238,7 +236,7 @@ if plot_comparisons:
 
 if plot_interpolation_scatter:
 
-    fig, plt = Plot_Scatter(LR_data, MMCLX_data)
+    fig, plt = Plot_Scatter(LR_lv1, MMCLX_data)
 
     file = date_str + '_interp-avgheight_comp.png'
     fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
@@ -263,9 +261,9 @@ if plot_doppler_spectra:
     doppler_dBZ = np.multiply(np.ma.log10(LR_lv0.VHSpec[c]), 10.0)
     zbound = [doppler_dBZ.min(), doppler_dBZ.max()]
 
-    for t0 in range(LR_lv0.n_time):
-        for c in range(LR_lv0.no_c):
-            for h0 in range(LR_lv0.n_height[c]):
+    for c in range(LR_lv0.no_c):
+        for h0 in range(LR_lv0.n_height[c]):
+            for t0 in range(LR_lv0.n_time):
                 mean, threshold, var, nnoise = estimate_noise_hs74(LR_lv0.VHSpec[c][t0, h0, :], navg=LR_lv0.no_av[c])
 
                 #        fig, plt = Plot_Doppler_Spectra(LR_lv0, c, t0, h0, zbound, threshold, mean)
@@ -280,11 +278,11 @@ if plot_doppler_spectra:
                 #        fig.savefig(file, dpi=100, format='png')
                 #        plt.close()
 
-                print("    File {} of {} written.".format(i_png, n_spectra), end="\r")
+                print(f'    File {i_png} of {n_spectra} written.', end='\r')
                 i_png += 1
 
     print('\n' * 2)
 
-    print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.2f} sec.')
+    print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.3f} sec.')
 
 if pts: print(f'    Total Elapsed Time = {time.clock()-start_time:.3f} sec.\n')

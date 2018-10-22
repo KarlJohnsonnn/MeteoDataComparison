@@ -1,7 +1,7 @@
 
 
 pts = True # print to screen
-dbg = False # debug ouput flag
+# dbg = False # debug ouput flag
 
 interpolate_cn = True
 create_nc_file = True

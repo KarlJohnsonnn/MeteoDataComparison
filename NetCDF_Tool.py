@@ -263,7 +263,7 @@ class LIMRAD94_LV1():
 
     def __init__(self, *args):
 
-        os.chdir(meteo_path + 'LIMRAD94/NoiseFac0')  # path to data needs to be fit to the devices file structure
+        os.chdir(meteo_path + 'LIMRAD94/')  # path to data needs to be fit to the devices file structure
 
         if len(args) < 1:
             print('You need to specify a date at least!')
@@ -460,7 +460,7 @@ class LIMRAD94_LV1():
         self.ZDR = np.ma.masked_less_equal(ZDR_chirps[min_t:max_t, min_h:max_h].T, -999.)
         self.mdv = np.ma.masked_less_equal(mdv_chirps[min_t:max_t, min_h:max_h].T, -999.)
         self.sw  = np.ma.masked_less_equal(sw_chirps[min_t:max_t, min_h:max_h].T, -999.)
-        self.ldr = np.ma.masked_less_equal(ldr_chirps[min_t:max_t, min_h:max_h].T, -999.)
+        self.ldr = np.ma.masked_less_equal(ldr_chirps[min_t:max_t, min_h:max_h].T, - 999.)
         self.kurt = np.ma.masked_less_equal(kurt_chirps[min_t:max_t, min_h:max_h].T, -999.)   # fill value correct?
         self.Skew = np.ma.masked_less_equal(Skew_chirps[min_t:max_t, min_h:max_h].T, -999.)
         self.kurt = np.ma.masked_less_equal(kurt_chirps[min_t:max_t, min_h:max_h].T, -999.)
@@ -884,12 +884,12 @@ class MIRA35_LV1():
             self.Ze  = np.ma.log10(np.ma.masked_invalid(self.Ze[min_t:max_t, min_h:max_h]).T) * 10.
             self.mdv = np.ma.masked_invalid(self.mdv[min_t:max_t, min_h:max_h]).T
             self.sw  = np.ma.masked_invalid(self.sw[min_t:max_t, min_h:max_h]).T
-            self.ldr = np.ma.masked_invalid(self.ldr[min_t:max_t, min_h:max_h]).T
+            self.ldr = np.ma.log10(np.ma.masked_invalid(self.ldr[min_t:max_t, min_h:max_h]).T) * 10.
 
             self.Ze_hydro  = np.ma.log10(np.ma.masked_invalid(self.Ze_hydro[min_t:max_t, min_h:max_h]).T) * 10
             self.mdv_hydro = np.ma.masked_invalid(self.mdv_hydro[min_t:max_t, min_h:max_h]).T
             self.sw_hydro  = np.ma.masked_invalid(self.sw_hydro[min_t:max_t, min_h:max_h]).T
-            self.ldr_hydro = np.ma.masked_invalid(self.ldr_hydro[min_t:max_t, min_h:max_h]).T
+            self.ldr_hydro = np.ma.log10(np.ma.masked_invalid(self.ldr_hydro[min_t:max_t, min_h:max_h]).T) * 10
 
             #self.Ze = np.ma.log10(self.Ze) * 10
 
