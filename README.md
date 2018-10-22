@@ -6,8 +6,10 @@ The analysis is done by comparing three main radar moments:
   - mean Doppler velocity (mdv)
   - spectral width (sw)
   - linear depolarization ratio (ldr)
+  
+Calculating the noise floor for uncompressed LIMRAD94 .LV0.NC and compaEna = 0 files.
 
-The input routine is able to handle ".LV0.N" and ".LV1.NC" NetCDF data (LIMRad94) as well as ".mira" and ".mmclx" NetCDF data (MIRA35).
+The input routine is able to handle ".LV0.N" and ".LV1.NC" NetCDF data (LIMRad94) as well as ".mira" and ".mmclx" NetCDF data (MIRA35). The Main-Comparison.py should serve the user how to call the input, output and plotting routines. 
 
 
 Installation:
@@ -25,16 +27,19 @@ Execution:
   
   The user has to execute the code with five additional arguments in order to specify the exact time and location of an event:
     
-    - minheight ... (float) minimum height of the desired frame, e.g.: 8.5
-    - maxheight ... (float) maximum height of the desired frame, e.g.: 12.0
-    - date ........ (integer) date of the dataset format: YYMMDD, e.g.: 180728
-    - from ........ (integer) starting time of the desired date in UTC, format: HHMM, e.g.: 0710
-    - to .......... (integer) end time of the desired date in UTC, format: HHMM, e.g.: 1240
+    - date ........ (integer) date of the dataset format: YYMMDD, e.g.: 180728                    (default: 180729)
+    - from ........ (integer) starting time of the desired date in UTC, format: HHMM, e.g.: 0710  (default:   0000)
+    - to .......... (integer) end time of the desired date in UTC, format: HHMM, e.g.: 1240       (default:   2359)
+    - minheight ... (float) minimum height of the desired frame, e.g.: 8.5                        (default:    0.0)
+    - maxheight ... (float) maximum height of the desired frame, e.g.: 12.0                       (default:   12.0)
+
+
+# Calling the routine with specific parameters
 
   $ python Main-Comparison.py minheight maxheight date from to
 
 
-Program Settings:
+# Available .png Outputs
 
   The Python code contains several logical variables, which allow the execution of different tasks.
   These parameters have to be set by the user before execution, in order to output the desired information and graphics.
