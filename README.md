@@ -45,18 +45,18 @@ Program Settings:
     - plot_radar_results         = True     # plotting the radar moments (Ze,mdv,sw) of LIMRad94 and MIRA35 NetCDF data
     - plot_comparisons           = True     # computes hight and time-averaged data of LIMRad94 and MIRA35 and plots the results
     - plot_interpolation_scatter = True     # interpolating mean-height onto a uniformly spaced grid, calulation of means and correlation coefficient, scatter plot
-
-
+    - plot_for_poster            = False    # plots Ze and mdv with larger fontsize
+    - plot_interp2d              = False    # plots interpolation of Ze from LIMRAD94<->MIRA grid, calculates correlation
+    - #plot_compare_mira_mmclx   = False    # disabled 
+    - plot_doppler_spectra       = False    # plots Doppler spectra from Lv0 files with noise floor estimation
 
 # Parameter_Mod.py
   Contains some global variabels and flags (default values below):
   
     - pts = True                          # print some information to screen (progress, file names of .png output)
     
-
     - chirpTable_min_height = 0.1         # minimum height of the first chirp sequence of LIMRad94 in [km], will be automated in the future
-   
-    
+       
     - LIMRAD_lv0_fext = '*.LV0.NC'        # LIMRAD94 Lv0 datafile (moments)
     - LIMRAD_lv1_fext = '*.LV1.NC'        # LIMRAD94 Lv1 datafile (moments)
     - mira_fext  = '*mira.nc'             # processed data of MIRA35 GHz Radar
