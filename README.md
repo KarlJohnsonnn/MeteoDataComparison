@@ -1,4 +1,4 @@
-# Main-Comparison.py
+# Playground.py
 This is the main file version 0.1 of "LIMRAD94-MIRA35-comparison" and has the perpous of showing the user how to input/ouput LIMRAD94 and MIRA NetCDF radar files. It generates quicklooks for the investigation of radar moments (Ze, mdv, sw, ldr) messured by the RPG 94GHz FMCW Radar 'LIMRAD94' and the Metek 35GHz Pulse Radar 'MIRA35'.
 
 The analysis is done by comparing three main radar moments: 
