@@ -16,10 +16,10 @@ rc('text', usetex=True)
 from matplotlib import dates
 from matplotlib.font_manager import FontProperties
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from Interpolation_Tool import *
+from modules.Interpolation_Mod import *
 
-from Parameter_Mod import pts, interp_meth
-from Functions_Mod import correlation
+from modules.Parameter_Mod import pts, interp_meth
+from modules.Utility_Mod import correlation
 import numpy as np
 
 
@@ -465,7 +465,6 @@ def Plot_Radar_Results(ds1, ds2):
                   x_lab=x_label, y_lab=y_label, z_lab=z_label, p='l')
 
     # MIRA linear depolarization ratio
-    # mira_ldr_plot.set_title(r'\textbf{Linear Depolarization Ratio}')
     plot_data_set(fig, mira_ldr_plot, '',
                   ds2.t_plt, ds2.height, ds2.ldr, vmi=-30, vma=0,
                   x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
@@ -485,6 +484,103 @@ def Plot_Radar_Results(ds1, ds2):
 
     return fig, plt
 
+
+def Plot_Compare_NoiseFac0(ds1, ds2):
+    ### plot ###
+    print('    Generate subplots:\n')
+
+    # create figure
+    font = FontProperties()
+
+    fig = plt.figure(figsize=(16, 10))
+
+    LR_Ze_plot = plt.subplot2grid((3, 2), (0, 0))
+    LR_mdv_plot = plt.subplot2grid((3, 2), (1, 0))  # , rowspan=2)
+    LR_sw_plot = plt.subplot2grid((3, 2), (2, 0))  # , rowspan=2)
+    mira_Zg_plot = plt.subplot2grid((3, 2), (0, 1))  # , colspan=2)
+    mira_VELg_plot = plt.subplot2grid((3, 2), (1, 1))  # , rowspan=2)
+    mira_RMSg_plot = plt.subplot2grid((3, 2), (2, 1))  # , rowspan=2)
+
+    xb1 = [ds1.t_plt[0], ds1.t_plt[-1]]
+    xb2 = [ds2.t_plt[0], ds2.t_plt[-1]]
+
+    yb1 = [ds1.height[0], ds1.height[-1]]
+    yb2 = [ds2.height[0], ds2.height[-1]]
+
+    ########################################################################################################
+    ########################################################################################################
+    # LR_Zelectivity plot
+    if pts: print('       -   Radar Reflectivity Factor   ', end='', flush=True)
+
+    x_label = r'\textbf{Time [UTC]}'
+    y_label = r'\textbf{Height [km]}'
+    z_label = r'\textbf{Reflectivity [dBZ]}'
+
+    LR_Ze_plot.set_title(r'\large{\textbf{LIMRAD 94GHz Radar NoiseFac0 Lv1 (with noise)}}')
+    plot_data_set(fig, LR_Ze_plot, '',
+                  ds1.t_plt, ds1.height, ds1.Ze, vmi=-50, vma=20,
+                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
+                  x_lab='', y_lab=y_label, z_lab=z_label, p='l')
+
+    mira_Zg_plot.set_title(r'\large{\textbf{LIMRAD 94GHz Radar moments from spectra Lv0 (without noise)}}')
+    plot_data_set(fig, mira_Zg_plot, '',
+                  ds2.t_plt, ds2.height_all, ds2.Ze, vmi=-50, vma=20,
+                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
+                  x_lab='', y_lab=y_label, z_lab=z_label)
+
+    if pts: print('\u2713')  # #print checkmark (✓) on screen
+
+    ########################################################################################################
+    # mean doppler velocity plot
+    if pts: print('       -   Mean Doppler velocity   ', end='', flush=True)
+
+    z_label = r'\textbf{Mean Doppler}' + '\n' + r'\textbf{Velocity [m/s]}'
+
+    # LIMRAD mean Doppler velocity
+    plot_data_set(fig, LR_mdv_plot, '',
+                  ds1.t_plt, ds1.height, ds1.mdv, vmi=-4, vma=2,
+                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
+                  x_lab='', y_lab=y_label, z_lab=z_label, p='l')
+
+    # MIRA mean Doppler velocity
+    plot_data_set(fig, mira_VELg_plot, '',
+                  ds2.t_plt, ds2.height_all, ds2.mdv, vmi=-4, vma=2,
+                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
+                  x_lab='', y_lab=y_label, z_lab=z_label)
+
+    if pts: print('\u2713')  # #print checkmark (✓) on screen
+
+    ########################################################################################################
+    # spectral width plot
+    if pts: print('       -   Spectral Width   ', end='', flush=True)
+
+    z_label = r'\textbf{Spectral Width [m/s]}'
+    # LIMRAD spectral width
+    plot_data_set(fig, LR_sw_plot, 'sw',
+                  ds1.t_plt, ds1.height, ds1.sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
+                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='l')
+
+    # MIRA spectral width
+    plot_data_set(fig, mira_RMSg_plot, 'sw',
+                  ds2.t_plt, ds2.height_all, ds2.sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
+                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label)
+
+    if pts: print('\u2713')  # #print checkmark (✓) on screen
+
+
+    first_line = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
+    second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
+    third_line = r'using: LIMRAD94 and MIRA35 data;  no attenuation correction'
+
+    file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}\n' + r'\textbf{' + third_line + '}'
+    plt.suptitle(file_name)
+
+    plt.tight_layout(rect=[0, 0.01, 1, 0.90])
+    plt.subplots_adjust(hspace=0.025, wspace=0.0075)
+
+    return fig, plt
 
 def Plot_Comparison(ds1, ds2):
     ########################################################################

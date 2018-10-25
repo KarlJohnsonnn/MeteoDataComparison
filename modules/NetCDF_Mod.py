@@ -7,8 +7,8 @@ from datetime import timezone
 import netCDF4
 import numpy as np
 
-from Interpolation_Tool import interpolate2d
-from Parameter_Mod import *
+from modules.Interpolation_Mod import interpolate2d
+from modules.Parameter_Mod import *
 
 
 class LIMRAD94_LV0():
@@ -18,7 +18,7 @@ class LIMRAD94_LV0():
 
     def __init__(self, *args):
 
-        os.chdir(meteo_path + 'LIMRad94/NoiseFac0')  # path to data needs to be fit to the devices file structure
+        os.chdir(LIMRAD_path)  # path to data needs to be fit to the devices file structure
 
         if len(args) < 1:
             print('You need to specify a date at least!')
@@ -94,6 +94,7 @@ class LIMRAD94_LV0():
         self.maxvel = np.array(nc_data_set.variables['MaxVel'])
         self.doplen = np.array(nc_data_set.variables['DoppLen'])
         self.height = [None] * self.no_c  # [chirpTable_min_height]
+        self.height_all = [chirpTable_min_height]
         self.n_height = [None] * self.no_c  # [chirpTable_min_height]
         self.latitude = float(nc_data_set.variables['GPSLat'][:])
         self.longitude = float(nc_data_set.variables['GPSLon'][:])
@@ -111,7 +112,7 @@ class LIMRAD94_LV0():
         # So you need to use Nav which is AvgNum / DoppLen for the corresponding chirp sequence.
 
         self.DoppMax = np.array(nc_data_set.variables['MaxVel'][:])
-
+        cnt = 0
         for ichirp in range(self.no_c):
             self.range_gates[ichirp] = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Range'].size
             self.vel_gates[ichirp] = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Vel'].size
@@ -122,11 +123,24 @@ class LIMRAD94_LV0():
             # The number of Doppler bins for each of the chirps
             self.DopplerBins[ichirp] = np.linspace(-self.maxvel[ichirp], self.maxvel[ichirp], self.vel_gates[ichirp])
 
-            # for each chirp, get the range (height) dimension
-            range_dummy = get_nc_data(file, 'C' + str(ichirp + 1) + 'Range')
+            self.height[ichirp] = np.zeros(self.range_gates[ichirp])
+            if ichirp == 0:
+                self.height[ichirp][0] = chirpTable_min_height
 
-            self.height[ichirp] = np.divide(np.array(range_dummy), 1000.0)
-            self.n_height[ichirp] = len(range_dummy)
+            for ih in range(self.range_gates[ichirp]):
+                self.height_all.append(self.height_all[cnt] + self.range_res[ichirp])
+                cnt += 1
+
+                self.height[ichirp][ih] = self.height_all[cnt]
+
+            self.n_height[ichirp] = len(self.height[ichirp])
+
+            # for each chirp, get the range (height) dimension
+#
+#            self.height[ichirp] = np.divide(np.array(range_dummy), 1000.0)
+#            self.n_height[ichirp] = len(range_dummy)
+
+        self.height_all = np.array(self.height_all)
 
         nc_data_set.close()
 
@@ -151,11 +165,9 @@ class LIMRAD94_LV0():
             self.cum_time_gates[i_nc_file + 1] = self.cum_time_gates[i_nc_file] + len(time_chirp)
 
             self.CBH = np.append(self.CBH, np.array(nc_data_set.variables['CBH']))  # Cloud Bottom Height [m]
-            self.DDTb = np.append(self.DDTb, np.array(
-                nc_data_set.variables['DDTb']))  # Direct detection brightness temperature [K]
+            self.DDTb = np.append(self.DDTb, np.array(nc_data_set.variables['DDTb']))  # Direct detection brightness temperature [K]
             self.LWP = np.append(self.LWP, np.array(nc_data_set.variables['LWP']))  # Liquid Water Path [g/m2]
-            self.Rain = np.append(self.Rain,
-                                  np.array(nc_data_set.variables['Rain']))  # Rain rate from weather station [mm/h]
+            self.Rain = np.append(self.Rain, np.array(nc_data_set.variables['Rain']))  # Rain rate from weather station [mm/h]
             self.SurfPres = np.append(self.SurfPres, np.array(
                 nc_data_set.variables['SurfPres']))  # Surface atmospheric pressure from weather station [hPa]
             self.SurfRelHum = np.append(self.SurfRelHum, np.array(
@@ -202,13 +214,10 @@ class LIMRAD94_LV0():
             ub_t = self.cum_time_gates[i_nc_file + 1]
 
             for ichirp in range(self.no_c):
-                VHSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(
-                    nc_data_set.variables['C' + str(ichirp + 1) + 'VSpec'])
-                ReVHSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(
-                    nc_data_set.variables['C' + str(ichirp + 1) + 'ReVHSpec'])
-                ImVHSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(
-                    nc_data_set.variables['C' + str(ichirp + 1) + 'ImVHSpec'])
-                HSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'HSpec'])
+                VHSpec_chirps[ichirp][lb_t:ub_t, :, :]   = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'VSpec'])
+                ReVHSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'ReVHSpec'])
+                ImVHSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'ImVHSpec'])
+                HSpec_chirps[ichirp][lb_t:ub_t, :, :]    = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'HSpec'])
                 SLh_chirps[ichirp][lb_t:ub_t, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'SLh'])
                 SLv_chirps[ichirp][lb_t:ub_t, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'SLv'])
 
@@ -222,24 +231,25 @@ class LIMRAD94_LV0():
         time_plot = [datetime.datetime(2001, 1, 1, 0, 0, 0)
                      + datetime.timedelta(seconds=int(time_samp[i])) for i in range(len(time_samp))]
 
-        min_t, max_t = get_time_boundary(time_plot, time)
+        #min_t, max_t = get_time_boundary(time_plot, time)
+        min_t, max_t = [0, -1]
         min_h, max_h = [0, -1]
 
-        self.t_plt = time_plot[min_t:max_t]
+        self.t_plt = time_plot
         self.t_unix = [ts.replace(tzinfo=timezone.utc).timestamp() for ts in self.t_plt]
         self.n_time = len(self.t_unix)
 
         # build stacked chirps and prune arrays
-        self.CBH = self.CBH[min_t:max_t]
-        self.DDTb = self.DDTb[min_t:max_t]
-        self.LWP = self.LWP[min_t:max_t]
-        self.Rain = self.Rain[min_t:max_t]
+        self.CBH = self.CBH
+        self.DDTb = self.DDTb
+        self.LWP = self.LWP
+        self.Rain = self.Rain
 
-        self.SurfPres = self.SurfPres[min_t:max_t]
-        self.SurfRelHum = self.SurfRelHum[min_t:max_t]
-        self.SurfTemp = self.SurfTemp[min_t:max_t]
-        self.SurfWD = self.SurfWD[min_t:max_t]
-        self.SurfWS = self.SurfWS[min_t:max_t]
+        self.SurfPres = self.SurfPres
+        self.SurfRelHum = self.SurfRelHum
+        self.SurfTemp = self.SurfTemp
+        self.SurfWD = self.SurfWD
+        self.SurfWS = self.SurfWS
 
         self.VHSpec = list(block for block in VHSpec_chirps)
         self.ReVHSpec = list(block for block in ReVHSpec_chirps)
@@ -254,6 +264,104 @@ class LIMRAD94_LV0():
         #                'DiffAtt': False}
 
 
+    def save(self, path, Ze, mdv, sw, skew, kurt):
+
+        # copy new values to LIMRAD94_lv0 class
+
+        self.Ze   = np.ma.log10(Ze.T)*10.0
+        self.mdv  = mdv.T
+        self.sw   = sw.T
+        self.skew = skew.T
+        self.kurt = kurt.T
+
+        ds_name = path + 'concatinated/' + str(self.year) + str(self.month).zfill(2) \
+                  + str(self.day).zfill(2) + '_' + self.time_int + '_LIMRAD94_moments.nc'
+
+        ds = netCDF4.Dataset(ds_name, "w", format="NETCDF4")
+
+        ds.description = 'Concatenated data files of LIMRAD 94GHz - FMCW Radar, moments from spectra'
+        ds.history = 'Created ' + time.ctime(time.time())
+        ds.source = ''
+
+        n_tot_height = sum(self.n_height)
+        tot_height   = [iheight for ic_height in self.height for iheight in ic_height]
+
+        # caution ?
+        self.height  = tot_height
+
+        ds.createDimension('TAlt',  self.TAlt)
+        ds.createDimension('HAlt',  self.HAlt)
+        ds.createDimension('Chirp', self.no_c)
+        ds.createDimension('time',  self.n_time)
+        ds.createDimension('range', n_tot_height)
+
+        for ic in range(self.no_c):
+            ds.createDimension('C' + str(ic + 1) + 'Range', self.range_gates[ic])
+            ds.createDimension('C' + str(ic + 1) + 'Vel', self.vel_gates[ic])
+
+        self.nc_add_variable(ds, 'time', np.int, ('time',), 'Seconds since 01.01.1970 00:00 UTC', '[sec]', self.t_unix)
+        self.nc_add_variable(ds, 'range', np.float32, ('range',), 'range', '[m]', np.copy(np.multiply(1000.0, tot_height)))
+
+        self.nc_add_variable(ds, 'Ze', np.float32, ('time', 'range',), 'Equivalent radar reflectivity factor', '[dBZ]', self.Ze, -999.0)
+        self.nc_add_variable(ds, 'vm', np.float32, ('time', 'range',), 'Mean Doppler velocity', '[m/s]', mdv.T, -999.)
+        self.nc_add_variable(ds, 'sigma', np.float32, ('time', 'range',), 'Spectrum width', '[m/s]', sw.T, -999.)
+        self.nc_add_variable(ds, 'kurt', np.float32, ('time', 'range',), 'Kurtosis', '[linear]', kurt.T, -999.)
+        self.nc_add_variable(ds, 'Skew', np.float32, ('time', 'range',), 'Skewness', '[linear]', skew.T, -999.)
+
+        self.nc_add_variable(ds, 'latitude', np.float32, (), 'GPS latitude', '[deg]', self.latitude)
+        self.nc_add_variable(ds, 'longitude', np.float32, (), 'GPS longitude', '[deg]', self.longitude)
+        self.nc_add_variable(ds, 'DoppMax', np.float32, ('Chirp',), 'Unambiguous Doppler velocity (+/-)', '[m/s]',
+                             self.DoppMax)
+
+        self.nc_add_variable(ds, 'cbh', np.float32, ('time',), 'Cloud Bottom Height', '[m]', self.CBH)
+        self.nc_add_variable(ds, 'bt', np.float32, ('time',), 'Direct detection brightness temperature', '[m]',
+                             self.DDTb)
+        self.nc_add_variable(ds, 'lwp', np.float32, ('time',), 'Liquid water path', '[g/m^2]', self.LWP)
+        self.nc_add_variable(ds, 'rain', np.float32, ('time',), 'Rain rate from weather station', '[mm/h]',
+                             self.Rain)
+
+        self.nc_add_variable(ds, 'SurfPres', np.float32, ('time',),
+                             'Surface atmospheric pressure from weather station', '[hPa]', self.SurfPres)
+        self.nc_add_variable(ds, 'SurfRelHum', np.float32, ('time',), 'Relative humidity from weather station',
+                             '[%]', self.SurfRelHum)
+        self.nc_add_variable(ds, 'SurfTemp', np.float32, ('time',), 'Surface temperature from weather station',
+                             '[K]', self.SurfTemp)
+        self.nc_add_variable(ds, 'SurfWD', np.float32, ('time',), 'Surface wind direction from weather station',
+                             '[deg]', self.SurfWD)
+        self.nc_add_variable(ds, 'SurfWS', np.float32, ('time',), 'Surface wind speed from weather station',
+                             '[deg]', self.SurfWS)
+
+        ds.close()
+
+        print('')
+        print('    Concatenated nc file written: ', ds_name)
+
+    @staticmethod
+    def nc_add_variable(*args):
+
+        if len(args) < 7:
+            print(' check arguments for adding a netCDF variable')
+
+        elif len(args) >= 7:
+            datastruct = args[0]
+            var_name = args[1]
+            type = args[2]
+            dim = args[3]
+            long_name = args[4]
+            unit = args[5]
+            data = np.copy(args[6]).T
+            fillval = None
+
+            if len(args) == 8:
+                fillval = args[7]
+                data[data == np.ma.masked] = fillval
+
+        var = datastruct.createVariable(var_name, type, dim, fill_value=fillval)
+        var.long_name = long_name
+        var.unit = unit
+        var[:] = data
+
+
 class LIMRAD94_LV1():
 
 
@@ -263,7 +371,7 @@ class LIMRAD94_LV1():
 
     def __init__(self, *args):
 
-        os.chdir(meteo_path + 'LIMRAD94/')  # path to data needs to be fit to the devices file structure
+        os.chdir(LIMRAD_path)  # path to data needs to be fit to the devices file structure
 
         if len(args) < 1:
             print('You need to specify a date at least!')
@@ -336,6 +444,7 @@ class LIMRAD94_LV1():
         self.cum_range_gates = np.zeros((self.no_c + 1,), dtype='int')
         self.range_res = np.array(nc_data_set.variables['RangeRes'])
         self.height    = [chirpTable_min_height]
+        #self.height    = [chirpTable_min_height]
 
         self.latitude  = float(nc_data_set.variables['GPSLat'][:])
         self.longitude = float(nc_data_set.variables['GPSLon'][:])
@@ -343,14 +452,18 @@ class LIMRAD94_LV1():
 
         self.DoppMax = np.array(nc_data_set.variables['MaxVel'][:])
 
+        cnt = 0
         for ichirp in range(0, self.no_c):
             self.range_gates[ichirp] = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Range'].size
             self.vel_gates[ichirp]   = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Vel'].size
             self.cum_range_gates[ichirp + 1] = self.cum_range_gates[ichirp] + self.range_gates[ichirp]
-            n_height = len(self.height)
-            for i in range(n_height, self.range_gates[ichirp] + n_height):
-                self.height = np.append(self.height, self.height[i - 1] + self.range_res[ichirp])
 
+            for _ in range(self.range_gates[ichirp]):
+                self.height.append(self.height[cnt] + self.range_res[ichirp])
+                cnt += 1
+
+        self.height = np.array(self.height)
+        self.n_height = len(self.height)
         nc_data_set.close()
 
         self.cum_time_gates = np.zeros((n_nc_files + 1,), dtype='int')
@@ -441,7 +554,7 @@ class LIMRAD94_LV1():
         self.t_unix = [ts.replace(tzinfo=timezone.utc).timestamp() for ts in self.t_plt]
         self.n_time = len(self.t_unix)
 
-        self.height = np.divide(self.height[min_h:max_h], 1000)
+        self.height = self.height[min_h:max_h]
         self.n_height = len(self.height)
 
         # build stacked chirps and prune arrays
@@ -695,7 +808,7 @@ class MIRA35_LV1():
 
 
         if fext == '*mira.nc':
-            os.chdir(meteo_path + 'MIRA/calibrated/')  # path to data needs to be fit to the devices file structure
+            os.chdir(MIRA_path + 'calibrated/')  # path to data needs to be fit to the devices file structure
             self.ncfiles = glob.glob('20' + date + '*mira.nc')
 
             #if pts: print("    Loading MIRA35 (mira.nc) NC-files ({} of {})".format(0, 1), end="\r")
@@ -711,7 +824,7 @@ class MIRA35_LV1():
 
             height = np.array(nc_data_set.variables['range'])
 
-            # conversion from deciaml hour to datetime
+            # conversion from decimal hour to datetime
             time_samp = np.array(nc_data_set.variables['time'])
 
             dt_midnight = datetime.datetime(self.year, self.month, self.day)
@@ -765,7 +878,7 @@ class MIRA35_LV1():
 
         elif fext == '*.mmclx':
 
-            os.chdir(meteo_path + 'MIRA/mmclx')  # path to data needs to be fit to the devices file structure
+            os.chdir(MIRA_path + 'mmclx/')  # path to data needs to be fit to the devices file structure
 
 
             first_file = int(clock[0]) - np.remainder(int(clock[0]), 3)
