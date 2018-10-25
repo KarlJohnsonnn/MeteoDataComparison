@@ -1,10 +1,10 @@
+import sys
+import time
+import warnings
+
 import modules.NetCDF_Mod as nc
-
-from modules.Utility_Mod import *
 from modules.PlotLibrary_Mod import *
-
-import sys, warnings, time
-
+from modules.Utility_Mod import *
 
 '''
 ##################################################################################################
@@ -20,9 +20,9 @@ import sys, warnings, time
 ##################################################################################################
 '''
 # Logicals for different tasks
-plot_doppler_spectra = False
-plot_radar_results   = True
-plot_compare_noise   = False
+calc_doppler_spectra = True
+plot_radar_results = False
+plot_compare_noise = True
 plot_for_poster      = False
 plot_comparisons     = False
 plot_interp2d        = False
@@ -75,15 +75,15 @@ else:
     #date     = '180802'     # in YYMMDD
     #time_intervall = '0330-1200'  # in HHMM-HHM
 
-    hmin = 0.0  # (km)  - lower y-axis limit
-    hmax = 8.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '180729'  # in YYMMDD
-    time_intervall = '0000-0100'  # in HHMM-HHMM
-
     #hmin = 0.0  # (km)  - lower y-axis limit
-    #hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    #date = '180810'  # in YYMMDD
-    #time_intervall = '0500-0600'  # in HHMM-HHMM
+    # hmax = 8.00  # (km) - upper y-axis limit, highest range gate may be higher
+    # date = '180729'  # in YYMMDD
+    # time_intervall = '0000-0100'  # in HHMM-HHMM
+
+    hmin = 0.0  # (km)  - lower y-axis limit
+    hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+    date = '180810'  # in YYMMDD
+    time_intervall = '0500-0600'  # in HHMM-HHMM
 
     ##nimbus
     # hmin = 0.0 #(km)  - lower y-axis limit
@@ -125,12 +125,18 @@ warnings.filterwarnings("ignore")
 
 # ----- LIMRAD 94GHz Radar data extraction
 # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-hmin_lv0 = 0.0  # (km)  - lower y-axis limit
-hmax_lv0 = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-date_lv0 = '180810'  # in YYMMDD
-time_intervall_lv0 = '0500-0600'  # in HHMM-HHMM
+hmin = 0.0  # (km)  - lower y-axis limit
+hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+date = '180810'  # in YYMMDD
+time_intervall = '0500-0600'  # in HHMM-HHMM
 
-LR_lv0 = nc.LIMRAD94_LV0(date_lv0, time_intervall_lv0, [hmin_lv0, hmax_lv0])
+#  special case NoiseFac0_file = 'NOISEFAC0_180820_142451_P01_ZEN.LV0.NC'
+# hmin = 0.0  # (km)  - lower y-axis limit
+# hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+# date = '180820'  # in YYMMDD
+# time_intervall = '1400-1500'  # in HHMM-HHMM
+
+LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [hmin, hmax])
 
 LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [hmin, hmax])
 
@@ -140,8 +146,8 @@ if create_nc_file: LR_lv1.save(LIMRAD_path)
 
 
 # ----- MIRA 35GHz Raar data extraction
-MIRA_data  = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax])
-MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
+# MIRA_data  = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax])
+#MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
 
 if pts: print('')
 
@@ -161,13 +167,13 @@ if pts: print('')
 # averaged values
     # calculate Ze, mdv, sw (time averaged)
 LR_lv1.avg_time()
-MIRA_data.avg_time()
-MMCLX_data.avg_time()
+# MIRA_data.avg_time()
+#MMCLX_data.avg_time()
 
     # calculate Ze, mdv, sw (height averaged)
 LR_lv1.avg_height()
-MIRA_data.avg_height()
-MMCLX_data.avg_height()
+# MIRA_data.avg_height()
+#MMCLX_data.avg_height()
 
 
 '''
@@ -185,14 +191,20 @@ MMCLX_data.avg_height()
 '''
 
 # remove noise from raw spectra and calculate radar moments
-if plot_doppler_spectra:
+if calc_doppler_spectra:
 
     tstart = time.time()
 
     output = remove_noise(LR_lv0)
     if pts: print('    - all noise removed ')
 
+    if include_noise:
+        for ic in range(LR_lv0.no_c):
+            output[4][ic][:, :, 0] = 0
+            output[4][ic][:,:,1] = -1
+
     output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, output[4])
+
     if pts: print('    - moments calculated ')
 
     LR_lv0.save(LIMRAD_path, Ze=output[0], mdv=output[1], sw=output[2], skew=output[3], kurt=output[4])

@@ -1,8 +1,8 @@
+import calendar
 import datetime
 
 import numpy as np
 import pandas as pd
-import calendar
 from numba import jit
 
 from modules.Parameter_Mod import *
@@ -268,37 +268,29 @@ def remove_noise(ds):
     return mean_noise, threshold, variance, numnoise, integration_bounds
 
 
-'''
-# spectra_to_moments
-# translated from Heike's Matlab function
-# determination of radar moments of Dopler spectrum over range of Doppler velocity bins
-
-# input:
-# spectra_linear_units: time-height-FFT points of Doppler spectra ([mm^6 / m^3 ] / (m/s))
-# with noise removed(!?)
-# velocity_bins         : FFTpoint-long spectral velocity bins (m/s)
-# left_edge       : left edge of Doppler spectrum (v1) for moment determination
-# right_edge      : right edge of Doppler spectrum (v2) for moment determination
-
-# left_edge and right_edge can be determined using findEdges.py
-
-# output: 
-# Ze              : 0. moment = reflectivity over range of Doppler velocity bins v1 to v2 [dBZ]
-# mdv             : 1. moment = mean Doppler velocity over range of Doppler velocity bins v1 to v2 [m/s]
-# sw              : 2. moment = spectrum width over range of Doppler velocity bins v1 to v2  [m/s]
-# skew            : 3. moment = skewness over range of Doppler velocity bins v1 to v2 
-# kurt            : 4. moment = kurtosis over range of Doppler velocity bins v1 to v2 
-# pwr_nrm_out     : normalized power (the sum of pwr_norm is 1)
-'''
-
-
-# velocity_bins = the_bins
-# spectra_linear_units=np.ma.masked_less_equal(the_hspec, -999.)+np.ma.masked_less_equal(the_vspec, -999.)
-# left_edge = 0
-# right_edge = 128
-
-#@jit(nopython=True, fastmath=True)
 def spectra_to_moments(spectra_linear_units, velocity_bins, bounds):
+    '''
+    # spectra_to_moments
+    # translated from Heike's Matlab function
+    # determination of radar moments of Dopler spectrum over range of Doppler velocity bins
+
+    # input:
+    # spectra_linear_units: time-height-FFT points of Doppler spectra ([mm^6 / m^3 ] / (m/s))
+    # with noise removed(!?)
+    # velocity_bins         : FFTpoint-long spectral velocity bins (m/s)
+    # left_edge       : left edge of Doppler spectrum (v1) for moment determination
+    # right_edge      : right edge of Doppler spectrum (v2) for moment determination
+
+    # left_edge and right_edge can be determined using findEdges.py
+
+    # output:
+    # Ze              : 0. moment = reflectivity over range of Doppler velocity bins v1 to v2 [dBZ]
+    # mdv             : 1. moment = mean Doppler velocity over range of Doppler velocity bins v1 to v2 [m/s]
+    # sw              : 2. moment = spectrum width over range of Doppler velocity bins v1 to v2  [m/s]
+    # skew            : 3. moment = skewness over range of Doppler velocity bins v1 to v2
+    # kurt            : 4. moment = kurtosis over range of Doppler velocity bins v1 to v2
+    # pwr_nrm_out     : normalized power (the sum of pwr_norm is 1)
+    '''
 
     # contains the dimensionality of the Doppler spectrum, (nTime, nRange, nDopplerbins)
     no_chirps = len(spectra_linear_units)
@@ -318,38 +310,35 @@ def spectra_to_moments(spectra_linear_units, velocity_bins, bounds):
 
     pwr_nrm_out = [None] * no_chirps
     delta_vel   = [None] * no_chirps
-    for ic in range(no_chirps):
-        pwr_nrm_out[ic] = np.full((no_times, no_ranges, no_Dbins[ic]), np.nan)
-        delta_vel[ic]   = np.nanmean(np.diff(velocity_bins[ic]))
-
-    # mean velocity difference between velocity bins:
-
 
     for ic in range(no_chirps):                 # ith chirp, depends on chirp table configuration
+
+        # add new list element, mean velocity difference between velocity bins:
+        pwr_nrm_out[ic] = np.full((no_times, no_ranges, no_Dbins[ic]), np.nan)
+        delta_vel[ic] = np.nanmean(np.diff(velocity_bins[ic]))
+
         for iR in range(no_ranges_chrip[ic]):   # range dimension
             for iT in range(no_times):          # time dimension
 
-                # hier gibts probleme ... warum wird aus einer zählvariablen ein float?????
-
-                if bounds[ic][iT, iR, 0] > 0:       # check if signal was detected by estimate_noise routine
+                if bounds[ic][iT, iR, 0] > -1:  # check if signal was detected by estimate_noise routine
                     lb = int(bounds[ic][iT, iR, 0])
                     ub = int(bounds[ic][iT, iR, 1])
                     if ic > 0: iR_out = iR + sum(no_ranges_chrip[:ic])
                     else:      iR_out = iR
 
                     signal    = spectra_linear_units[ic][iT, iR, lb:ub] # extract power spectra and velocity bins in chosen range
-                    Ze_linear = np.nansum(signal * delta_vel[ic])           # linear full spectrum Ze [mm^6/m^3], scalar
+                    Ze_linear = np.nansum(signal * delta_vel[ic])  # linear full spectrum Ze [mm^6/m^3], scalar
 
                     if np.isfinite(Ze_linear):  # check if Ze_linear is not NaN
 
-                        Ze_linear_no_dV   = np.nansum(signal)                       # leave out multiplication with deltavel for mdv and specwidth calculation!
-                        velocity_bins_extr = velocity_bins[ic][lb:ub]    # extract velocity bins in chosen Vdop bin range
-
+                        signal_sum = np.nansum(
+                            signal)  # leave out multiplication with deltavel for mdv and specwidth calculation!
+                        velocity_bins_extr = velocity_bins[ic][lb:ub]  # extract velocity bins in chosen Vdop bin range
 
                         Ze[iT, iR_out] = Ze_linear  # copy temporary Ze_linear variable to output variable
 
-                        pwr_nrm = np.divide(signal, Ze_linear_no_dV)            # determine normalized power (NOT normalized by Vdop bins)
-                        pwr_nrm_out[ic][iT, iR, lb:ub] = pwr_nrm     # create output matrix of normalized power
+                        pwr_nrm = signal / signal_sum  # determine normalized power (NOT normalized by Vdop bins)
+                        pwr_nrm_out[ic][iT, iR, lb:ub] = pwr_nrm  # create output matrix of normalized power
 
                         mdv[iT, iR_out]  = np.nansum(velocity_bins_extr * pwr_nrm)
                         sw[iT, iR_out]   = np.sqrt(np.abs(np.nansum(np.multiply(pwr_nrm, np.square(velocity_bins_extr - mdv[iT, iR_out])))))
