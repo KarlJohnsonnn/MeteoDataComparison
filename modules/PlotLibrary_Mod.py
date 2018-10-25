@@ -487,10 +487,9 @@ def Plot_Radar_Results(ds1, ds2):
 
 def Plot_Compare_NoiseFac0(ds1, ds2):
     ### plot ###
-    print('    Generate subplots:\n')
+    if pts: print('    Generate subplots:\n')
 
     # create figure
-    font = FontProperties()
 
     fig = plt.figure(figsize=(16, 10))
 

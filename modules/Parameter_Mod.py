@@ -4,8 +4,8 @@ pts = True  # print some informations to screen
 
 interpolate_cn = False
 create_nc_file = False
-
-plot_doppler_spectra = False
+include_noise = True
+calc_doppler_spectra = False
 plot_radar_results   = False
 plot_compare_noise   = False
 plot_for_poster      = False
