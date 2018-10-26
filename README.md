@@ -9,7 +9,7 @@ The analysis is done by comparing three main radar moments:
   
 Calculating the noise floor for uncompressed LIMRAD94 .LV0.NC and compaEna = 0 files.
 
-The input routine is able to handle ".LV0.N" and ".LV1.NC" NetCDF data (LIMRad94) as well as ".mira" and ".mmclx" NetCDF data (MIRA35). The Main-Comparison.py should serve the user how to call the input, output and plotting routines. 
+The input routine is able to handle ".LV0.NC" and ".LV1.NC" NetCDF data (LIMRad94) as well as ".mira" and ".mmclx" NetCDF data (MIRA35). The Playground.py should serve the user how to call the input, output and plotting routines. 
 
 
 Installation:
