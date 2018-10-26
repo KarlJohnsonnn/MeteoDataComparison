@@ -62,7 +62,7 @@ Execution:
     
     - chirpTable_min_height = 0.1         # minimum height of the first chirp sequence of LIMRad94 in [km], will be automated in the future
        
-    - LIMRAD_lv0_fext = '*.LV0.NC'        # LIMRAD94 Lv0 datafile (moments)
+    - LIMRAD_lv0_fext = '*.LV0.NC'        # LIMRAD94 Lv0 datafile (spectra)
     - LIMRAD_lv1_fext = '*.LV1.NC'        # LIMRAD94 Lv1 datafile (moments)
     - mira_fext  = '*mira.nc'             # processed data of MIRA35 GHz Radar
     - mmclx_fext = '*.mmclx'              # contains processed and unprocessed of MIRA35 GHz Radar
