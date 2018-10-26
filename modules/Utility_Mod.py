@@ -218,12 +218,12 @@ def estimate_noise_hs74(spectrum, navg=1):
     if nnoise < n_spec:
         for ispec in range(n_spec):
             if spectrum[ispec] > threshold:
-                left_intersec  = ispec
+                left_intersec  = ispec-1
                 break
 
         for ispec in range(n_spec-1, -1, -1):
             if spectrum[ispec] > threshold:
-                right_intersec = ispec
+                right_intersec = ispec+1
                 break
 
     return mean, threshold, var, nnoise, left_intersec, right_intersec
@@ -321,8 +321,12 @@ def spectra_to_moments(spectra_linear_units, velocity_bins, bounds):
             for iT in range(no_times):          # time dimension
 
                 if bounds[ic][iT, iR, 0] > -1:  # check if signal was detected by estimate_noise routine
+
                     lb = int(bounds[ic][iT, iR, 0])
-                    ub = int(bounds[ic][iT, iR, 1])
+
+                    if bounds[ic][iT, iR, 1] < 0: ub = None
+                    else:  ub = int(bounds[ic][iT, iR, 1])
+
                     if ic > 0: iR_out = iR + sum(no_ranges_chrip[:ic])
                     else:      iR_out = iR
 
@@ -331,8 +335,7 @@ def spectra_to_moments(spectra_linear_units, velocity_bins, bounds):
 
                     if np.isfinite(Ze_linear):  # check if Ze_linear is not NaN
 
-                        signal_sum = np.nansum(
-                            signal)  # leave out multiplication with deltavel for mdv and specwidth calculation!
+                        signal_sum = np.nansum(signal)  # leave out multiplication with deltavel for mdv and specwidth calculation!
                         velocity_bins_extr = velocity_bins[ic][lb:ub]  # extract velocity bins in chosen Vdop bin range
 
                         Ze[iT, iR_out] = Ze_linear  # copy temporary Ze_linear variable to output variable
@@ -353,5 +356,25 @@ def spectra_to_moments(spectra_linear_units, velocity_bins, bounds):
 
     return Ze, mdv, sw, skew, kurt, pwr_nrm_out
 
+
+
+def compare_datasets(ds1, ds2):
+
+    # convert back to [mm6/m3]
+    Ze1 = np.power(ds1.Ze/10.0, 10)
+    Ze2 = np.power(ds2.Ze/10.0, 10)
+
+    Z_norm = 10.0*np.log10(np.linalg.norm(np.subtract(Ze1, Ze2), ord='fro'))
+    mdv_norm = np.linalg.norm(np.subtract(ds1.mdv, ds2.mdv), ord='fro')
+    sw_norm  = np.linalg.norm(np.subtract(ds1.sw, ds2.sw), ord='fro')
+
+    # convert to dBZ
+    print()
+    print(f'    ||Ze_lv0  -  Ze_lv1|| = {Z_norm:.6f} [dBZ]')
+    print(f'    ||mdv_lv0 - mdv_lv1|| = {mdv_norm:.6f} [m/s]')
+    print(f'    ||sw_lv0  -  sw_lv1|| = {sw_norm:.6f} [m/s]')
+    print()
+
+    pass
 
 

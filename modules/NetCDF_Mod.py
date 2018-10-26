@@ -99,6 +99,7 @@ class LIMRAD94_LV0():
         self.latitude = float(nc_data_set.variables['GPSLat'][:])
         self.longitude = float(nc_data_set.variables['GPSLon'][:])
         self.DopplerBins = [None] * self.no_c
+        self.CRanges = []
 
         # "Number of chirps averaged (coherently and non-coherently) for a single time sample"
         self.no_avg = np.array(nc_data_set.variables['AvgNum'][:])
@@ -114,6 +115,7 @@ class LIMRAD94_LV0():
         self.DoppMax = np.array(nc_data_set.variables['MaxVel'][:])
         cnt = 0
         for ichirp in range(self.no_c):
+            self.CRanges.append(np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'Range'][:]))
             self.range_gates[ichirp] = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Range'].size
             self.vel_gates[ichirp] = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Vel'].size
             self.cum_range_gates[ichirp + 1] = self.cum_range_gates[ichirp] + self.range_gates[ichirp]
@@ -122,16 +124,13 @@ class LIMRAD94_LV0():
             # Evenly space between the minimum and maximum unambiguous Doppler velocity
             # The number of Doppler bins for each of the chirps
             self.DopplerBins[ichirp] = np.linspace(-self.maxvel[ichirp], self.maxvel[ichirp], self.vel_gates[ichirp])
-
             self.height[ichirp] = np.zeros(self.range_gates[ichirp])
-            if ichirp == 0:
-                self.height[ichirp][0] = chirpTable_min_height
 
             for ih in range(self.range_gates[ichirp]):
                 self.height_all.append(self.height_all[cnt] + self.range_res[ichirp])
                 cnt += 1
 
-                self.height[ichirp][ih] = self.height_all[cnt]
+                self.height[ichirp][ih] = self.height_all[cnt]/1000.0
 
             self.n_height[ichirp] = len(self.height[ichirp])
 
@@ -139,20 +138,22 @@ class LIMRAD94_LV0():
 #
 #            self.height[ichirp] = np.divide(np.array(range_dummy), 1000.0)
 #            self.n_height[ichirp] = len(range_dummy)
-
-        self.height_all = np.array(self.height_all)
+        self.height_all.pop(0)
+        self.height_all = np.divide(np.array(self.height_all), 1000.)
+        self.CRanges = [iR for Cchirp in self.CRanges for iR in Cchirp]
+        self.CRanges = np.divide(self.CRanges, 1000.)
 
         nc_data_set.close()
 
         self.cum_time_gates = np.zeros((n_nc_files + 1,), dtype='int')
         time_samp = []
-        self.CBH = []
+        self.CBH  = []
         self.DDTb = []
-        self.LWP = []
+        self.LWP  = []
         self.Rain = []
-        self.SurfPres = []
+        self.SurfPres   = []
         self.SurfRelHum = []
-        self.SurfTemp = []
+        self.SurfTemp   = []
         self.SurfWD = []
         self.SurfWS = []
 
@@ -232,8 +233,8 @@ class LIMRAD94_LV0():
                      + datetime.timedelta(seconds=int(time_samp[i])) for i in range(len(time_samp))]
 
         #min_t, max_t = get_time_boundary(time_plot, time)
-        min_t, max_t = [0, -1]
-        min_h, max_h = [0, -1]
+        min_t, max_t = [0, None]
+        min_h, max_h = [0, None]
 
         self.t_plt = time_plot
         self.t_unix = [ts.replace(tzinfo=timezone.utc).timestamp() for ts in self.t_plt]
@@ -444,7 +445,6 @@ class LIMRAD94_LV1():
         self.cum_range_gates = np.zeros((self.no_c + 1,), dtype='int')
         self.range_res = np.array(nc_data_set.variables['RangeRes'])
         self.height    = [chirpTable_min_height]
-        #self.height    = [chirpTable_min_height]
 
         self.latitude  = float(nc_data_set.variables['GPSLat'][:])
         self.longitude = float(nc_data_set.variables['GPSLon'][:])
@@ -453,7 +453,7 @@ class LIMRAD94_LV1():
         self.DoppMax = np.array(nc_data_set.variables['MaxVel'][:])
 
         cnt = 0
-        for ichirp in range(0, self.no_c):
+        for ichirp in range(self.no_c):
             self.range_gates[ichirp] = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Range'].size
             self.vel_gates[ichirp]   = nc_data_set.dimensions['C' + str(ichirp + 1) + 'Vel'].size
             self.cum_range_gates[ichirp + 1] = self.cum_range_gates[ichirp] + self.range_gates[ichirp]
@@ -462,7 +462,8 @@ class LIMRAD94_LV1():
                 self.height.append(self.height[cnt] + self.range_res[ichirp])
                 cnt += 1
 
-        self.height = np.array(self.height)
+        self.height.pop(0)
+        self.height = np.divide(np.array(self.height), 1000.0)
         self.n_height = len(self.height)
         nc_data_set.close()
 
@@ -1062,11 +1063,12 @@ def get_height_boundary(Array, h_int):
         i += 1
 
     i = 0
-    imax = -1
+    imax = None
     for h in reversed(Array):
         # print(' (max) h = ',h,hmax)
         if (h_int[1] >= h):
             imax = len(Array) - i
+            if i == 0 : imax = None
             break
         i += 1
 
@@ -1075,7 +1077,7 @@ def get_height_boundary(Array, h_int):
 def get_time_boundary(Array, t_int):
     i = 0
     t_min = 0
-    t_max = -1
+    t_max = None
     for zeit in Array:
         if t_int[0] <= zeit <= t_int[1]: t_min = i
         if t_int[2] <= zeit <= t_int[3]: t_max = i

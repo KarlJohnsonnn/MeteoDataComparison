@@ -201,7 +201,7 @@ if calc_doppler_spectra:
     if include_noise:
         for ic in range(LR_lv0.no_c):
             output[4][ic][:, :, 0] = 0
-            output[4][ic][:,:,1] = -1
+            output[4][ic][:, :, 1] = -1
 
     output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, output[4])
 
@@ -211,6 +211,9 @@ if calc_doppler_spectra:
 
     if pts: print('\n' * 2)
     if pts: print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.3f} sec.')
+
+
+    compare_datasets(LR_lv0, LR_lv1)
 
 if plot_for_poster:
 
@@ -246,7 +249,7 @@ if plot_radar_results:
     if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
 
 if plot_compare_noise:
-
+    #print(LR_lv0.Ze.shape, LR_lv1.Ze.shape)
     fig, plt = Plot_Compare_NoiseFac0(LR_lv1, LR_lv0)
 
     file = date + '_NoiseFac0_Lv1_Lv0moments.png'
