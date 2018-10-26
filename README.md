@@ -36,7 +36,7 @@ Execution:
 
 # Calling the routine with specific parameters
 
-  $ python Main-Comparison.py minheight maxheight date from to
+    $ python Playground.py minheight maxheight date from to
 
 
 # Available .png Outputs
