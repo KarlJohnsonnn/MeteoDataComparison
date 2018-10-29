@@ -1,5 +1,4 @@
 import sys
-import time
 import warnings
 
 import modules.NetCDF_Mod as nc
@@ -20,15 +19,15 @@ from modules.Utility_Mod import *
 ##################################################################################################
 '''
 # Logicals for different tasks
-calc_doppler_spectra = True
+calc_doppler_spectra = False
 plot_radar_results = False
-plot_compare_noise = True
+plot_compare_noise = False
 plot_for_poster      = False
 plot_comparisons     = False
 plot_interp2d        = False
 plot_interpolation_scatter = False
 
-interpolate_cn = False
+interpolate_cn = True
 create_nc_file = False
 
 '''
@@ -75,15 +74,15 @@ else:
     #date     = '180802'     # in YYMMDD
     #time_intervall = '0330-1200'  # in HHMM-HHM
 
-    #hmin = 0.0  # (km)  - lower y-axis limit
-    # hmax = 8.00  # (km) - upper y-axis limit, highest range gate may be higher
-    # date = '180729'  # in YYMMDD
-    # time_intervall = '0000-0100'  # in HHMM-HHMM
-
     hmin = 0.0  # (km)  - lower y-axis limit
-    hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '180810'  # in YYMMDD
-    time_intervall = '0500-0600'  # in HHMM-HHMM
+    hmax = 8.00  # (km) - upper y-axis limit, highest range gate may be higher
+    date = '180729'  # in YYMMDD
+    time_intervall = '0000-0100'  # in HHMM-HHMM
+
+    # hmin = 0.0  # (km)  - lower y-axis limit
+    # hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+    # date = '180810'  # in YYMMDD
+    # time_intervall = '0500-0600'  # in HHMM-HHMM
 
     ##nimbus
     # hmin = 0.0 #(km)  - lower y-axis limit
@@ -125,10 +124,10 @@ warnings.filterwarnings("ignore")
 
 # ----- LIMRAD 94GHz Radar data extraction
 # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-hmin = 0.0  # (km)  - lower y-axis limit
-hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-date = '180810'  # in YYMMDD
-time_intervall = '0500-0600'  # in HHMM-HHMM
+# hmin = 0.0  # (km)  - lower y-axis limit
+# hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+# date = '180810'  # in YYMMDD
+#time_intervall = '0500-0600'  # in HHMM-HHMM
 
 #  special case NoiseFac0_file = 'NOISEFAC0_180820_142451_P01_ZEN.LV0.NC'
 # hmin = 0.0  # (km)  - lower y-axis limit
@@ -147,7 +146,9 @@ if create_nc_file: LR_lv1.save(LIMRAD_path)
 
 # ----- MIRA 35GHz Raar data extraction
 # MIRA_data  = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax])
-#MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
+MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
+
+if interpolate_cn: MMCLX_data.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
 
 if pts: print('')
 

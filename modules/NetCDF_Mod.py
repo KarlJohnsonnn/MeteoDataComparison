@@ -71,6 +71,23 @@ class LIMRAD94_LV0():
                 print('   Check LIMRAD folder!')
                 exit(0)
 
+        #        self.ncfiles = []
+        #        flat_list = []
+        #        for il in range_file_list:
+        #            file_name = str(glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV0.NC'))
+        #
+        #            flat_list = file_name.split(",")
+        #
+        #            for iFile in flat_list:
+        #                self.ncfiles.append(iFile[2:-1])
+        #
+        #            if file_name[2:-2] == '':
+        #                print('   Error!  File: "' + file_name + '" not found --> exit!')
+        #                print('   Check LIMRAD folder!')
+        #                exit(0)
+        #
+        #        n_nc_files = len(self.ncfiles)
+
         n_nc_files = len(self.ncfiles)
 
         file = self.ncfiles[0]
@@ -874,6 +891,12 @@ class MIRA35_LV1():
             self.ldr = np.ma.masked_invalid(self.ldr)
             self.ldr = np.ma.masked_less_equal(self.ldr, -999.).T
 
+            self.VarDict = {'CBH': False, 'DDTb': False, 'LWP': False, 'Rain': False,
+                            'SurfPres': False, 'SurfRelHum': False, 'SurfTemp': False, 'SurfWD': False, 'SurfWS': False,
+                            'Ze': True, 'ZDR': False, 'mdv': True, 'sw': True, 'ldr': True, 'kurt': False,
+                            'Skew': False,
+                            'DiffAtt': False}
+
             nc_data_set.close()
             if pts: print("    Loading MIRA35 (mira.nc) NC-files ({} of {})".format(1, 1))
 
@@ -1005,6 +1028,12 @@ class MIRA35_LV1():
             self.sw_hydro  = np.ma.masked_invalid(self.sw_hydro[min_t:max_t, min_h:max_h]).T
             self.ldr_hydro = np.ma.log10(np.ma.masked_invalid(self.ldr_hydro[min_t:max_t, min_h:max_h]).T) * 10
 
+            self.VarDict = {'CBH': False, 'DDTb': False, 'LWP': False, 'Rain': False,
+                            'SurfPres': False, 'SurfRelHum': False, 'SurfTemp': False, 'SurfWD': False, 'SurfWS': False,
+                            'Ze': True, 'ZDR': False, 'mdv': True, 'sw': True, 'ldr': True, 'kurt': False,
+                            'Skew': False,
+                            'DiffAtt': False}
+
             #self.Ze = np.ma.log10(self.Ze) * 10
 
 
@@ -1020,6 +1049,62 @@ class MIRA35_LV1():
         self.heightavg_Ze  = np.average(self.Ze,  axis=0)
         self.heightavg_mdv = np.average(self.mdv, axis=0)
         self.heightavg_sw  = np.average(self.sw,  axis=0)
+
+    def interpolate_cn(self, t_res, r_res, method):
+
+        self.t_unix_interp = np.arange(self.t_unix[0], self.t_unix[-1], t_res)
+        self.height_interp = np.arange(self.height[0], self.height[-1], np.divide(r_res, 1000.0))
+        len_t = len(self.t_unix_interp)
+        len_h = len(self.height_interp)
+
+        coordinates = np.empty((len_t * len_h, 2))
+
+        cnt = 0
+        for iTime in self.t_unix_interp:
+            for iRange in self.height_interp:
+                coordinates[cnt, 0] = iTime
+                coordinates[cnt, 1] = iRange
+                cnt += 1
+
+        if method == 'biliniear':
+            mth = 'linear'
+        else:
+            mth = 'constant'
+
+        # for var in self.VarDict:
+        #    if var:  interp_z = interpolate2d(self.t_unix, self.height, z1.T, coordinates, mode=mth, bounds_error=False)
+
+        if self.VarDict['Ze']:
+            interp_Ze = interpolate2d(self.t_unix, self.height, self.Ze.T, coordinates, mode=mth, bounds_error=False)
+            interp_Ze = np.ma.masked_less_equal(interp_Ze, -80.0)
+            interp_Ze = np.ma.masked_invalid(interp_Ze)
+            interp_Ze = np.reshape(interp_Ze, (len_t, len_h)).T
+            self.Ze_interp = interp_Ze
+
+        if self.VarDict['mdv']:
+            interp_mdv = interpolate2d(self.t_unix, self.height, self.mdv.T, coordinates, mode=mth, bounds_error=False)
+            interp_mdv = np.ma.masked_less_equal(interp_mdv, -30.0)
+            interp_mdv = np.ma.masked_invalid(interp_mdv)
+            interp_mdv = np.reshape(interp_mdv, (len_t, len_h)).T
+            self.mdv_interp = interp_mdv
+
+        if self.VarDict['sw']:
+            interp_sw = interpolate2d(self.t_unix, self.height, self.sw.T, coordinates, mode=mth, bounds_error=False)
+            interp_sw = np.ma.masked_less_equal(interp_sw, -30.0)
+            interp_sw = np.ma.masked_invalid(interp_sw)
+            interp_sw = np.reshape(interp_sw, (len_t, len_h)).T
+            self.sw_interp = interp_sw
+
+        if self.VarDict['ldr']:
+            interp_ldr = interpolate2d(self.t_unix, self.height, self.ldr.T, coordinates, mode=mth, bounds_error=False)
+            interp_ldr = np.ma.masked_less_equal(interp_ldr, -30.0)
+            interp_ldr = np.ma.masked_invalid(interp_ldr)
+            interp_ldr = np.reshape(interp_ldr, (len_t, len_h)).T
+            self.ldr_interp = interp_ldr
+
+        # interp_z = np.ma.masked_equal(interp_Ze, 0.0)
+
+
 
 
 
@@ -1066,9 +1151,9 @@ def get_height_boundary(Array, h_int):
     imax = None
     for h in reversed(Array):
         # print(' (max) h = ',h,hmax)
-        if (h_int[1] >= h):
+        if h_int[1] >= h:
             imax = len(Array) - i
-            if i == 0 : imax = None
+            if i == 0: imax = None
             break
         i += 1
 
