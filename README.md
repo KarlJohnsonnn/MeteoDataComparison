@@ -9,7 +9,7 @@ The analysis is done by comparing three main radar moments:
   
 Calculating the noise floor for uncompressed LIMRAD94 .LV0.NC and compaEna = 0 files.
 
-The input routine is able to handle ".LV0.N" and ".LV1.NC" NetCDF data (LIMRad94) as well as ".mira" and ".mmclx" NetCDF data (MIRA35). The Main-Comparison.py should serve the user how to call the input, output and plotting routines. 
+The input routine is able to handle ".LV0.NC" and ".LV1.NC" NetCDF data (LIMRad94) as well as ".mira" and ".mmclx" NetCDF data (MIRA35). The Playground.py should serve the user how to call the input, output and plotting routines. 
 
 
 Installation:
@@ -62,7 +62,7 @@ Execution:
     
     - chirpTable_min_height = 0.1         # minimum height of the first chirp sequence of LIMRad94 in [km], will be automated in the future
        
-    - LIMRAD_lv0_fext = '*.LV0.NC'        # LIMRAD94 Lv0 datafile (moments)
+    - LIMRAD_lv0_fext = '*.LV0.NC'        # LIMRAD94 Lv0 datafile (spectra)
     - LIMRAD_lv1_fext = '*.LV1.NC'        # LIMRAD94 Lv1 datafile (moments)
     - mira_fext  = '*mira.nc'             # processed data of MIRA35 GHz Radar
     - mmclx_fext = '*.mmclx'              # contains processed and unprocessed of MIRA35 GHz Radar
