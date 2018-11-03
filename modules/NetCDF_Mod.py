@@ -659,7 +659,7 @@ class LIMRAD94_LV1():
         self.nc_add_variable(ds, 'DoppMax', np.float32, ('Chirp',), 'Unambiguous Doppler velocity (+/-)', '[m/s]', self.DoppMax)
 
         self.nc_add_variable(ds, 'cbh', np.float32, ('time',), 'Cloud Bottom Height', '[m]', self.CBH)
-        self.nc_add_variable(ds, 'bt', np.float32, ('time',), 'Direct detection brightness temperature', '[m]',
+        self.nc_add_variable(ds, 'bt', np.float32, ('time',), 'Direct detection brightness temperature', '[K]',
                              self.DDTb)
         self.nc_add_variable(ds, 'lwp', np.float32, ('time',), 'Liquid water path', '[g/m^2]', self.LWP)
         self.nc_add_variable(ds, 'rain', np.float32, ('time',), 'Rain rate from weather station', '[mm/h]', self.Rain)

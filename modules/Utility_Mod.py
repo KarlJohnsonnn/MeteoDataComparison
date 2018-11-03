@@ -8,6 +8,14 @@ from numba import jit
 from modules.Parameter_Mod import *
 
 
+def Print_Head():
+    print(' ')
+    print('  \u250F' + 49 * '\u2501' + '\u2513')
+    print('  \u2503' + '          LIMRAD94 - MIRA35  Comparison          ' + '\u2503')
+    print('  \u2517' + 49 * '\u2501' + '\u251B' + '\n')
+    print('\n' * 2)
+
+
 # Unixtime conversion functions (from Johannes):
 def seconds_since_epoch(dtm):
     """ """
