@@ -566,8 +566,9 @@ class LIMRAD94_LV1():
                      + datetime.timedelta(seconds=int(time_samp[i])) for i in range(len(time_samp))]
 
         min_t, max_t = get_time_boundary(time_plot, time)
-        min_h, max_h = get_height_boundary(self.height, np.multiply(1000.0, h_bounds[:]))
+        min_h, max_h = get_height_boundary(self.height, h_bounds[:])
 
+        # print('min_H, max_H :: ',min_h, max_h, self.height[:5])
         self.t_plt = time_plot[min_t:max_t]
         self.t_unix = [ts.replace(tzinfo=timezone.utc).timestamp() for ts in self.t_plt]
         self.n_time = len(self.t_unix)

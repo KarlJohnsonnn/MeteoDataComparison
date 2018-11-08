@@ -22,13 +22,13 @@ from modules.Utility_Mod import *
 calc_doppler_spectra = False
 plot_radar_results = False
 plot_compare_noise = False
-plot_for_poster      = False
+plot_for_poster = True
 plot_comparisons     = False
 plot_interp2d        = False
 plot_interpolation_scatter = False
 
 interpolate_cn = False
-create_nc_file = True
+create_nc_file = False
 
 '''
 ####################################################################################################################
@@ -55,7 +55,7 @@ if pts:
 
 
 # gather arguments
-if len(sys.argv) == 6:
+if len(sys.argv) > 6:
     date = str(sys.argv[1])
     time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
     hmin, hmax = float(sys.argv[4]), float(sys.argv[5])
@@ -74,10 +74,10 @@ else:
     #date     = '180802'     # in YYMMDD
     #time_intervall = '0330-1200'  # in HHMM-HHM
 
-    hmin = 0.0  # (km)  - lower y-axis limit
-    hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '180729'  # in YYMMDD
-    time_intervall = '0000-2359'  # in HHMM-HHMM
+# hmin = 0.0  # (km)  - lower y-axis limit
+# hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+# date = '180729'  # in YYMMDD
+# time_intervall = '0000-2359'  # in HHMM-HHMM
 
     # hmin = 0.0  # (km)  - lower y-axis limit
     # hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
@@ -122,6 +122,8 @@ warnings.filterwarnings("ignore")
 ######################################################################################################
 '''
 
+print('     date: ', date, time_intervall, hmin, hmax)
+
 # ----- LIMRAD 94GHz Radar data extraction
 # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
 # hmin = 0.0  # (km)  - lower y-axis limit
@@ -135,19 +137,19 @@ warnings.filterwarnings("ignore")
 # date = '180820'  # in YYMMDD
 # time_intervall = '1400-1500'  # in HHMM-HHMM
 
-LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [hmin, hmax])
+#LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [hmin, hmax])
 LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [hmin, hmax])
 
-if interpolate_cn: LR_lv1.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
-if create_nc_file: LR_lv1.save(LIMRAD_path)
+# if interpolate_cn: LR_lv1.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
+#if create_nc_file: LR_lv1.save(LIMRAD_path)
 
 
 
 # ----- MIRA 35GHz Raar data extraction
 # MIRA_data  = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax])
-MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
+# MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
 
-if interpolate_cn: MMCLX_data.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
+#if interpolate_cn: MMCLX_data.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
 
 if pts: print('')
 
@@ -166,12 +168,12 @@ if pts: print('')
 '''
 # averaged values
     # calculate Ze, mdv, sw (time averaged)
-LR_lv1.avg_time()
+#LR_lv1.avg_time()
 # MIRA_data.avg_time()
 #MMCLX_data.avg_time()
 
     # calculate Ze, mdv, sw (height averaged)
-LR_lv1.avg_height()
+#LR_lv1.avg_height()
 # MIRA_data.avg_height()
 #MMCLX_data.avg_height()
 
@@ -219,7 +221,7 @@ if plot_for_poster:
 
     fig, plt = Plot_for_poster(LR_lv1)
 
-    file = meteo_path + date + '_radar_LIMRAD94_vergleich.png'
+    file = meteo_path + date + '_' + time_intervall + '_radar_LIMRAD94.png'
     fig.savefig(file, dpi=dpi_val, format='png')
     plt.close()
 

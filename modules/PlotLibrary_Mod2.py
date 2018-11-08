@@ -14,7 +14,6 @@ from matplotlib.ticker import LogFormatter
 rc('text', usetex=True)
 
 from matplotlib import dates
-from matplotlib.font_manager import FontProperties
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from modules.Interpolation_Mod import *
 
@@ -22,8 +21,162 @@ from modules.Parameter_Mod import pts, interp_meth
 from modules.Utility_Mod import correlation
 import numpy as np
 
+import matplotlib.style
 
-def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max, x_lab, y_lab, z_lab, p='l'):
+mpl.style.use('classic')
+rc('font', size=14)
+
+vmi_ze = -50
+vma_ze = 20
+vmi_mdv = -4
+vma_mdv = 2
+vmi_specwidth = 10 ** (-1.5)
+vma_specwidth = 10 ** 0.5
+vmi_ldr = -30
+vma_ldr = 0
+
+
+def Plot_Time_Series(ds, variable):
+    # ds: dataset of format limrad94
+    # variable: of format string
+
+    n_vars = len(variable)
+    sub_plts = [None] * n_vars
+
+    fig = plt.figure(figsize=(16, 12))
+
+    print('')
+    print('    Plotting variables: ')
+
+    for ivar in range(n_vars):
+
+        if pts: print('       -   ' + variable[ivar] + ' ---> ' +
+                      ds.time_series_2D[0][variable[ivar]]['LongName'] + '   ', end='', flush=True)
+
+        sub_plts[ivar] = plt.subplot2grid((n_vars, 1), (ivar, 0))
+
+        x_lab = 'Time (UTC)'
+        y_lab = 'Height (km)'
+        z_lab = variable[ivar] + ' (' + ds.time_series_2D[0][variable[ivar]]['Unit'] + ')'
+
+        X_bound = []
+        Y_bound = [ds.h_min, ds.h_max]
+
+        # loop if there are more than one MDF
+        for iMDF in range(len(ds.num_MDF)):
+
+            time_dims = ds.dimensions[iMDF]['Time']
+            for iFile in range(len(time_dims)):
+                if iFile == 0:
+                    partX = ds.time_series_1D[iMDF]['Time']['Val'][:time_dims[0]]
+                    partZ = ds.time_series_2D[iMDF][variable[ivar]]['Val'][:time_dims[0], :]
+                elif iFile == len(time_dims) - 1:
+                    lb = np.cumsum(time_dims[:iFile])
+                    partX = ds.time_series_1D[iMDF]['Time']['Val'][lb[-1]:]
+                    partZ = ds.time_series_2D[iMDF][variable[ivar]]['Val'][lb[-1]:, :]
+                else:
+                    lb = np.cumsum(time_dims[:iFile])
+                    rb = np.cumsum(time_dims[:iFile + 1])
+                    partX = ds.time_series_1D[iMDF]['Time']['Val'][lb[-1]:rb[-1]]
+                    partZ = ds.time_series_2D[iMDF][variable[ivar]]['Val'][lb[-1]:rb[-1], :]
+
+                # convert time since 1.1.2001
+                X = [datetime.datetime(2001, 1, 1, 0, 0, 0) + datetime.timedelta(seconds=int(partX[i]))
+                     for i in range(len(partX))]
+
+                Y = ds.time_series_1D[iMDF]['Height']['Val']
+                Z = np.ma.masked_less_equal(partZ.T, -999.0)
+
+                X_bound.append(min(X))
+                X_bound.append(max(X))
+
+                if variable[ivar] == 'SpecWidth':
+                    cp = sub_plts[ivar].pcolormesh(X, Y, Z,
+                                                   norm=mcolors.LogNorm(vmin=vmi_specwidth, vmax=vma_specwidth),
+                                                   cmap='jet')
+                    divider1 = make_axes_locatable(sub_plts[ivar])
+                    cax3 = divider1.append_axes("right", size="3%", pad=0.1)
+                    formatter = LogFormatter(10, labelOnlyBase=False)
+                    cbar = fig.colorbar(cp, cax=cax3, ax=sub_plts[ivar], format=formatter, ticks=[0.1, 0.2, 0.5, 1, 2])
+                    cbar.set_ticklabels([0.1, 0.2, 0.5, 1, 2])
+                    cbar.set_label(z_lab)
+
+                elif variable[ivar] == 'SLDR':
+                    colors1 = plt.cm.binary(np.linspace(0.5, 0.5, 1))
+                    colors2 = plt.cm.jet(np.linspace(0, 0, 178))
+                    colors3 = plt.cm.jet(np.linspace(0, 1, 77))
+                    colors = np.vstack((colors1, colors2, colors3))
+                    mymap = mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
+
+                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_ldr, vmax=vma_ldr, cmap='jet')
+                    divider1 = make_axes_locatable(sub_plts[ivar])
+                    cax4 = divider1.append_axes("right", size="3%", pad=0.1)
+                    bounds = np.linspace(-30, 0, 100)
+                    cbar = fig.colorbar(cp, cax=cax4, ax=sub_plts[ivar], boundaries=bounds,
+                                        ticks=[-30, -25, -20, -15, -10, -5, 0])
+                    cbar.set_ticklabels([-30, -25, -20, -15, -10, -5, 0])
+                    cbar.set_label(z_lab)
+
+                elif variable[ivar] == 'ZE':
+
+                    Z = np.ma.log10(np.ma.masked_less_equal(Z, 0.)) * 10.0
+                    z_lab = variable[ivar] + ' (dBZ)'
+
+                    # cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_ze, vmax=vma_ze, cmap='jet')
+                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_ze, vmax=vma_ze, cmap='jet')
+
+                    divider1 = make_axes_locatable(sub_plts[ivar])
+                    cax0 = divider1.append_axes("right", size="3%", pad=0.1)
+                    cbar = fig.colorbar(cp, cax=cax0, ax=sub_plts[ivar])
+                    cbar.set_label(z_lab)
+
+                elif variable[ivar] == 'MeanVel':
+                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_mdv, vmax=vma_mdv, cmap='jet')
+                    divider1 = make_axes_locatable(sub_plts[ivar])
+                    cax0 = divider1.append_axes("right", size="3%", pad=0.1)
+                    cbar = fig.colorbar(cp, cax=cax0, ax=sub_plts[ivar])
+                    cbar.set_label(z_lab)
+                else:
+                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, map='jet')
+                    divider1 = make_axes_locatable(sub_plts[ivar])
+                    cax0 = divider1.append_axes("right", size="3%", pad=0.1)
+                    cbar = fig.colorbar(cp, cax=cax0, ax=sub_plts[ivar])
+                    cbar.set_label(z_lab)
+
+            # sub_plts[ivar].hold(True)
+
+        sub_plts[ivar].grid(linestyle=':')
+        sub_plts[ivar].axes.tick_params(axis='x', direction='inout', length=10, width=1.5)
+        # if p == 'r': plt.set_yticklabels([])
+
+        sub_plts[ivar].set_xlim(left=min(X_bound), right=max(X_bound))
+        sub_plts[ivar].set_ylim(bottom=Y_bound[0], top=Y_bound[1])
+        # sub_plts[ivar].set_ylim(bottom=min(Y_bound), top=max(Y_bound))
+        sub_plts[ivar].set_ylabel(y_lab)
+        sub_plts[ivar].axes.tick_params(axis='Y', direction='inout', length=10, width=1.5)
+
+        # tick_locator = ticker.MaxNLocator(nbins=5)
+        # cbar.locator = tick_locator
+        # cbar.update_ticks()
+
+        if pts: print('\u2713')  # #print checkmark (✓) on screen
+
+    sub_plts[ivar].xaxis.set_major_formatter(mpl.dates.DateFormatter('%H:%M'))
+    sub_plts[ivar].set_xlabel(x_lab)
+
+    first_line = 'LIMRAD 94GHz Radar Data, Leipzig, Germany,'
+    second_line = 'from: ' + str(X[0]) + ' (UTC)  to:  ' + str(X[-1]) + ' (UTC)'
+
+    file_name = first_line + '\n' + second_line
+    plt.suptitle(file_name)
+
+    # plt.tight_layout(rect=[0, 0, 1, 1])
+    plt.subplots_adjust(hspace=0.025)
+
+    return fig, plt
+
+
+def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max, x_lab, y_lab, z_lab, p='r'):
     if text: text = r'\huge{\textbf{' + text + '}}'
     if text.find('sw') > 0 or text.find('Spectral Width') > 0:
         cp = axh.pcolormesh(x, y, z, norm=mcolors.LogNorm(vmin=vmi, vmax=vma), cmap='jet')
@@ -53,11 +206,11 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
     else:
         place_text(axh, [.02, 1.075], text)
         cp = axh.pcolormesh(x, y, z, vmin=vmi, vmax=vma, cmap='jet')
-
-        divider1 = make_axes_locatable(axh)
-        cax0 = divider1.append_axes("right", size="3%", pad=0.1)
-        cbar = fig.colorbar(cp, cax=cax0, ax=axh)
-        cbar.set_label(z_lab)
+        if p == 'r':
+            divider1 = make_axes_locatable(axh)
+            cax0 = divider1.append_axes("right", size="3%", pad=0.1)
+            cbar = fig.colorbar(cp, cax=cax0, ax=axh)
+            cbar.set_label(z_lab)
     axh.grid(linestyle=':')
     axh.axes.tick_params(axis='x', direction='inout', length=10, width=1.5)
     if p == 'r': axh.set_yticklabels([])
@@ -328,18 +481,7 @@ def Plot_for_poster(ds):
                   ds.t_plt, ds.height, ds.Ze, vmi=-50, vma=20,
                   x_min=xb[0], x_max=xb[1], y_min=yb[0], y_max=yb[1],
                   x_lab='', y_lab=y_label, z_lab=z_label)
-    #    plt_Ze.tick_params(
-    #        axis='x',  # changes apply to the x-axis
-    #        which='both',  # both major and minor ticks are affected
-    #        bottom=False,  # ticks along the bottom edge are off
-    #        top=False,  # ticks along the top edge are off
-    #        labelbottom=False)
-    #    plt_Ze.tick_params(
-    #        axis='y',  # changes apply to the x-axis
-    #        which='both',  # both major and minor ticks are affected
-    #        left=True,  # ticks along the bottom edge are off
-    #        right=False,  # ticks along the top edge are off
-    #        labelbottom=False)
+    plt_Ze.tick_params()
 
     z_label = 'mean Doppler velocity (m/s)'
 
@@ -347,140 +489,21 @@ def Plot_for_poster(ds):
                   ds.t_plt, ds.height, ds.mdv, vmi=-4, vma=2,
                   x_min=xb[0], x_max=xb[1], y_min=yb[0], y_max=yb[1],
                   x_lab=x_label, y_lab=y_label, z_lab=z_label)
-    #    plt_vm.tick_params(
-    #        axis='x',  # changes apply to the x-axis
-    #        which='both',  # both major and minor ticks are affected
-    #        bottom=True,  # ticks along the bottom edge are off
-    #        top=True,  # ticks along the top edge are off
-    #        labelbottom=True)
-    #    plt_vm.tick_params(
-    #        axis='y',  # changes apply to the x-axis
-    #        which='both',  # both major and minor ticks are affected
-    #        left=True,  # ticks along the bottom edge are off
-    #        right=False,  # ticks along the top edge are off
-    #        labelbottom=False)
+    plt_vm.tick_params(
+        axis='x',  # changes apply to the x-axis
+        which='both',  # both major and minor ticks are affected
+        bottom=True,  # ticks along the bottom edge are off
+        top=True,  # ticks along the top edge are off
+        labelbottom=True)
+    plt_vm.tick_params(
+        axis='y',  # changes apply to the x-axis
+        which='both',  # both major and minor ticks are affected
+        left=True,  # ticks along the bottom edge are off
+        right=False,  # ticks along the top edge are off
+        labelbottom=False)
 
     plt.tight_layout(rect=[0, 0, 1, 0.99])
     plt.subplots_adjust(hspace=0.01)
-
-    return fig, plt
-
-
-def Plot_Radar_Results(ds1, ds2):
-    ### plot ###
-    print('    Generate subplots:\n')
-
-    # create figure
-    font = FontProperties()
-
-    fig = plt.figure(figsize=(16, 10))
-
-    LR_Ze_plot = plt.subplot2grid((4, 2), (0, 0))
-    LR_mdv_plot = plt.subplot2grid((4, 2), (1, 0))  # , rowspan=2)
-    LR_sw_plot = plt.subplot2grid((4, 2), (2, 0))  # , rowspan=2)
-    LR_ldr_plot = plt.subplot2grid((4, 2), (3, 0))  # , rowspan=2)
-    mira_Zg_plot = plt.subplot2grid((4, 2), (0, 1))  # , colspan=2)
-    mira_VELg_plot = plt.subplot2grid((4, 2), (1, 1))  # , rowspan=2)
-    mira_RMSg_plot = plt.subplot2grid((4, 2), (2, 1))  # , rowspan=2)
-    mira_ldr_plot = plt.subplot2grid((4, 2), (3, 1))  # , rowspan=2)
-
-    xb1 = [ds1.t_plt[0], ds1.t_plt[-1]]
-    xb2 = [ds2.t_plt[0], ds2.t_plt[-1]]
-
-    yb1 = [ds1.height[0], ds1.height[-1]]
-    yb2 = [ds2.height[0], ds2.height[-1]]
-
-    ########################################################################################################
-    ########################################################################################################
-    # LR_Zelectivity plot
-    if pts: print('       -   Radar Reflectivity Factor   ', end='', flush=True)
-
-    x_label = r'\textbf{Time [UTC]}'
-    y_label = r'\textbf{Height [km]}'
-    z_label = r'\textbf{Reflectivity [dBZ]}'
-
-    LR_Ze_plot.set_title(r'\large{\textbf{LIMRAD 94GHz Radar}}')
-    plot_data_set(fig, LR_Ze_plot, '',
-                  ds1.t_plt, ds1.height, ds1.Ze, vmi=-50, vma=20,
-                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label, p='l')
-
-    mira_Zg_plot.set_title(r'\large{\textbf{MIRA 35GHz Radar}}')
-    plot_data_set(fig, mira_Zg_plot, '',
-                  ds2.t_plt, ds2.height, ds2.Ze, vmi=-50, vma=20,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
-
-    if pts: print('\u2713')  # #print checkmark (✓) on screen
-
-    ########################################################################################################
-    # mean doppler velocity plot
-    if pts: print('       -   Mean Doppler velocity   ', end='', flush=True)
-
-    z_label = r'\textbf{Mean Doppler}' + '\n' + r'\textbf{Velocity [m/s]}'
-
-    # LIMRAD mean Doppler velocity
-    plot_data_set(fig, LR_mdv_plot, '',
-                  ds1.t_plt, ds1.height, ds1.mdv, vmi=-4, vma=2,
-                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label, p='l')
-
-    # MIRA mean Doppler velocity
-    plot_data_set(fig, mira_VELg_plot, '',
-                  ds2.t_plt, ds2.height, ds2.mdv, vmi=-4, vma=2,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
-
-    if pts: print('\u2713')  # #print checkmark (✓) on screen
-
-    ########################################################################################################
-    # spectral width plot
-    if pts: print('       -   Spectral Width   ', end='', flush=True)
-
-    z_label = r'\textbf{Spectral Width [m/s]}'
-    # LIMRAD spectral width
-    plot_data_set(fig, LR_sw_plot, 'sw',
-                  ds1.t_plt, ds1.height, ds1.sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
-                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label, p='l')
-
-    # MIRA spectral width
-    plot_data_set(fig, mira_RMSg_plot, 'sw',
-                  ds2.t_plt, ds2.height, ds2.sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
-
-    if pts: print('\u2713')  # #print checkmark (✓) on screen
-
-    ########################################################################################################
-    # linear depolarization ratio
-    if pts: print('       -   Linear Depolarization Ratio  ', end='', flush=True)
-
-    z_label = r'\textbf{Linear Depolarization}' + '\n' + r'\textbf{Ratio [dB]}'
-
-    # LIMRAD linear depolarization ratio
-    plot_data_set(fig, LR_ldr_plot, '',
-                  ds1.t_plt, ds1.height, ds1.ldr, vmi=-30, vma=0,
-                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='l')
-
-    # MIRA linear depolarization ratio
-    plot_data_set(fig, mira_ldr_plot, '',
-                  ds2.t_plt, ds2.height, ds2.ldr, vmi=-30, vma=0,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label)
-
-    if pts: print('\u2713\n')  # #print checkmark (✓) on screen
-
-    first_line = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
-    second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
-    third_line = r'using: LIMRAD94 and MIRA35 data;  no attenuation correction'
-
-    file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}\n' + r'\textbf{' + third_line + '}'
-    plt.suptitle(file_name)
-
-    plt.tight_layout(rect=[0, 0.01, 1, 0.90])
-    plt.subplots_adjust(hspace=0.025, wspace=0.0075)
 
     return fig, plt
 
@@ -568,7 +591,6 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
-
     first_line = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
     second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
     third_line = r'using: LIMRAD94 and MIRA35 data;  no attenuation correction'
@@ -580,6 +602,7 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
     plt.subplots_adjust(hspace=0.025, wspace=0.0075)
 
     return fig, plt
+
 
 def Plot_Comparison(ds1, ds2):
     ########################################################################
@@ -643,7 +666,6 @@ def Plot_Comparison(ds1, ds2):
     #                      label1='LIMRAD', marker1='+', label2='MIRA', marker2='o',
     #                      x_min=x_lim_left_Ze, x_max=x_lim_right_Ze,
     #                      y_min=yb1[0], y_max=yb1[1], x_lab='dBZ', y_lab='height (km)', ax='y')
-
 
     Comp_avgH_Ze_plot.set_title(r'\textbf{Averaged over range}' + '\n' + r'\textbf{Reflectivity}')
     plot_avg_data_set(Comp_avgH_Ze_plot, '',
