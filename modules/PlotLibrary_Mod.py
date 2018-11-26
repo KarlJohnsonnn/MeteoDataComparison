@@ -53,18 +53,18 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
     else:
         place_text(axh, [.02, 1.075], text)
         cp = axh.pcolormesh(x, y, z, vmin=vmi, vmax=vma, cmap='jet')
-
-        divider1 = make_axes_locatable(axh)
-        cax0 = divider1.append_axes("right", size="3%", pad=0.1)
-        cbar = fig.colorbar(cp, cax=cax0, ax=axh)
-        cbar.set_label(z_lab)
+        if p == 'r':
+            divider1 = make_axes_locatable(axh)
+            cax0 = divider1.append_axes("right", size="3%", pad=0.1)
+            cbar = fig.colorbar(cp, cax=cax0, ax=axh)
+            cbar.set_label(z_lab)
     axh.grid(linestyle=':')
     axh.axes.tick_params(axis='x', direction='inout', length=10, width=1.5)
     if p == 'r': axh.set_yticklabels([])
     axh.set_xlim(left=x_min, right=x_max)
     if p == 'l':
         axh.set_ylabel(y_lab)
-        axh.set_ylim(bottom=y_min, top=y_max, )
+        axh.set_ylim(bottom=y_min, top=y_max)
         axh.axes.tick_params(axis='Y', direction='inout', length=10, width=1.5)
 
     # exceptions
@@ -525,7 +525,7 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
     plot_data_set(fig, mira_Zg_plot, '',
                   ds2.t_plt, ds2.height_all, ds2.Ze, vmi=-50, vma=20,
                   x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
+                  x_lab='', y_lab=y_label, z_lab=z_label, p='r')
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -545,7 +545,7 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
     plot_data_set(fig, mira_VELg_plot, '',
                   ds2.t_plt, ds2.height_all, ds2.mdv, vmi=-4, vma=2,
                   x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
+                  x_lab='', y_lab=y_label, z_lab=z_label, p='r')
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -564,7 +564,7 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
     plot_data_set(fig, mira_RMSg_plot, 'sw',
                   ds2.t_plt, ds2.height_all, ds2.sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
                   x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label)
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -1034,10 +1034,16 @@ def Plot_2D_Interpolation(ds1, ds2):
     return fig, plt
 
 
-def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean):
+def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean, int_b):
     fig, ax = plt.subplots(1, figsize=(10, 4))
 
     doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
+
+    if int_b[0] > -1 and int_b[1] > -1:
+        x_0 = ds.DopplerBins[c][int(int_b[0])]
+        x_1 = ds.DopplerBins[c][int(int_b[1])]
+        ax.axvline(x_0, color='k', linestyle='--', linewidth=1)
+        ax.axvline(x_1, color='k', linestyle='--', linewidth=1)
 
     mean = np.multiply(np.ma.log10(mean), 10.0)
     thresh = np.multiply(np.ma.log10(thresh), 10.0)

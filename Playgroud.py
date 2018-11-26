@@ -19,10 +19,10 @@ from modules.Utility_Mod import *
 ##################################################################################################
 '''
 # Logicals for different tasks
-calc_doppler_spectra = False
+calc_doppler_spectra = True
 plot_radar_results = False
-plot_compare_noise = False
-plot_for_poster = True
+plot_compare_noise = True
+plot_for_poster = False
 plot_comparisons     = False
 plot_interp2d        = False
 plot_interpolation_scatter = False
@@ -74,10 +74,10 @@ else:
     #date     = '180802'     # in YYMMDD
     #time_intervall = '0330-1200'  # in HHMM-HHM
 
-# hmin = 0.0  # (km)  - lower y-axis limit
-# hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-# date = '180729'  # in YYMMDD
-# time_intervall = '0000-2359'  # in HHMM-HHMM
+    hmin = 0.0  # (km)  - lower y-axis limit
+    hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+    date = '180729'  # in YYMMDD
+    time_intervall = '0000-2359'  # in HHMM-HHMM
 
     # hmin = 0.0  # (km)  - lower y-axis limit
     # hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
@@ -122,14 +122,13 @@ warnings.filterwarnings("ignore")
 ######################################################################################################
 '''
 
-print('     date: ', date, time_intervall, hmin, hmax)
 
 # ----- LIMRAD 94GHz Radar data extraction
 # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-# hmin = 0.0  # (km)  - lower y-axis limit
-# hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-# date = '180810'  # in YYMMDD
-#time_intervall = '0500-0600'  # in HHMM-HHMM
+hmin = 0.0  # (km)  - lower y-axis limit
+hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+date = '180810'  # in YYMMDD
+time_intervall = '0500-0600'  # in HHMM-HHMM
 
 #  special case NoiseFac0_file = 'NOISEFAC0_180820_142451_P01_ZEN.LV0.NC'
 # hmin = 0.0  # (km)  - lower y-axis limit
@@ -137,16 +136,19 @@ print('     date: ', date, time_intervall, hmin, hmax)
 # date = '180820'  # in YYMMDD
 # time_intervall = '1400-1500'  # in HHMM-HHMM
 
-#LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [hmin, hmax])
+
+print('     date: ', date, time_intervall, hmin, hmax)
+
+LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [hmin, hmax])
 LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [hmin, hmax])
 
 # if interpolate_cn: LR_lv1.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
-#if create_nc_file: LR_lv1.save(LIMRAD_path)
+# if create_nc_file: LR_lv1.save('/Users/willi/Desktop/')
 
 
 
 # ----- MIRA 35GHz Raar data extraction
-# MIRA_data  = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax])
+#MIRA_data  = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax])
 # MMCLX_data = nc.MIRA35_LV1(date, time_intervall, [hmin, hmax], '*.mmclx')
 
 #if interpolate_cn: MMCLX_data.interpolate_cn(t_res=interp_time_res, r_res=interp_range_res, method='constant')
@@ -209,11 +211,16 @@ if calc_doppler_spectra:
 
     if pts: print('    - moments calculated ')
 
-    LR_lv0.save(LIMRAD_path, Ze=output[0], mdv=output[1], sw=output[2], skew=output[3], kurt=output[4])
+    #LR_lv0.save('/Users/willi/data/MeteoData/LIMRad94/', Ze=output[0], mdv=output[1], sw=output[2], skew=output[3], kurt=output[4])
 
     if pts: print('\n' * 2)
     if pts: print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.3f} sec.')
 
+    LR_lv0.Ze = np.ma.log10(output[0].T) * 10.0
+    LR_lv0.mdv = output[1].T
+    LR_lv0.sw = output[2].T
+    LR_lv0.skew = output[3].T
+    LR_lv0.kurt = output[4].T
 
     compare_datasets(LR_lv0, LR_lv1)
 

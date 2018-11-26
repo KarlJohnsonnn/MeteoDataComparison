@@ -277,10 +277,10 @@ def remove_noise(ds):
 
 
 def spectra_to_moments(spectra_linear_units, velocity_bins, bounds):
-    '''
+    """
     # spectra_to_moments
     # translated from Heike's Matlab function
-    # determination of radar moments of Dopler spectrum over range of Doppler velocity bins
+    # determination of radar moments of Doppler spectrum over range of Doppler velocity bins
 
     # input:
     # spectra_linear_units: time-height-FFT points of Doppler spectra ([mm^6 / m^3 ] / (m/s))
@@ -298,7 +298,7 @@ def spectra_to_moments(spectra_linear_units, velocity_bins, bounds):
     # skew            : 3. moment = skewness over range of Doppler velocity bins v1 to v2
     # kurt            : 4. moment = kurtosis over range of Doppler velocity bins v1 to v2
     # pwr_nrm_out     : normalized power (the sum of pwr_norm is 1)
-    '''
+    """
 
     # contains the dimensionality of the Doppler spectrum, (nTime, nRange, nDopplerbins)
     no_chirps = len(spectra_linear_units)
@@ -372,7 +372,7 @@ def compare_datasets(ds1, ds2):
     Ze1 = np.power(ds1.Ze/10.0, 10)
     Ze2 = np.power(ds2.Ze/10.0, 10)
 
-    Z_norm = 10.0*np.log10(np.linalg.norm(np.subtract(Ze1, Ze2), ord='fro'))
+    Z_norm = 10.0 * np.log10(np.linalg.norm(np.ma.subtract(Ze1, Ze2), ord='fro'))
     mdv_norm = np.linalg.norm(np.subtract(ds1.mdv, ds2.mdv), ord='fro')
     sw_norm  = np.linalg.norm(np.subtract(ds1.sw, ds2.sw), ord='fro')
 

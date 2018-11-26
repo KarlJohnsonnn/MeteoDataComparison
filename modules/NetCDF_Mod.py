@@ -520,6 +520,7 @@ class LIMRAD94_LV1():
 
         self.n_height = len(self.height)
         self.n_time = len(time_samp)
+        self.time_since_2001 = time_samp
 
         # gahter radar data values and stack them together
 
@@ -570,6 +571,7 @@ class LIMRAD94_LV1():
 
         # print('min_H, max_H :: ',min_h, max_h, self.height[:5])
         self.t_plt = time_plot[min_t:max_t]
+        self.time_since_2001 = self.time_since_2001[min_t:max_t]
         self.t_unix = [ts.replace(tzinfo=timezone.utc).timestamp() for ts in self.t_plt]
         self.n_time = len(self.t_unix)
 
@@ -618,14 +620,16 @@ class LIMRAD94_LV1():
 
     def save(self, path):
 
-        ds_name = path + 'concatinated/' + str(self.year) + str(self.month).zfill(2) \
+        ds_name = path + str(self.year) + str(self.month).zfill(2) \
                   + str(self.day).zfill(2) + '_' + self.time_int + '_LIMRAD94.nc'
 
         ds = netCDF4.Dataset(ds_name, "w", format="NETCDF4")
 
         ds.description = 'Concatenated data files of LIMRAD 94GHz - FMCW Radar'
         ds.history  = 'Created ' + time.ctime(time.time())
-        ds.source   = ''
+        ds.source = 'Leipzig, TROPOS'
+        ds._FillValue = -999.0
+        ds.FillValue = -999.0
 
 
         ds.createDimension('TAlt', self.TAlt)
@@ -638,26 +642,39 @@ class LIMRAD94_LV1():
             ds.createDimension('C'+str(ic+1)+'Range', self.range_gates[ic])
             ds.createDimension('C'+str(ic+1)+'Vel',   self.vel_gates[ic])
 
-
-        self.nc_add_variable(ds, 'time', np.int, ('time',),   'Seconds since 01.01.1970 00:00 UTC', '[sec]', self.t_unix)
+        self.nc_add_variable(ds, 'time', np.float32, ('time',), 'Seconds since 01.01.2001 00:00 UTC', '[sec]',
+                             self.time_since_2001)
         self.nc_add_variable(ds, 'range', np.float32, ('range',), 'range', '[m]',
                              np.copy(np.multiply(1000.0, self.height)))
 
-        self.nc_add_variable(ds, 'Ze', np.float32, ('time', 'range',), 'Equivalent radar reflectivity factor', '[dBZ]',
-                             self.Ze, -999.)
-        self.nc_add_variable(ds, 'vm', np.float32, ('time', 'range',), 'Mean Doppler velocity', '[m/s]', self.mdv,
-                             -999.)
-        self.nc_add_variable(ds, 'sigma', np.float32, ('time', 'range',), 'Spectrum width', '[m/s]', self.sw, -999.)
-        self.nc_add_variable(ds, 'ldr', np.float32, ('time', 'range',), 'Slanted linear depolarization ratio', '[dB]',
-                             self.ldr, -999.)
-        self.nc_add_variable(ds, 'kurt', np.float32, ('time', 'range',), 'Kurtosis', '[linear]', self.kurt, -999.)
-        self.nc_add_variable(ds, 'Skew', np.float32, ('time', 'range',), 'Skewness', '[linear]', self.Skew, -999.)
-        self.nc_add_variable(ds, 'DiffAtt', np.float32, ('time', 'range',), 'Differential attenuation', '[dB/km]',
-                             self.DiffAtt, -999.)
+        Ze_linear = np.power((self.Ze / 10.0), 10.0).T
+        self.nc_add_variable(ds, 'Ze', np.float32, ('range', 'time',),
+                             'Equivalent radar reflectivity factor', '[dBZ]', Ze_linear, -999.)
+        self.nc_add_variable(ds, 'vm', np.float32, ('range', 'time',),
+                             'Mean Doppler velocity', '[m/s]', self.mdv.T, -999.)
+        self.nc_add_variable(ds, 'sigma', np.float32, ('range', 'time',), 'Spectrum width', '[m/s]', self.sw.T, -999.)
+        self.nc_add_variable(ds, 'ldr', np.float32, ('range', 'time',),
+                             'Slanted linear depolarization ratio', '[dB]', self.ldr.T, -999.)
+        self.nc_add_variable(ds, 'kurt', np.float32, ('range', 'time',), 'Kurtosis', '[linear]', self.kurt.T, -999.)
+        self.nc_add_variable(ds, 'Skew', np.float32, ('range', 'time',), 'Skewness', '[linear]', self.Skew.T, -999.)
+        self.nc_add_variable(ds, 'DiffAtt', np.float32, ('range', 'time',), 'Differential attenuation', '[dB/km]',
+                             self.DiffAtt.T, -999.)
 
         self.nc_add_variable(ds, 'latitude',  np.float32, (), 'GPS latitude',  '[deg]', self.latitude)
         self.nc_add_variable(ds, 'longitude', np.float32, (), 'GPS longitude', '[deg]', self.longitude)
-        self.nc_add_variable(ds, 'DoppMax', np.float32, ('Chirp',), 'Unambiguous Doppler velocity (+/-)', '[m/s]', self.DoppMax)
+        self.nc_add_variable(ds, 'DoppMax', np.float32, ('Chirp',), 'Unambiguous Doppler velocity (+/-)', '[m/s]',
+                             self.DoppMax)
+
+        # RangeOffsets ist der index in den daten, der dir
+        # anzeigt wann eine andere chrip sequence läuft, in denen viele
+        # parameter, wie vertikale auflösung, nyquist range, usw. verändern. (Nils Küchler)
+        range_offsets = np.ones((self.no_c), dtype=np.int)
+        print(range_offsets)
+        for iC in range(1, self.no_c):
+            range_offsets[iC] = self.cum_range_gates[iC] + 1
+
+        self.nc_add_variable(ds, 'range_offsets', np.int, ('Chirp'),
+                             'chirp sequences start index array in altitude layer array', '[m]', range_offsets)
 
         self.nc_add_variable(ds, 'cbh', np.float32, ('time',), 'Cloud Bottom Height', '[m]', self.CBH)
         self.nc_add_variable(ds, 'bt', np.float32, ('time',), 'Direct detection brightness temperature', '[K]',

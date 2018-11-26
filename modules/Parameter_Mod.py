@@ -4,7 +4,6 @@ pts = True  # print some informations to screen
 
 interpolate_cn = False
 create_nc_file = False
-include_noise = True
 calc_doppler_spectra = False
 plot_radar_results   = False
 plot_compare_noise   = False
@@ -30,7 +29,8 @@ mmclx_file_extension  = '*.mmclx'
 
 # path to meteorological data
 meteo_path  = '/Users/willi/data/MeteoData/'
-LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/'
+LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/noise/'
+# LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1'
 MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'
 
 #interp_meth = 'linear'

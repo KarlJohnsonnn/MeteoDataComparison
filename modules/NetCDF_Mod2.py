@@ -20,7 +20,7 @@ class LIMRAD94():
 
     def __init__(self, *args):
 
-        os.chdir(LIMRAD_path)  # path to data needs to be fit to the devices file structure
+        # os.chdir(LIMRAD_path)  # path to data needs to be fit to the devices file structure
 
         try:
             # check input parameter
@@ -128,7 +128,6 @@ class LIMRAD94():
                         if File.find('_P' + str(iMDF + 1).zfill(2)) > 0:
                             tmp_files.append(File)
 
-                    # file_this_MDF = glob.glob(folder_path + '*' + date_str + '*' + '*_P' + str(iMDF + 1).zfill(2) + '_*')
                     file_this_MDF = tmp_files
                     num_this_MDF = len(file_this_MDF)
 
@@ -140,7 +139,6 @@ class LIMRAD94():
                         pos_time = file_this_MDF[0].find('_P') - 6
                         only_times = [None] * num_this_MDF
                         for itime in range(len(file_this_MDF)):
-                            # only_times[itime] = int(all_ncfiles[itime][pos_time:pos_time + 6])
                             only_times[itime] = int(file_this_MDF[itime][pos_time:pos_time + 6])
 
                         permutation = np.argsort(np.array(only_times))
@@ -226,7 +224,6 @@ class LIMRAD94():
         i_nc_file = 0
         n_nc_file = len(self.ncfiles)
 
-        var_list = nc_data_set.variables.keys()
 
         for iMDF in range(len(self.num_MDF)):
             self.time_series_1D[iMDF] = dict()
@@ -239,6 +236,8 @@ class LIMRAD94():
                 i_nc_file += 1
 
                 nc_data_set = netCDF4.Dataset(self.file_MDF[iMDF][iFile], 'r')
+                var_list = nc_data_set.variables.keys()
+
                 for ivar in var_list:
                     var = nc_data_set.variables[ivar]
                     if 'Units' in var.ncattrs():  # these variables have Units
@@ -265,7 +264,6 @@ class LIMRAD94():
                                     else:
                                         self.time_series_1D[iMDF][ivar]['Dim'][0] = \
                                             self.time_series_1D[iMDF][ivar]['Dim'][0] + var.shape[0]
-
                                         self.time_series_1D[iMDF][ivar]['Val'] = np.append(
                                             self.time_series_1D[iMDF][ivar]['Val'], var[:], axis=0)
 
@@ -305,18 +303,20 @@ class LIMRAD94():
                                                          'Unit': 'km', 'Val': np.array(height)}})
 
             # concatenate different chirps in level 1 data
-            if self.lvl == 'LV1':
+            # if self.lvl == 'LV1':
 
-                for iC in range(1, self.num_chirps[iMDF] + 1):
+            for iC in range(1, self.num_chirps[iMDF] + 1):
 
-                    for ivar in var_list:
+                for ivar in var_list:
 
-                        # find different chirp variables using regex
-                        regex = re.compile('C' + str(iC))
-                        match = re.match(regex, ivar)
+                    # find different chirp variables using regex
+                    regex = re.compile('C' + str(iC))
+                    match = re.match(regex, ivar)
 
-                        if match is not None:
-                            try:
+                    if match is not None:
+                        try:
+                            if len(var.shape) == 2:
+
                                 if iC == 1:
                                     self.time_series_2D[iMDF].update({ivar[2:]: {
                                         'Dim': self.time_series_2D[iMDF][ivar]['Dim'],
@@ -335,12 +335,167 @@ class LIMRAD94():
                                 # delete data for individual chirps
                                 del self.time_series_2D[iMDF][ivar]
 
-                            except Exception as e:
-                                print('Something went wrong during data type construction: ', e)
-                                print('Variable :: ', ivar, '\n')
+                            elif len(var.shape) == 3:
 
-                                exc_type, exc_obj, exc_tb = sys.exc_info()
-                                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                                print(exc_type, fname, ' at Line ', exc_tb.tb_lineno)
+                                if iC == 1:
+                                    self.time_series_3D[iMDF].update({ivar[2:]: {
+                                        'Dim': self.time_series_3D[iMDF][ivar]['Dim'],
+                                        'LongName': self.time_series_3D[iMDF][ivar]['LongName'][:-9],
+                                        'Unit': self.time_series_3D[iMDF][ivar]['Unit'],
+                                        'Val': self.time_series_3D[iMDF][ivar]['Val']}})
+
+                                else:
+                                    self.time_series_3D[iMDF][ivar[2:]]['Dim'][1] = \
+                                        self.time_series_3D[iMDF][ivar[2:]]['Dim'][1] + \
+                                        self.time_series_3D[iMDF][ivar]['Dim'][1]
+                                    self.time_series_3D[iMDF][ivar[2:]]['Val'] = np.concatenate((
+                                        self.time_series_3D[iMDF][ivar[2:]]['Val'],
+                                        self.time_series_3D[iMDF][ivar]['Val']), axis=1)
+
+                                # delete data for individual chirps
+                                del self.time_series_3D[iMDF][ivar]
+
+                        except Exception as e:
+                            print('Something went wrong during data type construction: ', e)
+                            print('Variable :: ', ivar, '\n')
+
+                            exc_type, exc_obj, exc_tb = sys.exc_info()
+                            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                            print(exc_type, fname, ' at Line ', exc_tb.tb_lineno)
 
         if pts: print("    Loading LIMRAD94 NC-files ({} of {})".format(n_nc_file, n_nc_file))
+
+    def save(self, path):
+        import time
+
+        ds_name = path + str(self.year) + str(self.month).zfill(2) \
+                  + str(self.day).zfill(2) + '_' + self.time_int + '_LIMRAD94.nc'
+
+        # ds = netCDF4.Dataset(ds_name, "w", format="NETCDF4")
+        ds = netCDF4.Dataset(ds_name, "w", format="NETCDF4")
+
+        ds.description = 'Concatenated data files of LIMRAD 94GHz - FMCW Radar'
+        ds.history = 'Created ' + time.ctime(time.time())
+        ds.source = 'Leipzig, TROPOS'
+        ds.FillValue = -999.0
+
+        ds.createDimension('Chirp', self.num_chirps[0])
+        ds.createDimension('time', sum(self.dimensions[0]['Time']))
+        ds.createDimension('range', sum(self.dimensions[0]['Range']))
+
+        self.nc_add_variable(ds, 'latitude', np.float32, (), 'GPS latitude', '[deg]', self.latitude)
+        self.nc_add_variable(ds, 'longitude', np.float32, (), 'GPS longitude', '[deg]', self.longitude)
+
+        for ic in range(self.num_chirps[0]):
+            ds.createDimension('C' + str(ic + 1) + 'Range', self.dimensions[0]['Range'][ic])
+            ds.createDimension('C' + str(ic + 1) + 'Vel', self.dimensions[0]['Vel'][ic])
+
+        self.nc_add_variable(ds, 'time', np.float32, ('time',),
+                             'Seconds since 01.01.2001 00:00 UTC', '[sec]',
+                             self.time_series_1D[0]['Time']['Val'])
+
+        self.nc_add_variable(ds, 'range', np.float32, ('range',), 'range', '[m]',
+                             self.time_series_1D[0]['Height']['Val'] * 1000.0)
+
+        self.nc_add_variable(ds, 'Ze', np.float32, ('range', 'time',),
+                             'Equivalent radar reflectivity factor', '[linear]',
+                             self.time_series_2D[0]['ZE']['Val'], -999.)
+
+        self.nc_add_variable(ds, 'vm', np.float32, ('range', 'time',),
+                             'Mean Doppler velocity', '[m/s]',
+                             self.time_series_2D[0]['MeanVel']['Val'], -999.)
+
+        self.nc_add_variable(ds, 'sigma', np.float32, ('range', 'time',),
+                             'Spectrum width', '[m/s]',
+                             self.time_series_2D[0]['SpecWidth']['Val'], -999.)
+
+        self.nc_add_variable(ds, 'ldr', np.float32, ('range', 'time',),
+                             'Slanted linear depolarization ratio', '[dB]',
+                             self.time_series_2D[0]['SLDR']['Val'], -999.)
+
+        self.nc_add_variable(ds, 'kurt', np.float32, ('range', 'time',),
+                             'Kurtosis', '[linear]',
+                             self.time_series_2D[0]['Kurt']['Val'], -999.)
+        self.nc_add_variable(ds, 'Skew', np.float32, ('range', 'time',),
+                             'Skewness', '[linear]',
+                             self.time_series_2D[0]['Skew']['Val'], -999.)
+
+        self.nc_add_variable(ds, 'DiffAtt', np.float32, ('range', 'time',),
+                             'Differential attenuation', '[dB/km]',
+                             self.time_series_2D[0]['DiffAtt']['Val'], -999.)
+
+        self.nc_add_variable(ds, 'DoppMax', np.float32, ('Chirp',),
+                             'Unambiguous Doppler velocity (+/-)', '[m/s]',
+                             self.dimensions[0]['MaxVel'])
+
+        # RangeOffsets ist der index in den daten, der dir
+        # anzeigt wann eine andere chrip sequence läuft, in denen viele
+        # parameter, wie vertikale auflösung, nyquist range, usw. verändern. (Nils Küchler)
+        range_offsets = np.ones((self.num_chirps[0]), dtype=np.float32)
+        for iC in range(self.num_chirps[0] - 1):
+            range_offsets[iC + 1] = range_offsets[iC] + self.dimensions[0]['Range'][iC]
+
+        self.nc_add_variable(ds, 'range_offsets', np.int, ('Chirp'),
+                             'chirp sequences start index array in altitude layer array', '[-]',
+                             range_offsets)
+
+        self.nc_add_variable(ds, 'bt', np.float32, ('time',),
+                             'Direct detection brightness temperature', '[K]',
+                             self.time_series_1D[0]['DDTb']['Val'])
+
+        self.nc_add_variable(ds, 'lwp', np.float32, ('time',),
+                             'Liquid water path', '[g/m^2]',
+                             self.time_series_1D[0]['LWP']['Val'])
+
+        self.nc_add_variable(ds, 'rain', np.float32, ('time',),
+                             'Rain rate from weather station', '[mm/h]',
+                             self.time_series_1D[0]['Rain']['Val'])
+
+        ds.close()
+
+        print('')
+        print('    Concatenated nc file written: ', ds_name)
+
+    @staticmethod
+    def nc_add_variable(*args):
+
+        if len(args) < 7:
+            print(' check arguments for adding a netCDF variable')
+
+        elif len(args) >= 7:
+            datastruct = args[0]
+            var_name = args[1]
+            type = args[2]
+            dim = args[3]
+            long_name = args[4]
+            unit = args[5]
+            data = np.copy(args[6]).T
+            fillval = None
+
+            if len(args) == 8:
+                fillval = args[7]
+                data[data == np.ma.masked] = fillval
+                var = datastruct.createVariable(var_name, type, dim, fill_value=fillval)
+            else:
+                var = datastruct.createVariable(var_name, type, dim)
+
+        var.long_name = long_name
+        var.unit = unit
+        var[:] = data
+
+
+class cloudnet_categorization:
+
+    def __init__(self, *args):
+        folder_path = args[0]
+        date_str = args[1]
+        time_str = args[2]
+        heightminmax = args[3]
+
+        # gathering self.year, self.month, self.day for convertion to UTC time
+        self.time_int = time_str
+        self.year = int('20' + date_str[:2])
+        self.month = int(date_str[2:4])
+        self.day = int(date_str[4:6])
+
+        pass
