@@ -4,8 +4,6 @@ import warnings
 
 import modules.NetCDF_Mod2 as nc2
 from modules.Parameter_Mod import *
-#from modules.PlotLibrary_Mod2 import *
-#from modules.Utility_Mod import *
 
 '''
 ####################################################################################################################
@@ -23,14 +21,19 @@ from modules.Parameter_Mod import *
    
     The example call to the routine:    $  python LIMRAD94_to_Cloudnet.py 180729 000000 240000 0.0 12.0 
 
+    The path to the netcdf files must contain: [...]/YYMMDD/LVx/
+
 
 
 ####################################################################################################################
 '''
-path_to_data   = '/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/LV0LV1_backup/LV1/'
-path_to_output = '/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/LV0LV1_backup'
+path_to_data   = '/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/LV1/'
+path_to_output = '/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/'
 
 
+
+#path_to_data = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/'
+#path_to_output = '/Users/willi/Desktop/tmp/limrad_to_cloudnet/'
 
 # Print Head
 if pts:

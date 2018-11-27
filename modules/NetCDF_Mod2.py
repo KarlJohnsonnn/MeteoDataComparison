@@ -258,7 +258,7 @@ class LIMRAD94():
                                         'Unit': var.Units, 'Val': np.array(var[:, :, :])}})
                             else:
                                 if len(var.shape) == 1:
-                                    if ivar in ['TAlts', 'HAtls']:
+                                    if ivar in ['TAlts', 'HAlts']:
                                         self.time_series_1D[iMDF][ivar]['Val'] = np.append(
                                             self.time_series_1D[iMDF][ivar]['Val'], var[:], axis=0)
                                     else:
@@ -315,7 +315,7 @@ class LIMRAD94():
 
                     if match is not None:
                         try:
-                            if len(var.shape) == 2:
+                            if True:
 
                                 if iC == 1:
                                     self.time_series_2D[iMDF].update({ivar[2:]: {
