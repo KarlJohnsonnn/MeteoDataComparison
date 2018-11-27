@@ -114,9 +114,21 @@ if calc_doppler_spectra:
 
         ic = 2
         h0 = 57
+
+        # save to .mat file to compare with matlab routine
+        import scipy.io
+
+        scipy.io.savemat('/Users/willi/data/MeteoData/LIMRad94/test_spectrum.mat',
+                         {'spectrum': LR_lv0.VHSpec[ic][0, h0, :]})
+
         # for ic in range(LR_lv0.no_c):
         for t0 in range(LR_lv0.Time):
             #       for h0 in range(LR_lv0.n_height[ic]):
+            print(f'         Noise Threshold = {threshold[ic][0,h0]:.15f}')
+            print(f'         Noise mean_noise= {mean_noise[ic][0,h0]:.15f}')
+            print('         integration_bounds= {}    {}'.format(integration_bounds[ic][0, h0, 0],
+                                                                 integration_bounds[ic][0, h0, 1]))
+
             fig, plt = Plot_Doppler_Spectra(LR_lv0, ic, t0, h0, [-40, 10],
                                             threshold[ic][t0, h0],
                                             mean_noise[ic][t0, h0],
