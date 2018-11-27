@@ -247,6 +247,7 @@ def remove_noise(ds):
 
     n_t = ds.n_time
 
+    # allocate numpy arrays
     mean_noise = []
     threshold  = []
     variance   = []
@@ -261,17 +262,18 @@ def remove_noise(ds):
         numnoise.append(np.zeros((n_t, n_r)))
         integration_bounds.append(np.zeros((n_t, n_r, 2)))
 
-
+    # gather noise level etc. for all chirps, range gates and times
     for ic in range(ds.no_c):
         for iR in range(ds.n_height[ic]):
             for iT in range(ds.n_time):
-                output = estimate_noise_hs74(ds.VHSpec[ic][iT, iR, :], navg=ds.no_av[ic])
+                mean, thresh, var, nnoise, left_intersec, right_intersec = \
+                    estimate_noise_hs74(ds.VHSpec[ic][iT, iR, :], navg=ds.no_av[ic])
 
-                mean_noise[ic][iT, iR] = output[0]
-                threshold[ic][iT, iR] = output[1]
-                variance[ic][iT, iR] = output[2]
-                numnoise[ic][iT, iR] = output[3]
-                integration_bounds[ic][iT, iR, :] = [output[4], output[5]]
+                mean_noise[ic][iT, iR] = mean
+                threshold[ic][iT, iR]  = thresh
+                variance[ic][iT, iR]   = var
+                numnoise[ic][iT, iR]   = nnoise
+                integration_bounds[ic][iT, iR, :] = [left_intersec, right_intersec]
 
     return mean_noise, threshold, variance, numnoise, integration_bounds
 

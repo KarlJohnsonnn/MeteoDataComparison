@@ -27,7 +27,12 @@ from modules.Utility_Mod import *
 '''
 
 # Print Head
-if pts: Print_Head()
+if pts:
+    print(' ')
+    print('  \u250F' + 49 * '\u2501' + '\u2513')
+    print('  \u2503' + '       LIMRAD94 - Covert to CloudNet format      ' + '\u2503')
+    print('  \u2517' + 49 * '\u2501' + '\u251B' + '\n')
+    print('\n' * 2)
 
 # gather arguments
 if len(sys.argv) == 6:
@@ -46,10 +51,11 @@ warnings.filterwarnings("ignore")
 
 start_time = time.time()
 
-print('    Input values:')
-print('         - date =       ', date)
-print('         - time from:   ', time_intervall, ' (UTC)')
-print('         - height from: ', h_min, '(km)  to: ', h_max, ' (km) \n')
+if pts:
+    print('    Input values:')
+    print('         - date =       ', date)
+    print('         - time from:   ', time_intervall, ' (UTC)')
+    print('         - height from: ', h_min, '(km)  to: ', h_max, ' (km) \n')
 
 '''
 ######################################################################################################
@@ -66,11 +72,6 @@ print('         - height from: ', h_min, '(km)  to: ', h_max, ' (km) \n')
 '''
 
 LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/', date, time_intervall, [h_min, h_max])
-
-# LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/noise/180810/LV1/', date, time_intervall, [h_min, h_max])
-# LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/VdResDiff/180810/LV1/', '180810', time_intervall, [h_min, h_max])
-# LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/VdResDiff/180810/LV1/VdRes2cms_180810_055219_P10_ZEN.LV1.NC')
-
 
 LR_lv1.save('/Users/willi/Desktop/tmp/limrad_to_cloudnet/')
 
