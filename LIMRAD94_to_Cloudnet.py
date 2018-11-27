@@ -1,9 +1,12 @@
 import sys
+import time
 import warnings
 
 import modules.NetCDF_Mod2 as nc2
-from modules.PlotLibrary_Mod2 import *
-from modules.Utility_Mod import *
+from modules.Parameter_Mod import *
+
+# from modules.PlotLibrary_Mod2 import *
+# from modules.Utility_Mod import *
 
 '''
 ####################################################################################################################
@@ -25,6 +28,9 @@ from modules.Utility_Mod import *
 
 ####################################################################################################################
 '''
+
+path_to_data = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/'
+path_to_output = '/Users/willi/Desktop/tmp/limrad_to_cloudnet/'
 
 # Print Head
 if pts:
@@ -71,9 +77,9 @@ if pts:
 ######################################################################################################
 '''
 
-LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/', date, time_intervall, [h_min, h_max])
+LR_lv1 = nc2.LIMRAD94(path_to_data, date, time_intervall, [h_min, h_max])
 
-LR_lv1.save('/Users/willi/Desktop/tmp/limrad_to_cloudnet/')
+LR_lv1.save(path_to_output)
 
 #
 #
