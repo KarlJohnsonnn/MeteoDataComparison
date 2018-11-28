@@ -26,6 +26,9 @@ from modules.Utility_Mod import *
 file1 = '/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/LV1/180808_050001_P01_ZEN.LV1.NC'
 file2 = '/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/LV1/180820_050000_P01_ZEN.LV1.NC'
 
+# create lists of constants and variables you want to compare
+constants_to_compare = ['AvgNum', 'NoiseFilt', 'SampDur', 'MaxVel', 'DoppRes']
+variables_to_compare = ['SeqIntTime', 'QualFlag', 'Status', 'TPow']
 
 
 # Print Head
@@ -54,9 +57,6 @@ if pts:
 LR_lv1_a = nc2.LIMRAD94(file1)
 LR_lv1_b = nc2.LIMRAD94(file2)
 
-# create lists of constants and variables you want to compare
-constants_to_compare = ['AvgNum', 'NoiseFilt', 'SampDur', 'MaxVel', 'DoppRes']
-variables_to_compare = ['SeqIntTime', 'QualFlag', 'Status', 'TPow']
 
 print('')
 print('    COMPARE SAME CHIRP TABLES DIFFERENT DAY :: 08.08.18  vs. 20.08.18 \n')
