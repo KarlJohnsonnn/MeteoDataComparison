@@ -84,6 +84,6 @@ for item in variables_to_compare:
         print('     --> b :: ', LR_lv1_b.time_series_1D[0][item]['Val'])
         if dif:
             for ival1, ival2 in zip(LR_lv1_a.time_series_1D[0][item]['Val'], LR_lv1_b.time_series_1D[0][item]['Val']):
-                print('     different values of ', item, ' :: ', ival1, ival2)
+                print('     different values of ', item, ' :: ', ival1, ival2, '    difference = ', ival1 - ival2)
 
 print('')
