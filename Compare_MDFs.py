@@ -38,8 +38,8 @@ if pts:
 ######################################################################################################
 '''
 
-LR_lv1_a = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/180808_050001_P01_ZEN.LV1.NC')
-LR_lv1_b = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/180820_050000_P01_ZEN.LV1.NC')
+LR_lv1_a = nc2.LIMRAD94('/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/LV1/180808_050001_P01_ZEN.LV1.NC')
+LR_lv1_b = nc2.LIMRAD94('/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/LV1/180820_050000_P01_ZEN.LV1.NC')
 
 constants_to_compare = ['AvgNum', 'NoiseFilt', 'SampDur', 'MaxVel', 'DoppRes']
 variables_to_compare = ['SeqIntTime', 'QualFlag', 'Status', 'TPow']
