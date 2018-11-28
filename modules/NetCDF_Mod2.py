@@ -50,6 +50,7 @@ class LIMRAD94():
                 self.file_MDF = [[file_path]]
                 self.name_MDF = file_str[pos_prog + 1:pos_prog + 4]
                 self.num_MDF = [1]
+                iFile = file_path
 
             # if there are four values given, the args contain the:
             #   - path to the data folder (string):                     -> args[0]
@@ -186,7 +187,12 @@ class LIMRAD94():
                 'RangeRes': list(nc_data_set.variables['RangeRes'][:]),
                 'MaxVel': list(nc_data_set.variables['MaxVel'][:]),
                 'AvgNum': list(nc_data_set.variables['AvgNum'][:]),
+                'NoiseFilt': nc_data_set.variables['NoiseFilt'][:],
+                'SampDur': nc_data_set.variables['SampDur'][:],
+                'SampRate': nc_data_set.variables['SampRate'][:],
                 'DoppLen': list(nc_data_set.variables['DoppLen'][:]),
+                'DoppRes': list(np.divide(2.0 * nc_data_set.variables['MaxVel'][:],
+                                          nc_data_set.variables['DoppLen'][:])),
                 'Nav': list(Nav),
                 'Range': [nc_data_set.dimensions['C' + str(iC + 1) + 'Range'].size for iC in
                           range(self.num_chirps[iMDF])],
@@ -286,6 +292,11 @@ class LIMRAD94():
                             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                             print(exc_type, fname, ' at Line ', exc_tb.tb_lineno)
 
+                    elif ivar in ['QualFlag', 'Status', 'TPow']:
+                        if iFile == 0:
+                            self.time_series_1D[iMDF].update({ivar: {
+                                'Dim': list(var.shape), 'LongName': var.Name, 'Val': np.array(var[:])}})
+
                 nc_data_set.close()
 
             # extract the range (height) values
@@ -315,7 +326,7 @@ class LIMRAD94():
 
                     if match is not None:
                         try:
-                            if True:
+                            if False:
 
                                 if iC == 1:
                                     self.time_series_2D[iMDF].update({ivar[2:]: {
@@ -335,7 +346,7 @@ class LIMRAD94():
                                 # delete data for individual chirps
                                 del self.time_series_2D[iMDF][ivar]
 
-                            elif len(var.shape) == 3:
+                            else:
 
                                 if iC == 1:
                                     self.time_series_3D[iMDF].update({ivar[2:]: {

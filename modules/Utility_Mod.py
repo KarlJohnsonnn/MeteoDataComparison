@@ -224,15 +224,32 @@ def estimate_noise_hs74(spectrum, navg=1):
     right_intersec = -1
 
     if nnoise < n_spec:
-        for ispec in range(n_spec):
-            if spectrum[ispec] > threshold:
-                left_intersec  = ispec-1
+        # maxSignal = np.max(spectrum)
+        # idxmaxSignal = np.where(spectrum == maxSignal)[0]
+        idxMaxSignal = np.argmax(spectrum)
+
+        for ispec in range(idxMaxSignal, n_spec):
+            if spectrum[ispec] <= threshold:
+                right_intersec = ispec
                 break
 
-        for ispec in range(n_spec-1, -1, -1):
-            if spectrum[ispec] > threshold:
-                right_intersec = ispec+1
+        for ispec in range(idxMaxSignal, -1, -1):
+            if spectrum[ispec] <= threshold:
+                left_intersec = ispec
                 break
+
+    #    left_intersec  = -1
+    #    right_intersec = -1
+    #    if nnoise < n_spec:
+    #        for ispec in range(n_spec):
+    #            if spectrum[ispec] > threshold:
+    #                left_intersec  = ispec-1
+    #                break
+    #
+    #        for ispec in range(n_spec-1, -1, -1):
+    #            if spectrum[ispec] > threshold:
+    #                right_intersec = ispec+1
+    #                break
 
     return mean, threshold, var, nnoise, left_intersec, right_intersec
 
@@ -278,7 +295,7 @@ def remove_noise(ds):
     return mean_noise, threshold, variance, numnoise, integration_bounds
 
 
-def spectra_to_moments(spectra_linear_units, velocity_bins, bounds):
+def spectra_to_moments(spectra_linear_units, velocity_bins, bounds, mean_noise):
     """
     # spectra_to_moments
     # translated from Heike's Matlab function
@@ -340,8 +357,12 @@ def spectra_to_moments(spectra_linear_units, velocity_bins, bounds):
                     if ic > 0: iR_out = iR + sum(no_ranges_chrip[:ic])
                     else:      iR_out = iR
 
-                    signal    = spectra_linear_units[ic][iT, iR, lb:ub] # extract power spectra and velocity bins in chosen range
-                    Ze_linear = np.nansum(signal * delta_vel[ic])  # linear full spectrum Ze [mm^6/m^3], scalar
+                    signal = spectra_linear_units[ic][iT, iR,
+                             lb:ub]  # - mean_noise[ic][iT, iR] # extract power spectra and velocity bins in chosen range
+                    Ze_linear = np.nansum(signal)  # linear full spectrum Ze [mm^6/m^3], scalar
+
+                    # signal    = spectra_linear_units[ic][iT, iR, lb:ub] # extract power spectra and velocity bins in chosen range
+                    #Ze_linear = np.nansum(signal * delta_vel[ic])  # linear full spectrum Ze [mm^6/m^3], scalar
 
                     if np.isfinite(Ze_linear):  # check if Ze_linear is not NaN
 
@@ -367,20 +388,22 @@ def spectra_to_moments(spectra_linear_units, velocity_bins, bounds):
     return Ze, mdv, sw, skew, kurt, pwr_nrm_out
 
 
-
-def compare_datasets(ds1, ds2):
+def compare_datasets(lv0, lv1):
 
     # convert back to [mm6/m3]
-    Ze1 = np.power(ds1.Ze/10.0, 10)
-    Ze2 = np.power(ds2.Ze/10.0, 10)
+    Ze1 = np.power(lv0.Ze / 10.0, 10)
+    Ze2 = np.power(lv1.Ze / 10.0, 10)
 
-    Z_norm = 10.0 * np.log10(np.linalg.norm(np.ma.subtract(Ze1, Ze2), ord='fro'))
-    mdv_norm = np.linalg.norm(np.subtract(ds1.mdv, ds2.mdv), ord='fro')
-    sw_norm  = np.linalg.norm(np.subtract(ds1.sw, ds2.sw), ord='fro')
+    # Z_norm = 10.0 * np.log10(np.linalg.norm(np.ma.subtract(Ze1, Ze2), ord='fro'))
+    # mdv_norm = np.linalg.norm(np.subtract(lv0.mdv, lv1.mdv), ord='fro')
+    # sw_norm  = np.linalg.norm(np.subtract(lv0.sw, lv1.sw), ord='fro')
+    Z_norm = np.mean(np.ma.subtract(Ze1, Ze2))
+    mdv_norm = np.mean(np.subtract(lv0.mdv, lv1.mdv))
+    sw_norm = np.mean(np.subtract(lv0.sw, lv1.sw))
 
     # convert to dBZ
     print()
-    print(f'    ||Ze_lv0  -  Ze_lv1|| = {Z_norm:.6f} [dBZ]')
+    print(f'    ||Ze_lv0  -  Ze_lv1|| = {Z_norm:.6f} [mm6/m3]')
     print(f'    ||mdv_lv0 - mdv_lv1|| = {mdv_norm:.6f} [m/s]')
     print(f'    ||sw_lv0  -  sw_lv1|| = {sw_norm:.6f} [m/s]')
     print()
@@ -388,3 +411,5 @@ def compare_datasets(ds1, ds2):
     pass
 
 
+def Diff(li1, li2):
+    return (list(set(li1) - set(li2)))

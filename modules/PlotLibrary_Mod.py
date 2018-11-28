@@ -485,6 +485,47 @@ def Plot_Radar_Results(ds1, ds2):
     return fig, plt
 
 
+def Plot_CalcMoments_minus_GivenMoments(ds1):
+    ### plot ###
+    if pts: print('    Generate subplots:\n')
+
+    # create figure
+
+    fig = plt.figure(figsize=(16, 10))
+
+    diff = plt.subplot2grid((1, 1), (0, 0))
+
+    xb1 = [ds1.t_plt[0], ds1.t_plt[-1]]
+
+    yb1 = [ds1.height_all[0], ds1.height_all[-1]]
+    diffZe = 10 * np.log10(ds1.diffZe)
+    ########################################################################################################
+    ########################################################################################################
+    # LR_Zelectivity plot
+    if pts: print('       -   Radar Reflectivity Factor   ', end='', flush=True)
+
+    x_label = r'\textbf{Time [UTC]}'
+    y_label = r'\textbf{Height [km]}'
+    z_label = r'\textbf{Reflectivity [dBZ]}'
+
+    diff.set_title(r'\large{\textbf{LIMRAD 94GHz Radar NoiseFac0 Lv1 (with noise)}}')
+    plot_data_set(fig, diff, '',
+                  ds1.t_plt, ds1.height_all, diffZe, vmi=-50, vma=20,
+                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
+
+    first_line = r'Difference calculated moments from LV0 and given LV1 moments, Leipzig, Germany,'
+    second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
+
+    file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}'
+    plt.suptitle(file_name)
+
+    plt.tight_layout(rect=[0, 0.01, 1, 0.90])
+    plt.subplots_adjust(hspace=0.025, wspace=0.0075)
+
+    return fig, plt
+
+
 def Plot_Compare_NoiseFac0(ds1, ds2):
     ### plot ###
     if pts: print('    Generate subplots:\n')
