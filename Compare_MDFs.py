@@ -1,6 +1,3 @@
-import sys
-import warnings
-
 import modules.NetCDF_Mod2 as nc2
 from modules.PlotLibrary_Mod2 import *
 from modules.Utility_Mod import *
@@ -47,28 +44,6 @@ create_nc_file = False
 # Print Head
 if pts: Print_Head()
 
-# gather arguments
-if len(sys.argv) == 6:
-    date = str(sys.argv[1])
-    time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
-    h_min, h_max = float(sys.argv[4]), float(sys.argv[5])
-
-else:
-
-    # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-    h_min = 0.0  # (km)  - lower y-axis limit
-    h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '180810'  # in YYMMDD
-    time_intervall = '050000-060000'  # in HHMM-HHMM
-
-warnings.filterwarnings("ignore")
-
-start_time = time.time()
-
-print('    Input values:')
-print('         - date =       ', date)
-print('         - time from:   ', time_intervall, ' (UTC)')
-print('         - height from: ', h_min, '(km)  to: ', h_max, ' (km) \n')
 
 '''
 ######################################################################################################
