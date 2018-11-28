@@ -1,5 +1,0 @@
-#!/bin/bash
-for i in {10..22}
-do
-	python PlaygroundNC_Toolvs2.py 1808$i 000000 240000 0.0 12.0 
-done

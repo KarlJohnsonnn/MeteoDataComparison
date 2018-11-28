@@ -189,7 +189,6 @@ class LIMRAD94():
                 'AvgNum': list(nc_data_set.variables['AvgNum'][:]),
                 'NoiseFilt': nc_data_set.variables['NoiseFilt'][:],
                 'SampDur': nc_data_set.variables['SampDur'][:],
-                'SampRate': nc_data_set.variables['SampRate'][:],
                 'DoppLen': list(nc_data_set.variables['DoppLen'][:]),
                 'DoppRes': list(np.divide(2.0 * nc_data_set.variables['MaxVel'][:],
                                           nc_data_set.variables['DoppLen'][:])),
@@ -228,7 +227,7 @@ class LIMRAD94():
         self.time_series_3D = [None] * len(self.num_MDF)
 
         i_nc_file = 0
-        n_nc_file = len(self.ncfiles)
+        n_nc_file = self.n_files
 
 
         for iMDF in range(len(self.num_MDF)):
@@ -326,7 +325,7 @@ class LIMRAD94():
 
                     if match is not None:
                         try:
-                            if False:
+                            if True:
 
                                 if iC == 1:
                                     self.time_series_2D[iMDF].update({ivar[2:]: {
