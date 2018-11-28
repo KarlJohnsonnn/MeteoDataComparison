@@ -60,11 +60,11 @@ variables_to_compare = ['SeqIntTime', 'QualFlag', 'Status', 'TPow']
 
 print('')
 print('    COMPARE SAME CHIRP TABLES DIFFERENT DAY :: 08.08.18  vs. 20.08.18 \n')
+print('')
 
 # compare the list of constants
 for item in constants_to_compare:
     eq = LR_lv1_a.dimensions[0][item] == LR_lv1_b.dimensions[0][item]
-    print('')
     print(' Constants :: ', item, '  is equal ?  ', eq)
 
     if not eq:
