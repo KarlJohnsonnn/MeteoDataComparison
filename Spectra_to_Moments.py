@@ -5,11 +5,6 @@ import modules.NetCDF_Mod as nc
 from modules.PlotLibrary_Mod import *
 from modules.Utility_Mod import *
 
-# Logicals for different tasks
-calc_doppler_spectra = True
-plot_spectra = False
-plot_compare_noise = True
-
 '''
 ####################################################################################################################
 
@@ -34,24 +29,18 @@ if pts:
     print('\n' * 2)
 
 # gather arguments
-if len(sys.argv) > 6:
-    date = str(sys.argv[1])
-    time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
-    hmin, hmax = float(sys.argv[4]), float(sys.argv[5])
+if len(sys.argv) == 2:
+    n_std_diviations = float(sys.argv[1])
 
 else:
+    n_std_diviations = 1.0
 
-    # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-    hmin = 0.0  # (km)  - lower y-axis limit
-    hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '180810'  # in YYMMDD
-    time_intervall = '0500-0600'  # in HHMM-HHMM
+# special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
+hmin = 0.0  # (km)  - lower y-axis limit
+hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+date = '180810'  # in YYMMDD
+time_intervall = '0500-0600'  # in HHMM-HHMM
 
-    #  special case NoiseFac0_file = 'NOISEFAC0_180820_142451_P01_ZEN.LV0.NC'
-    # hmin = 0.0  # (km)  - lower y-axis limit
-    # hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    # date = '180820'  # in YYMMDD
-    # time_intervall = '1400-1500'  # in HHMM-HHMM
 
 warnings.filterwarnings("ignore")
 
@@ -70,7 +59,8 @@ warnings.filterwarnings("ignore")
 '''
 
 # ----- LIMRAD 94GHz Radar data extraction
-print('     date: ', date, time_intervall, hmin, hmax, '\n')
+print('     date: ', date, time_intervall, hmin, hmax)
+print('     standard deviations for moment calc: ', n_std_diviations, '\n')
 print('     is this the correct folder??')
 
 LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [hmin, hmax])
@@ -92,22 +82,34 @@ if pts: print('')
 ####################################################################################################################
 '''
 
+# Logicals for different tasks
+calc_doppler_spectra = True
+save_spectra_to_png = False
+save_noise_comparison = False
+save_moment_differences = False
+save_moments_without_noise = True
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+
 # remove noise from raw spectra and calculate radar moments
 if calc_doppler_spectra:
 
     tstart = time.time()
 
     # Estimate Noise Floor using Hildebrand & Sekhon Algorithm
-    mean_noise, threshold, variance, numnoise, integration_bounds = remove_noise(LR_lv0)
+    mean_noise, threshold, variance, numnoise, integration_bounds = remove_noise(LR_lv0, n_std_diviations)
     if pts: print('    - all noise removed ')
 
-    include_noise = True
+    include_noise = False
     if include_noise:
         for ic in range(LR_lv0.no_c):
             integration_bounds[ic][:, :, 0] = 0
             integration_bounds[ic][:, :, 1] = -1
 
-    if plot_spectra:
+    if save_spectra_to_png:
         n_png = sum(LR_lv0.n_height) * LR_lv0.Time
         n_png = LR_lv0.Time
         i_png = 0
@@ -123,16 +125,10 @@ if calc_doppler_spectra:
 
         # mean, threshold, var, nnoise, left_intersec, right_intersece = \
         #    estimate_noise_hs74(LR_lv0.VHSpec[ic][0, h0, :], navg=64)
-
         # ######  TESTING #######
 
         # for ic in range(LR_lv0.no_c):
         for t0 in range(LR_lv0.Time):
-            #       for h0 in range(LR_lv0.n_height[ic]):
-            # print(f'         Noise Threshold = {threshold[ic][0,h0]:.15f}')
-            # print(f'         Noise mean_noise= {mean_noise[ic][0,h0]:.15f}')
-            # print('         integration_bounds= {}    {}'.format(integration_bounds[ic][0, h0, 0],
-            #                                                     integration_bounds[ic][0, h0, 1]))
 
             fig, plt = Plot_Doppler_Spectra(LR_lv0, ic, t0, h0, [-40, 10],
                                             threshold[ic][t0, h0],
@@ -145,38 +141,72 @@ if calc_doppler_spectra:
             if pts: print("    Save spectra: {} of {} ".format(i_png, n_png), end="\r")
             i_png += 1
 
-    output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, mean_noise)
+    output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, LR_lv0.DoppRes)
+    # output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, LR_lv0.DoppRes)
 
     if pts: print('    - moments calculated \n')
     if pts: print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.3f} sec.')
 
-    LR_lv0.Ze = np.ma.log10(output[0].T) * 10.0
+    LR_lv0.ZeLin = output[0].T
+    LR_lv0.Ze = np.ma.log10(LR_lv0.ZeLin) * 10.0
     LR_lv0.mdv = output[1].T
     LR_lv0.sw = output[2].T
     LR_lv0.skew = output[3].T
     LR_lv0.kurt = output[4].T
 
-    Lv1ZELin = np.power(LR_lv1.Ze / 10, 10)
+    LR_lv0.diffZe = np.ma.subtract(LR_lv0.ZeLin, LR_lv1.ZeLin)
+    LR_lv0.diffmdv = np.ma.subtract(LR_lv0.mdv, LR_lv1.mdv)
+    LR_lv0.diffsw = np.ma.subtract(LR_lv0.sw, LR_lv1.sw)
 
-    LR_lv0.diffZe = np.ma.subtract(output[0].T, Lv1ZELin)
+#    for iT in range(LR_lv0.n_time):
+#       for iR in range(len(LR_lv0.height_all)):
+#            print(' difference l0mom - l1mom = {}:{}:{}'.format(LR_lv0.t_plt[iT].hour,
+#                                                                LR_lv0.t_plt[iT].minute,
+#                                                                LR_lv0.t_plt[iT].second),
+#                  '  height = {:.5f} (km)    diffmdv '.format(LR_lv0.height_all[iR]), LR_lv0.diffmdv[iR, iT])
 
-    compare_datasets(LR_lv0, LR_lv1)
+#    compare_datasets(LR_lv0, LR_lv1)
 
-if plot_compare_noise:
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+if save_noise_comparison:
     fig, plt = Plot_Compare_NoiseFac0(LR_lv1, LR_lv0)
-
     file = date + '_NoiseFac0_Lv1_Lv0moments.png'
     fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
     plt.close()
-
     if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
 
-    fig, plt = Plot_CalcMoments_minus_GivenMoments(LR_lv0)
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
 
-    file = date + '_NoiseFac0_Lv0moments-Lv1.png'
-    fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
-    plt.close()
+if save_moment_differences:
+    for mom in ['Ze', 'mdv', 'sw']:
+        fig, plt = Plot_CalcMoments_minus_GivenMoments(LR_lv0, mom)
 
-    if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
+        file = date + '_NoiseFac0_Lv0moments-Lv1_' + mom + '.png'
+        fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
+        plt.close()
+
+        if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+if save_moments_without_noise:
+
+    LR_lv0.n_std_div = n_std_diviations
+
+    for mom in ['Ze']:
+        fig, plt = Plot_moment_from_spectra(LR_lv0, mom)
+        file = date + '_NoiseFac0_Lv0_to_moments_' + mom + '_nstddiv_' + str(int(n_std_diviations)).zfill(2) + '.png'
+        fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
+        plt.close()
+
+        if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
+
 
 if pts: print(f'    Total Elapsed Time = {time.clock()-start_time:.3f} sec.\n')

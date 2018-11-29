@@ -116,6 +116,8 @@ class LIMRAD94_LV0():
         self.latitude = float(nc_data_set.variables['GPSLat'][:])
         self.longitude = float(nc_data_set.variables['GPSLon'][:])
         self.DopplerBins = [None] * self.no_c
+        self.DoppRes = list(np.divide(2.0 * nc_data_set.variables['MaxVel'][:],
+                                      nc_data_set.variables['DoppLen'][:]))
         self.CRanges = []
 
         # "Number of chirps averaged (coherently and non-coherently) for a single time sample"
@@ -140,8 +142,22 @@ class LIMRAD94_LV0():
             # And the number of Doppler bins
             # Evenly space between the minimum and maximum unambiguous Doppler velocity
             # The number of Doppler bins for each of the chirps
-            self.DopplerBins[ichirp] = np.linspace(-self.maxvel[ichirp], self.maxvel[ichirp], self.vel_gates[ichirp])
+            self.DopplerBins[ichirp] = np.linspace(-self.DoppMax[ichirp] + self.DoppRes[ichirp] / 2.0,
+                                                   self.DoppMax[ichirp] - self.DoppRes[ichirp] / 2.0,
+                                                   self.vel_gates[ichirp])
             self.height[ichirp] = np.zeros(self.range_gates[ichirp])
+
+            # TESTING
+            #            dbin0 = [-self.maxvel[ichirp]]
+            #            for ivg in range(self.vel_gates[ichirp]):
+            #                dbin0.append(dbin0[ivg] + self.DoppRes[ichirp])
+
+            #            x = self.DopplerBins[ichirp][1] - self.DopplerBins[ichirp][0]
+            #            for i in range(1, len(self.DopplerBins[ichirp])):
+            #                print(' diff aldjfalskdjfa a  ',  self.DopplerBins[ichirp][i] - self.DopplerBins[ichirp][i - 1])
+            #                print(' diff aldjfalskdjfa b  ',  dbin0[i] - dbin0[i - 1])
+            #                #print(' diff aldjfalskdjfa c  ',  self.DopplerBins[ichirp][i] - self.DopplerBins[ichirp][i - 1] - self.DoppRes[ichirp])
+
 
             for ih in range(self.range_gates[ichirp]):
                 self.height_all.append(self.height_all[cnt] + self.range_res[ichirp])
@@ -206,17 +222,19 @@ class LIMRAD94_LV0():
         # Fr_chirps = np.zeros((self.n_time, self.n_height))  # Range factor
 
         VHSpec_chirps = [None] * self.no_c  # Doppler spectrum at vertical+horizontal polarization [mm6/m3]
+        VSpec_chirps = [None] * self.no_c  # Doppler spectrum at vertical polarization [mm6/m3 ]
+        HSpec_chirps = [None] * self.no_c  # Doppler spectrum at horizontal polarization [mm6/m3 ]
         ReVHSpec_chirps = [None] * self.no_c  # Real part of covariance spectrum [mm6/m3]
         ImVHSpec_chirps = [None] * self.no_c  # Imaginary part of covariance spectrum [mm6/m3]
-        HSpec_chirps = [None] * self.no_c  # Doppler spectrum at horizontal polarization [mm6/m3 ]
         SLh_chirps = [None] * self.no_c  # Sensitivity limit for horizontal polarization [mm6/m3]
         SLv_chirps = [None] * self.no_c  # Sensitivity limit for vertical polarization [mm6/m3]
 
         for ichirp in range(self.no_c):
             VHSpec_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp], self.vel_gates[ichirp]))
+            VSpec_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp], self.vel_gates[ichirp]))
+            HSpec_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp], self.vel_gates[ichirp]))
             ReVHSpec_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp], self.vel_gates[ichirp]))
             ImVHSpec_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp], self.vel_gates[ichirp]))
-            HSpec_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp], self.vel_gates[ichirp]))
             SLh_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp]))
             SLv_chirps[ichirp] = np.zeros((self.n_time, self.n_height[ichirp]))
 
@@ -233,9 +251,12 @@ class LIMRAD94_LV0():
 
             for ichirp in range(self.no_c):
                 VHSpec_chirps[ichirp][lb_t:ub_t, :, :]   = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'VSpec'])
+                VSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.subtract(
+                    nc_data_set.variables['C' + str(ichirp + 1) + 'VSpec'][:],
+                    nc_data_set.variables['C' + str(ichirp + 1) + 'HSpec'][:])
+                HSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'HSpec'])
                 ReVHSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'ReVHSpec'])
                 ImVHSpec_chirps[ichirp][lb_t:ub_t, :, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'ImVHSpec'])
-                HSpec_chirps[ichirp][lb_t:ub_t, :, :]    = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'HSpec'])
                 SLh_chirps[ichirp][lb_t:ub_t, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'SLh'])
                 SLv_chirps[ichirp][lb_t:ub_t, :] = np.array(nc_data_set.variables['C' + str(ichirp + 1) + 'SLv'])
 
@@ -270,9 +291,10 @@ class LIMRAD94_LV0():
         self.SurfWS = self.SurfWS
 
         self.VHSpec = list(block for block in VHSpec_chirps)
+        self.VSpec = list(block for block in VSpec_chirps)
+        self.HSpec = list(block for block in HSpec_chirps)
         self.ReVHSpec = list(block for block in ReVHSpec_chirps)
         self.ImVHSpec = list(block for block in ImVHSpec_chirps)
-        self.HSpec = list(block for block in HSpec_chirps)
         self.SLh = list(block for block in SLh_chirps)
         self.SLv = list(block for block in SLv_chirps)
 
@@ -590,6 +612,7 @@ class LIMRAD94_LV1():
         self.SurfWD = self.SurfWD[min_t:max_t]
         self.SurfWS = self.SurfWS[min_t:max_t]
 
+        self.ZeLin = np.ma.masked_less_equal(Ze_chirps[min_t:max_t, min_h:max_h].T, 0.)
         self.Ze  = np.ma.log10(np.ma.masked_less_equal(Ze_chirps[min_t:max_t, min_h:max_h].T, 0.)) * 10.0
         self.ZDR = np.ma.masked_less_equal(ZDR_chirps[min_t:max_t, min_h:max_h].T, -999.)
         self.mdv = np.ma.masked_less_equal(mdv_chirps[min_t:max_t, min_h:max_h].T, -999.)

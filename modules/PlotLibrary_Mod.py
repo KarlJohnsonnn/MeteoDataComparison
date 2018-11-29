@@ -485,7 +485,7 @@ def Plot_Radar_Results(ds1, ds2):
     return fig, plt
 
 
-def Plot_CalcMoments_minus_GivenMoments(ds1):
+def Plot_CalcMoments_minus_GivenMoments(ds1, mom='Ze'):
     ### plot ###
     if pts: print('    Generate subplots:\n')
 
@@ -498,23 +498,43 @@ def Plot_CalcMoments_minus_GivenMoments(ds1):
     xb1 = [ds1.t_plt[0], ds1.t_plt[-1]]
 
     yb1 = [ds1.height_all[0], ds1.height_all[-1]]
-    diffZe = 10 * np.log10(ds1.diffZe)
+    if mom == 'Ze':
+        differ = 10 * np.log10(ds1.diffZe);
+        vmin = np.min(differ);
+        vmax = np.max(differ);
+        z_label = r'\textbf{Reflectivity [dBZ]}'
+        # differ = ds1.diffZe; vmin=0.0; vmax=np.max(ds1.diffZe); z_label=r'\textbf{[mm$^6$/m$^3$]}'
+    elif mom == 'mdv':
+        differ = ds1.diffmdv;
+        vmin = np.min(ds1.diffmdv);
+        vmax = np.max(ds1.diffmdv);
+        z_label = r'\textbf{[m/s]}'
+    elif mom == 'sw':
+        differ = ds1.diffsw;
+        vmin = 0.0;
+        vmax = np.max(ds1.diffsw);
+        z_label = r'\textbf{[m/s]}'
+
     ########################################################################################################
     ########################################################################################################
     # LR_Zelectivity plot
-    if pts: print('       -   Radar Reflectivity Factor   ', end='', flush=True)
+    if pts: print('       -  ', mom, '  ', end='', flush=True)
 
     x_label = r'\textbf{Time [UTC]}'
     y_label = r'\textbf{Height [km]}'
-    z_label = r'\textbf{Reflectivity [dBZ]}'
+
 
     diff.set_title(r'\large{\textbf{LIMRAD 94GHz Radar NoiseFac0 Lv1 (with noise)}}')
     plot_data_set(fig, diff, '',
-                  ds1.t_plt, ds1.height_all, diffZe, vmi=-50, vma=20,
+                  ds1.t_plt, ds1.height_all, differ, vmi=vmin, vma=vmax,
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
                   x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
 
-    first_line = r'Difference calculated moments from LV0 and given LV1 moments, Leipzig, Germany,'
+    diff.set_ylabel(y_label)
+    diff.set_ylim(bottom=yb1[0], top=yb1[1])
+    diff.axes.tick_params(axis='Y', direction='inout', length=10, width=1.5)
+
+    first_line = r'Difference calculated moments from LV0 and given LV1 moments, Leipzig, Germany: ' + mom
     second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
 
     file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}'
@@ -1104,6 +1124,59 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean, int_b):
               + str(ds.t_plt[t0]) + ' (UTC)', fontweight='semibold', fontsize=13)
     ax.legend(fontsize=13)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
+
+    return fig, plt
+
+
+def Plot_moment_from_spectra(ds, mom):
+    import matplotlib.style
+    mpl.style.use('classic')
+
+    rc('font', size=16)
+
+    fig = plt.figure(figsize=(16, 10))
+
+    plt_Ze = plt.subplot2grid((1, 1), (0, 0))
+
+    x_label = 'Time (UTC)'
+    y_label = 'Height (km)'
+    z_label = 'Reflectivity (dBZ)'
+
+    xb = [ds.t_plt[0], ds.t_plt[-1]]
+
+    yb = [ds.height_all[0], ds.height_all[-1]]
+
+    if mom == 'Ze':
+        moment = ds.Ze;
+        vmin = -50;
+        vmax = 20;
+        z_label = '[dBZ]'
+    elif mom == 'mdv':
+        moment = ds.mdv;
+        vmin = -5;
+        vmax = 3;
+        z_label = '[m/s]'
+    elif mom == 'sw':
+        moment = ds.sw;
+        vmin = 0.0;
+        vmax = 4;
+        z_label = '[m/s]'
+
+    plt_Ze.set_title('LIMRAD94, Leipzig, Germany', size=20)
+    plot_data_set(fig, plt_Ze, '',
+                  ds.t_plt, ds.height_all, moment, vmi=vmin, vma=vmax,
+                  x_min=xb[0], x_max=xb[1], y_min=yb[0], y_max=yb[1],
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
+
+    plt_Ze.set_ylim(bottom=yb[0], top=yb[1])
+    plt_Ze.set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
+    plt_Ze.set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
+    plt_Ze.grid(linestyle=':')
+
+    place_text(plt_Ze, [0.6, 0.9], 'Number std diviations:' + str(ds.n_std_div))
+
+    plt.tight_layout(rect=[0, 0, 1, 0.99])
+    plt.subplots_adjust(hspace=0.01)
 
     return fig, plt
 
