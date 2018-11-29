@@ -418,3 +418,50 @@ def compare_datasets(lv0, lv1):
 # compare elements of two lists
 def Diff(li1, li2):
     return (list(set(li1) - set(li2)))
+
+
+
+def Create_NeuralNet_Input(ds):
+
+    from sklearn.preprocessing import MinMaxScaler
+
+
+    Z     = ds.variables['Z']
+    v     = ds.variables['v']
+    width = ds.variables['width']
+
+    beta = ds.variables['beta']
+    lidar_depolarisation = ds.variables['beta']
+
+    Times   = []
+    Heights = []
+    radar_data  = []
+    lidar_label = []
+
+    for iT in range(ds.dimensions['time']):
+        for iH in range(ds.dimensions['height']):
+
+            if beta[iT, iH] > -999.0 and Z[iT, iH] > -999.0:
+
+                Times.append(iT)
+                Heights.append(iH)
+
+                # assign radar moments reflectivity, mean doppler velocity, spectral width, linear deplo ratio
+                Zij     = Z[iT, iH]
+                vij     = v[iT, iH]
+                widthij = width[iT, iH]
+                radar_data.append(np.array([Zij, vij, widthij]))
+
+                # assign lidar moments beta, depol
+                betaij = beta[iT, iH]
+                lidar_depolarisationij = lidar_depolarisation[iT, iH]
+                lidar_label.append(np.array([betaij, lidar_depolarisationij]))
+
+    Times = np.array(Times)
+    Heights = np.array(Heights)
+
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaled_radar_data  = scaler.fit_transform(radar_data)
+    scaled_lidar_label = scaler.fit_transform(lidar_label)
+
+    return scaled_radar_data, scaled_lidar_label
