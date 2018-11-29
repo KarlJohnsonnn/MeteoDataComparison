@@ -33,7 +33,7 @@ if len(sys.argv) == 2:
     n_std_diviations = float(sys.argv[1])
 
 else:
-    n_std_diviations = 1.0
+    n_std_diviations = 2.0
 
 # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
 hmin = 0.0  # (km)  - lower y-axis limit

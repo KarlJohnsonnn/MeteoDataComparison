@@ -497,15 +497,40 @@ class LIMRAD94():
 class cloudnet_categorization:
 
     def __init__(self, *args):
-        folder_path = args[0]
-        date_str = args[1]
-        time_str = args[2]
-        heightminmax = args[3]
 
-        # gathering self.year, self.month, self.day for convertion to UTC time
-        self.time_int = time_str
-        self.year = int('20' + date_str[:2])
-        self.month = int(date_str[2:4])
-        self.day = int(date_str[4:6])
+        # check input parameter
+        if len(args) < 1:
+            print('You need to specify a file at least!')
+            exit(0)
+
+        # if one argument is given it contains the path to one specific file
+        elif len(args) == 1:
+            file_path = args[0]
+
+            path_to_file, file_name = file_path.rsplit('/', 1)
+            date_str, site_str, type_str = file_name.split('_')
+
+            # gathering self.year, self.month, self.day for conversion to UTC time
+            self.year = int(date_str[:4])
+            self.month = int(date_str[4:6])
+            self.day = int(date_str[6:8])
+
+        nc_data_set = netCDF4.Dataset(file_path, 'r')
+
+        self.history = nc_data_set.history
+        self.location = nc_data_set.location
+        self.source = nc_data_set.source
+
+        self.dimension_list = list(nc_data_set.dimensions.keys())
+        self.variable_list = list(nc_data_set.variables.keys())
+
+        self.dimensions = dict()
+        self.variables = dict()
+
+        for idim in self.dimension_list: self.dimensions.update({idim: nc_data_set.dimensions[idim].size})
+        for ivar in self.variable_list:  self.variables.update({ivar: np.array(nc_data_set.variables[ivar][:])})
+
+        nc_data_set.close()
+
 
         pass

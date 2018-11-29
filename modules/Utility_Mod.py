@@ -3,7 +3,6 @@ import datetime
 
 import numpy as np
 import pandas as pd
-from numba import jit
 
 from modules.Parameter_Mod import *
 
@@ -166,7 +165,7 @@ def correlation(v1, v2):
     return np.ma.masked_invalid(rho)
 
 
-@jit(nopython=True, fastmath=True)
+# @jit(nopython=True, fastmath=True)
 def estimate_noise_hs74(spectrum, navg=1, std_div=0.0):
     """
     Estimate noise parameters of a Doppler spectrum.
@@ -218,11 +217,12 @@ def estimate_noise_hs74(spectrum, navg=1, std_div=0.0):
     mean = np.mean(noise_spectrum)
     var = np.var(noise_spectrum)
 
-    if std_div == 0.0:
-        # threshold = sorted_spectrum[nnoise - 1]
-        threshold = mean + np.sqrt(var) * std_div
+    if std_div == -1.0:
+        threshold = sorted_spectrum[nnoise - 1]
     else:
         threshold = mean + np.sqrt(var) * std_div
+        # print(' normthres = ', sorted_spectrum[nnoise - 1])
+        #print(' mean+std  = ', mean + np.sqrt(var) * std_div)
 
     left_intersec = -1
     right_intersec = -1
