@@ -19,10 +19,10 @@ from modules.Utility_Mod import *
 
 
 
-    The example call to the routine:    $  python Spectra_to_Moments.py 180810 0500 0600 0.0 12.0 2.0
-                                                                          |      |    |    |   |   |
-                                                                         date   from to  from  to  std div
-                                                                                  (UTC)     (km)   (noise est)
+    The example call to the routine:    $  python Show_Spectra.py 180810 0500 0600 0.0 12.0
+                                                                    |      |    |    |   |
+                                                                   date   from to  from  to
+                                                                            (UTC)     (km)
 
     The path to the netcdf files must contain: [...]/YYMMDD/LVx/
 
@@ -30,7 +30,6 @@ from modules.Utility_Mod import *
 '''
 start_time = time.clock()
 
-n_std_diviations = 2.0
 
 # Print Head
 if pts:
@@ -46,9 +45,6 @@ if len(sys.argv) >= 6:
     date = str(sys.argv[1])
     time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
     h_min, h_max = float(sys.argv[4]), float(sys.argv[5])
-
-    if len(sys.argv) == 7:
-        n_std_diviations = float(sys.argv[6])
 
 else:
 
@@ -156,7 +152,7 @@ if save_spectra_to_png:
     datestring = str(LR_lv0.t_plt[itime])
     idxSpace = str(datestring).find(' ')
     file = '/Users/willi/data/MeteoData/LIMRad94/PNG/' + date + '_' \
-           + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(LR_lv0.height_all[iheight]) \
+           + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(bsp_height0) \
            + '_spectra_' + str(i_png).zfill(3) + '.png'
 
     fig.savefig(file, dpi=100, format='png')
