@@ -28,8 +28,8 @@ mira_file_extension   = '*mira.nc'
 mmclx_file_extension  = '*.mmclx'
 
 # path to meteorological data
-meteo_path  = '/Users/willi/data/MeteoData/'
-LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/noise/'
+meteo_path  = '/home/tvogl/PhD/comparison_limrad_mira'
+LIMRAD_path = '/home/tvogl/PhD/comparison_limrad_mira/LIMRAD'
 # LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1'
 MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'
 

@@ -135,7 +135,7 @@ if calc_doppler_spectra:
                                             mean_noise[ic][t0, h0],
                                             integration_bounds[ic][t0, h0, :])
 
-            file = '/Users/willi/data/MeteoData/LIMRad94/PNG3/' + date + '_spectra_' + str(i_png).zfill(3) + '.png'
+            file = '/home/tvogl/PhD/comparison_limrad_mira/' + date + '_spectra_' + str(i_png).zfill(3) + '.png'
             fig.savefig(file, dpi=100, format='png')
             plt.close()
             if pts: print("    Save spectra: {} of {} ".format(i_png, n_png), end="\r")
