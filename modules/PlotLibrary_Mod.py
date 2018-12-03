@@ -1095,13 +1095,14 @@ def Plot_2D_Interpolation(ds1, ds2):
     return fig, plt
 
 
-def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean, int_b):
-    plot_boundaries = True
+def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_b=0.0):
+    if thresh == 0.0 and mean == 0.0 and int_b == 0:
+        plot_boundaries = False
+    else:
+        plot_boundaries = True
 
     # convert from linear units to logarithic units
     doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
-    mean = np.multiply(np.ma.log10(mean), 10.0)
-    thresh = np.multiply(np.ma.log10(thresh), 10.0)
 
     x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
 
@@ -1110,6 +1111,9 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean, int_b):
     ax.plot(ds.DopplerBins[c], doppler_spec, color='blue', label='Doppler Spec')
 
     if plot_boundaries:
+        mean = np.multiply(np.ma.log10(mean), 10.0)
+        thresh = np.multiply(np.ma.log10(thresh), 10.0)
+
         # plot mean noise line and threshold
         ax.plot([x1, x2], [thresh, thresh], color='k', linestyle='-', linewidth=2)
         ax.plot([x1, x2], [mean, mean], color='k', linestyle='--', linewidth=2)

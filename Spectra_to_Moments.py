@@ -56,7 +56,7 @@ else:
     h_min = 0.0  # (km)  - lower y-axis limit
     h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
     date = '181203'  # in YYMMDD
-    time_intervall = '0100-0200'  # in HHMM-HHMM
+    time_intervall = '0000-0200'  # in HHMM-HHMM
 
 
 warnings.filterwarnings("ignore")
@@ -100,11 +100,11 @@ if pts: print('')
 '''
 
 # Logicals for different tasks
-calc_doppler_spectra = True
+calc_doppler_spectra = False
 save_spectra_to_png = True
 save_noise_comparison = False
 save_moment_differences = False
-save_moments_without_noise = True
+save_moments_without_noise = False
 
 ########################################################################################################################
 ########################################################################################################################
@@ -126,42 +126,7 @@ if calc_doppler_spectra:
             integration_bounds[ic][:, :, 0] = 0
             integration_bounds[ic][:, :, 1] = -1
 
-    if save_spectra_to_png:
-        n_png = sum(LR_lv0.n_height) * LR_lv0.Time
-        n_png = LR_lv0.Time
-        i_png = 0
 
-        ic = 2
-        h0 = 57
-
-        # ######  TESTING #######
-        # save to .mat file to compare with matlab routine
-        # import scipy.io
-        # scipy.io.savemat('/Users/willi/data/MeteoData/LIMRad94/test_spectrum.mat',
-        #                 {'spectrum': LR_lv0.VHSpec[ic][0, h0, :]})
-
-        # mean, threshold, var, nnoise, left_intersec, right_intersece = \
-        #    estimate_noise_hs74(LR_lv0.VHSpec[ic][0, h0, :], navg=64)
-        # ######  TESTING #######
-
-        # for ic in range(LR_lv0.no_c):
-        for t0 in range(LR_lv0.Time):
-
-            fig, plt = Plot_Doppler_Spectra(LR_lv0, ic, t0, h0, [-40, 10],
-                                            threshold[ic][t0, h0],
-                                            mean_noise[ic][t0, h0],
-                                            integration_bounds[ic][t0, h0, :])
-
-            datestring = str(LR_lv0.t_plt[t0])
-            idxSpace = str(datestring).find(' ')
-            file = '/Users/willi/data/MeteoData/LIMRad94/PNG3/' + date + '_' \
-                   + str(datestring[idxSpace+1:]) + '_' + '{:.5f}'.format(LR_lv0.height_all[h0]) \
-                   + '_spectra_' + str(i_png).zfill(3) + '.png'
-
-            fig.savefig(file, dpi=100, format='png')
-            plt.close()
-            if pts: print("    Save spectra: {} of {} ".format(i_png, n_png), end="\r")
-            i_png += 1
 
     output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, LR_lv0.DoppRes)
     # output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, LR_lv0.DoppRes)
@@ -169,7 +134,7 @@ if calc_doppler_spectra:
     if pts: print('    - moments calculated \n')
     if pts: print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.3f} sec.')
 
-    LR_lv0.ZeLin = output[0].T
+    LR_lv0.ZeLin = output[0]
     LR_lv0.Ze = np.ma.log10(LR_lv0.ZeLin) * 10.0
     LR_lv0.mdv = output[1].T
     LR_lv0.sw = output[2].T
@@ -192,6 +157,62 @@ if calc_doppler_spectra:
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
+
+
+if save_spectra_to_png:
+    n_png = sum(LR_lv0.n_height) * LR_lv0.Time
+    n_png = LR_lv0.Time
+    i_png = 0
+
+    ic = 2
+    h0 = 57
+
+    bsp_time = string_to_datetime(LR_lv0, '01:00:00')
+    bsp_height = 2.0
+
+    bsp_height0 = min(LR_lv0.height_all, key=lambda x: abs(x - bsp_height))
+    bsp_time0 = min(LR_lv0.t_plt, key=lambda x: abs(x - bsp_time))
+
+    itime = LR_lv0.t_plt.index(bsp_time0)
+
+    for ic in range(LR_lv0.no_c):
+        try:
+            idx_height = list(LR_lv0.height[ic]).index(bsp_height0)
+            if idx_height > 0:
+                ichirp = ic
+                iheight = idx_height
+
+                break
+        except:
+            dummy = 0
+
+    # for ic in range(LR_lv0.no_c):
+    # for t0 in range(LR_lv0.Time):
+
+    # show mean noise, threshold, and integration lines + spectrum
+    #            fig, plt = Plot_Doppler_Spectra(LR_lv0, ic, t0, h0, [-40, 10],
+    #                                            threshold[ic][t0, h0],
+    #                                            mean_noise[ic][t0, h0],
+    #                                            integration_bounds[ic][t0, h0, :])
+
+    # show only spectra
+    fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-60, 20])
+
+    datestring = str(LR_lv0.t_plt[itime])
+    idxSpace = str(datestring).find(' ')
+    file = '/Users/willi/data/MeteoData/LIMRad94/PNG/' + date + '_' \
+           + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(LR_lv0.height_all[iheight]) \
+           + '_spectra_' + str(i_png).zfill(3) + '.png'
+
+    fig.savefig(file, dpi=100, format='png')
+    plt.close()
+    if pts: print("    Save spectra: {} of {} ".format(i_png, n_png), end="\r")
+    i_png += 1
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
 
 if save_noise_comparison:
     fig, plt = Plot_Compare_NoiseFac0(LR_lv1, LR_lv0)
