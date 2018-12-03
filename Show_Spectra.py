@@ -72,7 +72,6 @@ warnings.filterwarnings("ignore")
 
 # ----- LIMRAD 94GHz Radar data extraction
 print('     date: ', date, time_intervall, h_min, h_max)
-print('     standard deviations for moment calc: ', n_std_diviations, '\n')
 print('     is this the correct folder??')
 
 LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [h_min, h_max])

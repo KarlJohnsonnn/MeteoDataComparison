@@ -29,9 +29,9 @@ mmclx_file_extension  = '*.mmclx'
 
 # path to meteorological data
 meteo_path  = '/Users/willi/data/MeteoData/'
-LIMRAD_path = '/Volumes/Data_Storag/MeteoData/LIMRad94/LV0/'
+# LIMRAD_path = '/Volumes/Data_Storag/MeteoData/LIMRad94/LV0/'
 
-# LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/noise/'
+LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/noise/'
 # LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1'
 MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'
 

@@ -30,7 +30,7 @@ from modules.Utility_Mod import *
 '''
 start_time = time.clock()
 
-n_std_diviations = 2.0
+n_std_diviations = -1.0
 
 # Print Head
 if pts:
@@ -55,8 +55,8 @@ else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
     h_min = 0.0  # (km)  - lower y-axis limit
     h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '181203'  # in YYMMDD
-    time_intervall = '0000-0200'  # in HHMM-HHMM
+    date = '180810'  # in YYMMDD
+    time_intervall = '0500-0600'  # in HHMM-HHMM
 
 
 warnings.filterwarnings("ignore")
@@ -100,9 +100,9 @@ if pts: print('')
 '''
 
 # Logicals for different tasks
-calc_doppler_spectra = False
-save_spectra_to_png = True
-save_noise_comparison = False
+calc_doppler_spectra = True
+save_spectra_to_png = False
+save_noise_comparison = True
 save_moment_differences = False
 save_moments_without_noise = False
 
@@ -116,16 +116,18 @@ if calc_doppler_spectra:
 
     tstart = time.time()
 
+    for ic in range(LR_lv0.no_c):
+        LR_lv0.VHSpec[ic] = np.ma.masked_less_equal(LR_lv0.VHSpec[ic], -999.0)
+
     # Estimate Noise Floor using Hildebrand & Sekhon Algorithm
     mean_noise, threshold, variance, numnoise, integration_bounds = remove_noise(LR_lv0, n_std_diviations)
     if pts: print('    - all noise removed ')
 
-    include_noise = False
+    include_noise = True
     if include_noise:
         for ic in range(LR_lv0.no_c):
             integration_bounds[ic][:, :, 0] = 0
             integration_bounds[ic][:, :, 1] = -1
-
 
 
     output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, LR_lv0.DoppRes)
@@ -134,7 +136,7 @@ if calc_doppler_spectra:
     if pts: print('    - moments calculated \n')
     if pts: print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.3f} sec.')
 
-    LR_lv0.ZeLin = output[0]
+    LR_lv0.ZeLin = output[0].T
     LR_lv0.Ze = np.ma.log10(LR_lv0.ZeLin) * 10.0
     LR_lv0.mdv = output[1].T
     LR_lv0.sw = output[2].T
@@ -145,14 +147,14 @@ if calc_doppler_spectra:
     LR_lv0.diffmdv = np.ma.subtract(LR_lv0.mdv, LR_lv1.mdv)
     LR_lv0.diffsw = np.ma.subtract(LR_lv0.sw, LR_lv1.sw)
 
-#    for iT in range(LR_lv0.n_time):
-#       for iR in range(len(LR_lv0.height_all)):
-#            print(' difference l0mom - l1mom = {}:{}:{}'.format(LR_lv0.t_plt[iT].hour,
-#                                                                LR_lv0.t_plt[iT].minute,
-#                                                                LR_lv0.t_plt[iT].second),
-#                  '  height = {:.5f} (km)    diffmdv '.format(LR_lv0.height_all[iR]), LR_lv0.diffmdv[iR, iT])
+    for iT in range(LR_lv0.n_time):
+        for iR in range(len(LR_lv0.height_all)):
+            print(' difference l0mom - l1mom = {}:{}:{}'.format(LR_lv0.t_plt[iT].hour,
+                                                                LR_lv0.t_plt[iT].minute,
+                                                                LR_lv0.t_plt[iT].second),
+                  '  height = {:.5f} (km)    diffmdv '.format(LR_lv0.height_all[iR]), LR_lv0.diffmdv[iR, iT])
 
-#    compare_datasets(LR_lv0, LR_lv1)
+    compare_datasets(LR_lv0, LR_lv1)
 
 ########################################################################################################################
 ########################################################################################################################
@@ -167,8 +169,8 @@ if save_spectra_to_png:
     ic = 2
     h0 = 57
 
-    bsp_time = string_to_datetime(LR_lv0, '01:00:00')
-    bsp_height = 2.0
+    bsp_time = string_to_datetime(LR_lv0, '05:00:00')
+    bsp_height = 6.0
 
     bsp_height0 = min(LR_lv0.height_all, key=lambda x: abs(x - bsp_height))
     bsp_time0 = min(LR_lv0.t_plt, key=lambda x: abs(x - bsp_time))
@@ -191,13 +193,13 @@ if save_spectra_to_png:
         itime = t0
 
     # show mean noise, threshold, and integration lines + spectrum
-    #            fig, plt = Plot_Doppler_Spectra(LR_lv0, ic, t0, h0, [-40, 10],
-    #                                            threshold[ic][t0, h0],
-    #                                            mean_noise[ic][t0, h0],
-    #                                            integration_bounds[ic][t0, h0, :])
+        fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, t0, iheight, [-40, 10],
+                                        threshold[ichirp][t0, iheight],
+                                        mean_noise[ichirp][t0, iheight],
+                                        integration_bounds[ichirp][t0, iheight, :])
 
     # show only spectra
-        fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-60, 20])
+        #    fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-60, 20])
 
         datestring = str(LR_lv0.t_plt[itime])
         idxSpace = str(datestring).find(' ')
