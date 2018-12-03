@@ -15,10 +15,22 @@ from modules.Utility_Mod import *
    ##     ## #########  ##  ##  ####         ##        ##   ##   ##     ## ##    ##  ##   ##   ######### ##     ##
    ##     ## ##     ##  ##  ##   ###         ##        ##    ##  ##     ## ##    ##  ##    ##  ##     ## ##     ##
    ##     ## ##     ## #### ##    ##         ##        ##     ##  #######   ######   ##     ## ##     ## ##     ##
+   
+   
+   
+   
+    The example call to the routine:    $  python Spectra_to_Moments.py 180810 0500 0600 0.0 12.0 2.0
+                                                                          |      |    |    |   |   |
+                                                                         date   from to  from  to  std div
+                                                                                  (UTC)     (km)   (noise est)
+
+    The path to the netcdf files must contain: [...]/YYMMDD/LVx/
 
 ####################################################################################################################
 '''
 start_time = time.clock()
+
+n_std_diviations = 2.0
 
 # Print Head
 if pts:
@@ -29,17 +41,22 @@ if pts:
     print('\n' * 2)
 
 # gather arguments
-if len(sys.argv) == 2:
-    n_std_diviations = float(sys.argv[1])
+
+if len(sys.argv) >= 6:
+    date = str(sys.argv[1])
+    time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
+    h_min, h_max = float(sys.argv[4]), float(sys.argv[5])
+
+    if len(sys.argv) == 7:
+        n_std_diviations = float(sys.argv[6])
 
 else:
-    n_std_diviations = 2.0
 
-# special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-hmin = 0.0  # (km)  - lower y-axis limit
-hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-date = '180810'  # in YYMMDD
-time_intervall = '0500-0600'  # in HHMM-HHMM
+    # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
+    h_min = 0.0  # (km)  - lower y-axis limit
+    h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+    date = '180810'  # in YYMMDD
+    time_intervall = '0500-0600'  # in HHMM-HHMM
 
 
 warnings.filterwarnings("ignore")
@@ -59,12 +76,12 @@ warnings.filterwarnings("ignore")
 '''
 
 # ----- LIMRAD 94GHz Radar data extraction
-print('     date: ', date, time_intervall, hmin, hmax)
+print('     date: ', date, time_intervall, h_min, h_max)
 print('     standard deviations for moment calc: ', n_std_diviations, '\n')
 print('     is this the correct folder??')
 
-LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [hmin, hmax])
-LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [hmin, hmax])
+LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [h_min, h_max])
+LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [h_min, h_max])
 
 if pts: print('')
 
@@ -84,7 +101,7 @@ if pts: print('')
 
 # Logicals for different tasks
 calc_doppler_spectra = True
-save_spectra_to_png = False
+save_spectra_to_png = True
 save_noise_comparison = False
 save_moment_differences = False
 save_moments_without_noise = True
@@ -135,7 +152,12 @@ if calc_doppler_spectra:
                                             mean_noise[ic][t0, h0],
                                             integration_bounds[ic][t0, h0, :])
 
-            file = '/Users/willi/data/MeteoData/LIMRad94/PNG3/' + date + '_spectra_' + str(i_png).zfill(3) + '.png'
+            datestring = str(LR_lv0.t_plt[t0])
+            idxSpace = str(datestring).find(' ')
+            file = '/Users/willi/data/MeteoData/LIMRad94/PNG3/' + date + '_' \
+                   + str(datestring[idxSpace+1:]) + '_' + '{:.5f}'.format(LR_lv0.height_all[h0]) \
+                   + '_spectra_' + str(i_png).zfill(3) + '.png'
+
             fig.savefig(file, dpi=100, format='png')
             plt.close()
             if pts: print("    Save spectra: {} of {} ".format(i_png, n_png), end="\r")

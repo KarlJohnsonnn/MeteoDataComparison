@@ -10,8 +10,10 @@ from matplotlib.ticker import LogFormatter
 ## for Palatino and other serif fonts use:
 # rc('font',**{'family':'serif','serif':['Palatino']})
 
+plt.rcParams["font.weight"] = "bold"
+plt.rcParams["axes.labelweight"] = "bold"
 
-rc('text', usetex=True)
+#rc('text', usetex=True)
 
 from matplotlib import dates
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -21,6 +23,7 @@ from modules.Parameter_Mod import pts, interp_meth
 from modules.Utility_Mod import correlation
 import numpy as np
 
+from matplotlib.ticker import MaxNLocator
 import matplotlib.style
 
 mpl.style.use('classic')
@@ -29,11 +32,14 @@ rc('font', size=14)
 vmi_ze = -50
 vma_ze = 20
 vmi_mdv = -4
-vma_mdv = 2
+vma_mdv = 3
 vmi_specwidth = 10 ** (-1.5)
 vma_specwidth = 10 ** 0.5
-vmi_ldr = -30
+vmi_ldr = -60
 vma_ldr = 0
+
+site = 'Punta-Arenas'
+country = 'Chile'
 
 
 def Plot_Time_Series(ds, variable):
@@ -84,6 +90,8 @@ def Plot_Time_Series(ds, variable):
                 X = [datetime.datetime(2001, 1, 1, 0, 0, 0) + datetime.timedelta(seconds=int(partX[i]))
                      for i in range(len(partX))]
 
+                if iFile == 0: x_min = X[0]
+
                 Y = ds.time_series_1D[iMDF]['Height']['Val']
                 Z = np.ma.masked_less_equal(partZ.T, -999.0)
 
@@ -100,21 +108,17 @@ def Plot_Time_Series(ds, variable):
                     cbar = fig.colorbar(cp, cax=cax3, ax=sub_plts[ivar], format=formatter, ticks=[0.1, 0.2, 0.5, 1, 2])
                     cbar.set_ticklabels([0.1, 0.2, 0.5, 1, 2])
                     cbar.set_label(z_lab)
+                    sub_plts[ivar].set_xticklabels([])
 
                 elif variable[ivar] == 'SLDR':
-                    colors1 = plt.cm.binary(np.linspace(0.5, 0.5, 1))
-                    colors2 = plt.cm.jet(np.linspace(0, 0, 178))
-                    colors3 = plt.cm.jet(np.linspace(0, 1, 77))
-                    colors = np.vstack((colors1, colors2, colors3))
-                    mymap = mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
 
                     cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_ldr, vmax=vma_ldr, cmap='jet')
                     divider1 = make_axes_locatable(sub_plts[ivar])
                     cax4 = divider1.append_axes("right", size="3%", pad=0.1)
-                    bounds = np.linspace(-30, 0, 100)
+                    bounds = np.linspace(vmi_ldr, vma_ldr, 100)
                     cbar = fig.colorbar(cp, cax=cax4, ax=sub_plts[ivar], boundaries=bounds,
-                                        ticks=[-30, -25, -20, -15, -10, -5, 0])
-                    cbar.set_ticklabels([-30, -25, -20, -15, -10, -5, 0])
+                                        ticks=np.linspace(vmi_ldr, vma_ldr, 6))
+                    cbar.set_ticklabels(np.linspace(vmi_ldr, vma_ldr, 6))
                     cbar.set_label(z_lab)
 
                 elif variable[ivar] == 'ZE':
@@ -122,13 +126,13 @@ def Plot_Time_Series(ds, variable):
                     Z = np.ma.log10(np.ma.masked_less_equal(Z, 0.)) * 10.0
                     z_lab = variable[ivar] + ' (dBZ)'
 
-                    # cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_ze, vmax=vma_ze, cmap='jet')
                     cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_ze, vmax=vma_ze, cmap='jet')
 
                     divider1 = make_axes_locatable(sub_plts[ivar])
                     cax0 = divider1.append_axes("right", size="3%", pad=0.1)
                     cbar = fig.colorbar(cp, cax=cax0, ax=sub_plts[ivar])
                     cbar.set_label(z_lab)
+                    sub_plts[ivar].set_xticklabels([])
 
                 elif variable[ivar] == 'MeanVel':
                     cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_mdv, vmax=vma_mdv, cmap='jet')
@@ -136,6 +140,7 @@ def Plot_Time_Series(ds, variable):
                     cax0 = divider1.append_axes("right", size="3%", pad=0.1)
                     cbar = fig.colorbar(cp, cax=cax0, ax=sub_plts[ivar])
                     cbar.set_label(z_lab)
+                    sub_plts[ivar].set_xticklabels([])
                 else:
                     cp = sub_plts[ivar].pcolormesh(X, Y, Z, map='jet')
                     divider1 = make_axes_locatable(sub_plts[ivar])
@@ -145,13 +150,13 @@ def Plot_Time_Series(ds, variable):
 
             # sub_plts[ivar].hold(True)
 
+        sub_plts[ivar].locator_params(axis='y', nbins=12)
+        sub_plts[ivar].yaxis.set_major_locator(MaxNLocator(5))
         sub_plts[ivar].grid(linestyle=':')
         sub_plts[ivar].axes.tick_params(axis='x', direction='inout', length=10, width=1.5)
-        # if p == 'r': plt.set_yticklabels([])
 
         sub_plts[ivar].set_xlim(left=min(X_bound), right=max(X_bound))
         sub_plts[ivar].set_ylim(bottom=Y_bound[0], top=Y_bound[1])
-        # sub_plts[ivar].set_ylim(bottom=min(Y_bound), top=max(Y_bound))
         sub_plts[ivar].set_ylabel(y_lab)
         sub_plts[ivar].axes.tick_params(axis='Y', direction='inout', length=10, width=1.5)
 
@@ -164,16 +169,16 @@ def Plot_Time_Series(ds, variable):
     sub_plts[ivar].xaxis.set_major_formatter(mpl.dates.DateFormatter('%H:%M'))
     sub_plts[ivar].set_xlabel(x_lab)
 
-    first_line = 'LIMRAD 94GHz Radar Data, Leipzig, Germany,'
-    second_line = 'from: ' + str(X[0]) + ' (UTC)  to:  ' + str(X[-1]) + ' (UTC)'
+    first_line = 'LIMRAD 94GHz Radar Data, ' + site + ', ' + country
+    second_line = 'from: ' + str(x_min) + ' (UTC)  to:  ' + str(X[-1]) + ' (UTC)'
 
     file_name = first_line + '\n' + second_line
-    plt.suptitle(file_name)
+    plt.suptitle(file_name, fontweight="bold")
 
-    # plt.tight_layout(rect=[0, 0, 1, 1])
+    plt.tight_layout(rect=[0, 0.01, 1, 0.955])
     plt.subplots_adjust(hspace=0.025)
 
-    return fig, plt
+    return fig,  sub_plts[ivar]
 
 
 def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max, x_lab, y_lab, z_lab, p='r'):
@@ -476,7 +481,7 @@ def Plot_for_poster(ds):
 
     yb = [ds.height[0], ds.height[-1]]
 
-    plt_Ze.set_title('LIMRAD94, Leipzig, Germany', size=20)
+    plt_Ze.set_title('LIMRAD94, ' + site + ' Germany', size=20)
     plot_data_set(fig, plt_Ze, '',
                   ds.t_plt, ds.height, ds.Ze, vmi=-50, vma=20,
                   x_min=xb[0], x_max=xb[1], y_min=yb[0], y_max=yb[1],
@@ -591,7 +596,7 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
-    first_line = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
+    first_line = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, ' + site + ', ' + country
     second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
     third_line = r'using: LIMRAD94 and MIRA35 data;  no attenuation correction'
 
@@ -746,7 +751,7 @@ def Plot_Comparison(ds1, ds2):
 
     # Save figure to file
 
-    first_line = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
+    first_line = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data,' + site + 'Germany,'
     second_line = r'from: ' + str(tb[0]) + ' (UTC)  to:  ' + str(tb[1]) + ' (UTC), no attenuation correction'
 
     file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}'
@@ -913,7 +918,7 @@ def Plot_Scatter(ds1, ds2):
 
     # Save figure to file
 
-    first_line = 'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
+    first_line = 'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data,' + site + 'Germany,'
     second_line = ' from: ' + str(xb1[0]) + ' (UTC)  to:x  ' + str(xb1[1]) + ' (UTC), no attenuation correction '
 
     file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}'
@@ -1043,7 +1048,7 @@ def Plot_2D_Interpolation(ds1, ds2):
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
     # Save figure to file
-    first_line = 'Comparison of LIMRAD 94 GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
+    first_line = 'Comparison of LIMRAD 94 GHz and MIRA 35GHz Radar Data,' + site + 'Germany,'
     second_line = ' from: ' + str(ds1.t_plt[0]) + ' (UTC)  to:  ' + str(ds1.t_plt[3]) + ' (UTC), '
     third_line = 'using: *.LV1.NC and *.mmclx data (unprocessed datasets)'
 
@@ -1056,31 +1061,31 @@ def Plot_2D_Interpolation(ds1, ds2):
     return fig, plt
 
 
-def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean):
-    fig, ax = plt.subplots(1, figsize=(10, 4))
-
-    doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
-
-    mean = np.multiply(np.ma.log10(mean), 10.0)
-    thresh = np.multiply(np.ma.log10(thresh), 10.0)
-
-    x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
-
-    ax.plot(ds.DopplerBins[c], doppler_spec, color='blue', label='Doppler Spec')
-
-    ax.plot([x1, x2], [thresh, thresh], color='k', linestyle='-', linewidth=2)
-    ax.plot([x1, x2], [mean, mean], color='k', linestyle='--', linewidth=2)
-
-    ax.set_ylim(bottom=zbound[0], top=zbound[1])
-    ax.set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
-    ax.set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
-    ax.grid(linestyle=':')
-    plt.title("Height: " + str(round(ds.height[c][h0], 2)) + " (km);  Time: "
-              + str(ds.t_plt[t0]) + ' (UTC)', fontweight='semibold', fontsize=13)
-    ax.legend(fontsize=13)
-    plt.tight_layout(rect=[0, 0.05, 1, 0.95])
-
-    return fig, plt
+#def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean):
+#    fig, ax = plt.subplots(1, figsize=(10, 4))
+#
+#    doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
+#
+#    mean = np.multiply(np.ma.log10(mean), 10.0)
+#    thresh = np.multiply(np.ma.log10(thresh), 10.0)
+#
+#    x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
+#
+#    ax.plot(ds.DopplerBins[c], doppler_spec, color='blue', label='Doppler Spec')
+#
+#    ax.plot([x1, x2], [thresh, thresh], color='k', linestyle='-', linewidth=2)
+#    ax.plot([x1, x2], [mean, mean], color='k', linestyle='--', linewidth=2)
+#
+#    ax.set_ylim(bottom=zbound[0], top=zbound[1])
+#    ax.set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
+#    ax.set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
+#    ax.grid(linestyle=':')
+#    plt.title("Height: " + str(round(ds.height[c][h0], 2)) + " (km);  Time: "
+#              + str(ds.t_plt[t0]) + ' (UTC)', fontweight='semibold', fontsize=13)
+#    ax.legend(fontsize=13)
+#    plt.tight_layout(rect=[0, 0.05, 1, 0.95])
+#
+#    return fig, plt
 
 # if plot_compare_mira_mmclx:
 #
@@ -1248,7 +1253,7 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean):
 #
 #    # Save figure to file
 #    date_str = str(plotyear) + str(plotmonth).zfill(2) + str(plotday).zfill(2)
-#    first_line = 'Comparison of processed and unprocessed MIRA 35GHz Radar Data, Leipzig, Germany,'
+#    first_line = 'Comparison of processed and unprocessed MIRA 35GHz Radar Data,' + site + 'Germany,'
 #    second_line = ' from: ' + str(time_int[0]) + ' (UTC)  to:  ' + str(time_int[3]) + ' (UTC), '
 #    third_line = 'using: *mira.nc data (1st column) and *.mmclx data (2nd - 4th column; no attenuation correction)'
 #

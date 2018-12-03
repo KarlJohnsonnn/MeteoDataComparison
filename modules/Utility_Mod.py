@@ -3,6 +3,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
+from numba import jit
 
 from modules.Parameter_Mod import *
 
@@ -165,7 +166,7 @@ def correlation(v1, v2):
     return np.ma.masked_invalid(rho)
 
 
-# @jit(nopython=True, fastmath=True)
+@jit(nopython=True, fastmath=True)
 def estimate_noise_hs74(spectrum, navg=1, std_div=0.0):
     """
     Estimate noise parameters of a Doppler spectrum.
@@ -292,6 +293,7 @@ def remove_noise(ds, std_div=0.0):
                 mean_noise[ic][iT, iR] = mean
                 variance[ic][iT, iR] = var
                 numnoise[ic][iT, iR] = nnoise
+                threshold[ic][iT, iR] = thresh
                 integration_bounds[ic][iT, iR, :] = [left_intersec, right_intersec]
 
     return mean_noise, threshold, variance, numnoise, integration_bounds
@@ -429,6 +431,7 @@ def Create_NeuralNet_Input(ds):
     Z     = ds.variables['Z']
     v     = ds.variables['v']
     width = ds.variables['width']
+    ldr   = ds.variables['ldr']
 
     beta = ds.variables['beta']
     lidar_depolarisation = ds.variables['beta']
@@ -441,7 +444,8 @@ def Create_NeuralNet_Input(ds):
     for iT in range(ds.dimensions['time']):
         for iH in range(ds.dimensions['height']):
 
-            if beta[iT, iH] > -999.0 and Z[iT, iH] > -999.0:
+            #if beta[iT, iH] > -999.0 and Z[iT, iH] > -999.0:
+            if beta[iT, iH] and Z[iT, iH] > -999.0:
 
                 Times.append(iT)
                 Heights.append(iH)
@@ -450,7 +454,8 @@ def Create_NeuralNet_Input(ds):
                 Zij     = Z[iT, iH]
                 vij     = v[iT, iH]
                 widthij = width[iT, iH]
-                radar_data.append(np.array([Zij, vij, widthij]))
+                ldrij   = ldr[iT, iH]
+                radar_data.append(np.array([iT, iH, Zij, vij, widthij, ldrij]))
 
                 # assign lidar moments beta, depol
                 betaij = beta[iT, iH]

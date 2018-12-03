@@ -29,8 +29,9 @@ class LIMRAD94():
                 exit(0)
 
             # if one argument is given it contains the path to one specific file
-            elif len(args) == 1:
+            elif len(args) == 2:
                 file_path = args[0]
+                heightminmax = args[1]
                 file_str = file_path[file_path.rfind('/') + 1:]
 
                 self.ncfiles = file_path
@@ -51,6 +52,10 @@ class LIMRAD94():
                 self.name_MDF = file_str[pos_prog + 1:pos_prog + 4]
                 self.num_MDF = [1]
                 iFile = file_path
+
+
+                self.h_min = heightminmax[0]
+                self.h_max = heightminmax[1]
 
             # if there are four values given, the args contain the:
             #   - path to the data folder (string):                     -> args[0]
