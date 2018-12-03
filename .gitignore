@@ -20,3 +20,5 @@ __pycache__/**/*.pyc
 
 Read_CloudnetCategorize.py
 ANN_weights/*
+
+modules/Parameter_Mod.py
