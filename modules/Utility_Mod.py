@@ -144,6 +144,10 @@ def dim(a):
     return [len(a)] + dim(a[0])
 
 
+def string_to_datetime(ds, string):
+    hour, minu, sec = string.split(':')
+    return datetime.datetime(ds.year, ds.month, ds.day, hour=int(hour), minute=int(minu), second=int(sec))
+
 def np_NaN(n, m):
     mat = np.zeros((n, m))
     mat[:, :] = np.nan
