@@ -1096,26 +1096,32 @@ def Plot_2D_Interpolation(ds1, ds2):
 
 
 def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean, int_b):
-    fig, ax = plt.subplots(1, figsize=(10, 4))
+    plot_boundaries = True
 
+    # convert from linear units to logarithic units
     doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
-
-    if int_b[0] > -1 and int_b[1] > -1:
-        x_0 = ds.DopplerBins[c][int(int_b[0])]
-        x_1 = ds.DopplerBins[c][int(int_b[1])]
-        ax.axvline(x_0, color='k', linestyle='--', linewidth=1)
-        ax.axvline(x_1, color='k', linestyle='--', linewidth=1)
-
     mean = np.multiply(np.ma.log10(mean), 10.0)
     thresh = np.multiply(np.ma.log10(thresh), 10.0)
 
     x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
 
+    # plot spectra
+    fig, ax = plt.subplots(1, figsize=(10, 4))
     ax.plot(ds.DopplerBins[c], doppler_spec, color='blue', label='Doppler Spec')
 
-    ax.plot([x1, x2], [thresh, thresh], color='k', linestyle='-', linewidth=2)
-    ax.plot([x1, x2], [mean, mean], color='k', linestyle='--', linewidth=2)
+    if plot_boundaries:
+        # plot mean noise line and threshold
+        ax.plot([x1, x2], [thresh, thresh], color='k', linestyle='-', linewidth=2)
+        ax.plot([x1, x2], [mean, mean], color='k', linestyle='--', linewidth=2)
 
+        # plot integration boundaries
+        if int_b[0] > -1 and int_b[1] > -1:
+            x_0 = ds.DopplerBins[c][int(int_b[0])]
+            x_1 = ds.DopplerBins[c][int(int_b[1])]
+            ax.axvline(x_0, color='k', linestyle='--', linewidth=1)
+            ax.axvline(x_1, color='k', linestyle='--', linewidth=1)
+
+    ax.set_xlim(left=x1, right=x2)
     ax.set_ylim(bottom=zbound[0], top=zbound[1])
     ax.set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
     ax.set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)

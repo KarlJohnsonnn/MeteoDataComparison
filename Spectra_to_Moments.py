@@ -55,8 +55,8 @@ else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
     h_min = 0.0  # (km)  - lower y-axis limit
     h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '180810'  # in YYMMDD
-    time_intervall = '0500-0600'  # in HHMM-HHMM
+    date = '181203'  # in YYMMDD
+    time_intervall = '0100-0200'  # in HHMM-HHMM
 
 
 warnings.filterwarnings("ignore")
