@@ -4,6 +4,7 @@ import warnings
 import modules.NetCDF_Mod as nc
 from modules.PlotLibrary_Mod import *
 from modules.Utility_Mod import *
+from scipy import signal
 
 '''
 ####################################################################################################################
@@ -51,8 +52,8 @@ else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
     h_min = 0.0  # (km)  - lower y-axis limit
     h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '181203'  # in YYMMDD
-    time_intervall = '0000-0200'  # in HHMM-HHMM
+    date = '180810'  # in YYMMDD
+    time_intervall = '0500-0600'  # in HHMM-HHMM
 
 warnings.filterwarnings("ignore")
 
@@ -94,6 +95,8 @@ if pts: print('')
 '''
 
 # Logicals for different tasks
+user_input = False
+
 calc_doppler_spectra = False
 save_spectra_to_png = True
 save_noise_comparison = False
@@ -110,33 +113,15 @@ if save_spectra_to_png:
     n_png = LR_lv0.Time
     i_png = 0
 
-    ic = 2
-    h0 = 57
-
-    str_time = input('     Enter time in (HH:MM:SS) ::  ')
-    str_height = input('     Enter height in (km)     ::  ')
-
-    bsp_time = string_to_datetime(LR_lv0, str_time)
-    bsp_height = float(str_height)
-
-    bsp_height0 = min(LR_lv0.height_all, key=lambda x: abs(x - bsp_height))
-    bsp_time0 = min(LR_lv0.t_plt, key=lambda x: abs(x - bsp_time))
-
-    itime = LR_lv0.t_plt.index(bsp_time0)
-
-    for ic in range(LR_lv0.no_c):
-        try:
-            idx_height = list(LR_lv0.height[ic]).index(bsp_height0)
-            if idx_height > 0:
-                ichirp = ic
-                iheight = idx_height
-
-                break
-        except:
-            dummy = 0
+    if user_input:
+        ichirp, itime, iheight = gather_user_input(LR_lv0)
+    else:
+        ichirp = 2
+        iheight = 57
+        itime = 50
 
     # for ic in range(LR_lv0.no_c):
-    # for t0 in range(LR_lv0.Time):
+    for itime in range(LR_lv0.Time):
     # itime = t0
 
     # show mean noise, threshold, and integration lines + spectrum
@@ -145,20 +130,29 @@ if save_spectra_to_png:
     #                                            mean_noise[ic][t0, h0],
     #                                            integration_bounds[ic][t0, h0, :])
 
+
     # show only spectra
-    fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-60, 20])
+    #fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-60, 20])
 
-    datestring = str(LR_lv0.t_plt[itime])
-    idxSpace = str(datestring).find(' ')
-    file = '/Users/willi/data/MeteoData/LIMRad94/PNG/' + date + '_' \
-           + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(bsp_height0) \
-           + '_spectra_' + str(i_png).zfill(3) + '.png'
+        widths = np.arange(1, 50)
+        cwtmatr = signal.cwt(LR_lv0.VHSpec[ichirp][itime, iheight],
+                             signal.ricker, widths)
 
-    fig.savefig(file, dpi=100, format='png')
-    plt.close()
-    if pts: print('    Save Figure to File :: ' + file + '\n')
-    # if pts: print("    Save spectra: {} of {} ".format(i_png, n_png), end="\r")
-    i_png += 1
+        fig, plt = Plot_Doppler_Spectra_Wavelet_Transform(LR_lv0, ichirp, itime, iheight, [-60, 20], cwtmatr)
+
+        plt.show()
+
+        datestring = str(LR_lv0.t_plt[itime])
+        idxSpace = str(datestring).find(' ')
+        file = '/Users/willi/data/MeteoData/LIMRad94/PNG/' + date + '_' \
+               + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(LR_lv0.height_all[iheight]) \
+               + '_spectra_' + str(i_png).zfill(3) + '.png'
+
+        fig.savefig(file, dpi=100, format='png')
+        plt.close()
+        if pts: print('    Save Figure to File :: ' + file + '\n')
+        # if pts: print("    Save spectra: {} of {} ".format(i_png, n_png), end="\r")
+        i_png += 1
 
 ########################################################################################################################
 ########################################################################################################################

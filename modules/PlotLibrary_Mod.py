@@ -1138,6 +1138,37 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_b=0.0)
     return fig, plt
 
 
+def Plot_Doppler_Spectra_Wavelet_Transform(ds, c, t0, h0, zbound, cwtmatr):
+
+    # convert from linear units to logarithic units
+    doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
+
+    x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
+
+    # plot spectra
+    fig, ax = plt.subplots(2, figsize=(10, 6))
+
+    ax[0].set_title("Height: " + str(round(ds.height[c][h0], 2)) + " (km);  Time: "
+              + str(ds.t_plt[t0]) + ' (UTC)', fontweight='semibold', fontsize=13)
+
+    ax[0].plot(ds.DopplerBins[c], doppler_spec, color='blue', label='Doppler Spec')
+
+    ax[0].set_xlim(left=x1, right=x2)
+    ax[0].set_ylim(bottom=zbound[0], top=zbound[1])
+    ax[0].set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
+    ax[0].set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
+    ax[0].grid(linestyle=':')
+    ax[0].legend(fontsize=13)
+
+    ax[1].imshow(cwtmatr, extent=[-1, 1, 31, 1], cmap='PRGn', aspect='auto',
+               vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
+    ax[0].set_title('Wavelet transformation', fontweight='semibold', fontsize=13)
+
+    plt.tight_layout(rect=[0, 0.05, 1, 0.95])
+
+    return fig, plt
+
+
 def Plot_moment_from_spectra(ds, mom):
     import matplotlib.style
     mpl.style.use('classic')

@@ -1,6 +1,6 @@
 import calendar
 import datetime
-
+import os, sys
 import numpy as np
 import pandas as pd
 from numba import jit
@@ -148,6 +148,7 @@ def string_to_datetime(ds, string):
     hour, minu, sec = string.split(':')
     return datetime.datetime(ds.year, ds.month, ds.day, hour=int(hour), minute=int(minu), second=int(sec))
 
+
 def np_NaN(n, m):
     mat = np.zeros((n, m))
     mat[:, :] = np.nan
@@ -168,6 +169,35 @@ def correlation(v1, v2):
         rho = np.append(rho, df_v1.corrwith(df_v2))
 
     return np.ma.masked_invalid(rho)
+
+
+def gather_user_input(LV0):
+    str_time = input('     Enter time in (HH:MM:SS) ::  ')
+    str_height = input('     Enter height in (km)     ::  ')
+
+    bsp_time = string_to_datetime(LV0, str_time)
+    bsp_height = float(str_height)
+
+    bsp_height0 = min(LV0.height_all, key=lambda x: abs(x - bsp_height))
+    bsp_time0 = min(LV0.t_plt, key=lambda x: abs(x - bsp_time))
+
+    itime = LV0.t_plt.index(bsp_time0)
+
+    for ic in range(LV0.no_c):
+        try:
+            idx_height = list(LV0.height[ic]).index(bsp_height0)
+            if idx_height > 0:
+                ichirp = ic
+                iheight = idx_height
+                break
+        except Exception as e:
+            print('Something went wrong X-(    ' + str(e))
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, ' at Line ', exc_tb.tb_lineno)
+            sys.exit(0)
+
+    return ichirp, itime, iheight
 
 
 @jit(nopython=True, fastmath=True)
@@ -227,7 +257,7 @@ def estimate_noise_hs74(spectrum, navg=1, std_div=0.0):
     else:
         threshold = mean + np.sqrt(var) * std_div
         # print(' normthres = ', sorted_spectrum[nnoise - 1])
-        #print(' mean+std  = ', mean + np.sqrt(var) * std_div)
+        # print(' mean+std  = ', mean + np.sqrt(var) * std_div)
 
     left_intersec = -1
     right_intersec = -1
@@ -292,7 +322,6 @@ def remove_noise(ds, std_div=0.0):
             for iT in range(ds.n_time):
                 mean, thresh, var, nnoise, left_intersec, right_intersec = \
                     estimate_noise_hs74(ds.VHSpec[ic][iT, iR, :], navg=ds.no_av[ic], std_div=std_div)
-
 
                 mean_noise[ic][iT, iR] = mean
                 variance[ic][iT, iR] = var
@@ -426,39 +455,35 @@ def Diff(li1, li2):
     return (list(set(li1) - set(li2)))
 
 
-
 def Create_NeuralNet_Input(ds):
-
     from sklearn.preprocessing import MinMaxScaler
 
-
-    Z     = ds.variables['Z']
-    v     = ds.variables['v']
+    Z = ds.variables['Z']
+    v = ds.variables['v']
     width = ds.variables['width']
-    ldr   = ds.variables['ldr']
+    ldr = ds.variables['ldr']
 
     beta = ds.variables['beta']
     lidar_depolarisation = ds.variables['beta']
 
-    Times   = []
+    Times = []
     Heights = []
-    radar_data  = []
+    radar_data = []
     lidar_label = []
 
     for iT in range(ds.dimensions['time']):
         for iH in range(ds.dimensions['height']):
 
-            #if beta[iT, iH] > -999.0 and Z[iT, iH] > -999.0:
+            # if beta[iT, iH] > -999.0 and Z[iT, iH] > -999.0:
             if beta[iT, iH] and Z[iT, iH] > -999.0:
-
                 Times.append(iT)
                 Heights.append(iH)
 
                 # assign radar moments reflectivity, mean doppler velocity, spectral width, linear deplo ratio
-                Zij     = Z[iT, iH]
-                vij     = v[iT, iH]
+                Zij = Z[iT, iH]
+                vij = v[iT, iH]
                 widthij = width[iT, iH]
-                ldrij   = ldr[iT, iH]
+                ldrij = ldr[iT, iH]
                 radar_data.append(np.array([iT, iH, Zij, vij, widthij, ldrij]))
 
                 # assign lidar moments beta, depol
@@ -470,7 +495,7 @@ def Create_NeuralNet_Input(ds):
     Heights = np.array(Heights)
 
     scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled_radar_data  = scaler.fit_transform(radar_data)
+    scaled_radar_data = scaler.fit_transform(radar_data)
     scaled_lidar_label = scaler.fit_transform(lidar_label)
 
     return scaled_radar_data, scaled_lidar_label

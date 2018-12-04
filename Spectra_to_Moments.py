@@ -147,12 +147,12 @@ if calc_doppler_spectra:
     LR_lv0.diffmdv = np.ma.subtract(LR_lv0.mdv, LR_lv1.mdv)
     LR_lv0.diffsw = np.ma.subtract(LR_lv0.sw, LR_lv1.sw)
 
-    for iT in range(LR_lv0.n_time):
-        for iR in range(len(LR_lv0.height_all)):
-            print(' difference l0mom - l1mom = {}:{}:{}'.format(LR_lv0.t_plt[iT].hour,
-                                                                LR_lv0.t_plt[iT].minute,
-                                                                LR_lv0.t_plt[iT].second),
-                  '  height = {:.5f} (km)    diffmdv '.format(LR_lv0.height_all[iR]), LR_lv0.diffmdv[iR, iT])
+#    for iT in range(LR_lv0.n_time):
+#        for iR in range(len(LR_lv0.height_all)):
+#            print(' difference l0mom - l1mom = {}:{}:{}'.format(LR_lv0.t_plt[iT].hour,
+#                                                                LR_lv0.t_plt[iT].minute,
+#                                                                LR_lv0.t_plt[iT].second),
+#                  '  height = {:.5f} (km)    diffmdv '.format(LR_lv0.height_all[iR]), LR_lv0.diffmdv[iR, iT])
 
     compare_datasets(LR_lv0, LR_lv1)
 
