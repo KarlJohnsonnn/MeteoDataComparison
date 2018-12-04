@@ -16,7 +16,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from metpy.units import units
 import metpy.calc as mpcalc
 from metpy.plots import Hodograph, SkewT
-from siphon.simplewebservice.wyoming import WyomingUpperAir
+from modules.wyoming import WyomingUpperAir
 
 ####################################################
 # Create a datetime object for the sounding and string of the station identifier.
