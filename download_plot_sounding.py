@@ -20,7 +20,7 @@ from modules.wyoming import WyomingUpperAir
 
 ####################################################
 # Create a datetime object for the sounding and string of the station identifier.
-date = datetime(2018, 12, 2, 12)
+date = datetime(2018, 12, 3, 12)
 station = 'SCCI'
 
 ####################################################
