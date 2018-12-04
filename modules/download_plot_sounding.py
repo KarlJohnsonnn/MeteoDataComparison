@@ -10,8 +10,11 @@ the Wyoming upper air archive.
 """
 
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 from metpy.units import units
+import metpy.calc as mpcalc
+from metpy.plots import Hodograph, SkewT
 
 from siphon.simplewebservice.wyoming import WyomingUpperAir
 
