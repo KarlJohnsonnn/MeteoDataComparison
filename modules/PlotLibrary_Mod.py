@@ -1135,7 +1135,7 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_b=0.0)
     ax.legend(fontsize=13)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
 
-    return fig, plt
+    return fig, plt, ax
 
 
 def Plot_moment_from_spectra(ds, mom):

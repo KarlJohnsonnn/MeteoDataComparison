@@ -15,10 +15,10 @@ from modules.Utility_Mod import *
    ##     ## #########  ##  ##  ####         ##        ##   ##   ##     ## ##    ##  ##   ##   ######### ##     ##
    ##     ## ##     ##  ##  ##   ###         ##        ##    ##  ##     ## ##    ##  ##    ##  ##     ## ##     ##
    ##     ## ##     ## #### ##    ##         ##        ##     ##  #######   ######   ##     ## ##     ## ##     ##
-   
-   
-   
-   
+
+
+
+
     The example call to the routine:    $  python Spectra_to_Moments.py 180810 0500 0600 0.0 12.0 2.0
                                                                           |      |    |    |   |   |
                                                                          date   from to  from  to  std div
@@ -36,7 +36,7 @@ n_std_diviations = 2.0
 if pts:
     print(' ')
     print('  \u250F' + 49 * '\u2501' + '\u2513')
-    print('  \u2503' + '          LIMRAD94 - Spectra to Moments          ' + '\u2503')
+    print('  \u2503' + '       compare   LIMRAD94 - MIRA    spectra      ' + '\u2503')
     print('  \u2517' + 49 * '\u2501' + '\u251B' + '\n')
     print('\n' * 2)
 
@@ -45,7 +45,7 @@ if pts:
 if len(sys.argv) >= 6:
     date = str(sys.argv[1])
     time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
-    h_min, h_max = float(sys.argv[4]), float(sys.argv[5])
+    height, time = float(sys.argv[4]), float(sys.argv[5])
 
     if len(sys.argv) == 7:
         n_std_diviations = float(sys.argv[6])
@@ -53,11 +53,10 @@ if len(sys.argv) >= 6:
 else:
 
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-    h_min = 0.0  # (km)  - lower y-axis limit
-    h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+    height = 1.8  # (km)  - height of the spectrum to compare
     date = '181203'  # in YYMMDD
     time_intervall = '0100-0200'  # in HHMM-HHMM
-
+    time ='0130' # time of the spectrum to compare
 
 warnings.filterwarnings("ignore")
 
@@ -76,14 +75,17 @@ warnings.filterwarnings("ignore")
 '''
 
 # ----- LIMRAD 94GHz Radar data extraction
-print('     date: ', date, time_intervall, h_min, h_max)
+print('     date: ', date, time_intervall, height)
 print('     standard deviations for moment calc: ', n_std_diviations, '\n')
 print('     is this the correct folder??')
 
-LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [h_min, h_max])
-LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [h_min, h_max])
+LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [height-0.1, height+0.1])
+LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [height-0.1, height+0.1])
 
 if pts: print('')
+
+# ----- MIRA 35GHz Radar data extraction
+
 
 '''
 ####################################################################################################################
@@ -126,13 +128,11 @@ if calc_doppler_spectra:
             integration_bounds[ic][:, :, 0] = 0
             integration_bounds[ic][:, :, 1] = -1
 
-
-
     output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, LR_lv0.DoppRes)
     # output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, LR_lv0.DoppRes)
 
     if pts: print('    - moments calculated \n')
-    if pts: print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.3f} sec.')
+    if pts: print(f'    Elapsed time for noise floor estimation and plotting = {time.time() - tstart:.3f} sec.')
 
     LR_lv0.ZeLin = output[0]
     LR_lv0.Ze = np.ma.log10(LR_lv0.ZeLin) * 10.0
@@ -251,5 +251,4 @@ if save_moments_without_noise:
 
         if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
 
-
-if pts: print(f'    Total Elapsed Time = {time.clock()-start_time:.3f} sec.\n')
+if pts: print(f'    Total Elapsed Time = {time.clock() - start_time:.3f} sec.\n')
