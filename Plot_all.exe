@@ -1,0 +1,7 @@
+#!/bin/bash
+for i in {0..20}
+do
+	python Spectra_to_Moments.py $i.0
+done
+
+convert -delay 60 /Users/willi/data/MeteoData/180810_NoiseFac0_Lv0_to_moments_Ze_*.png Ze_stddiv.gif

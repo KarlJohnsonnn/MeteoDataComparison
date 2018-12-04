@@ -27,7 +27,7 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
     if text: text = r'\huge{\textbf{' + text + '}}'
     if text.find('sw') > 0 or text.find('Spectral Width') > 0:
         cp = axh.pcolormesh(x, y, z, norm=mcolors.LogNorm(vmin=vmi, vmax=vma), cmap='jet')
-        if p == 'r':
+        if p in ['lr', 'r']:
             divider1 = make_axes_locatable(axh)
             cax3 = divider1.append_axes("right", size="3%", pad=0.1)
             formatter = LogFormatter(10, labelOnlyBase=False)
@@ -43,7 +43,7 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
 
         place_text(axh, [.02, 1.075], text)
         cp = axh.pcolormesh(x, y, z, vmin=vmi, vmax=vma, cmap=mymap)
-        if p == 'r':
+        if p in ['lr', 'r']:
             divider1 = make_axes_locatable(axh)
             cax4 = divider1.append_axes("right", size="3%", pad=0.1)
             bounds = np.linspace(-30, 0, 500)
@@ -53,14 +53,14 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
     else:
         place_text(axh, [.02, 1.075], text)
         cp = axh.pcolormesh(x, y, z, vmin=vmi, vmax=vma, cmap='jet')
-        if p == 'r':
+        if p in ['lr', 'r']:
             divider1 = make_axes_locatable(axh)
             cax0 = divider1.append_axes("right", size="3%", pad=0.1)
             cbar = fig.colorbar(cp, cax=cax0, ax=axh)
             cbar.set_label(z_lab)
     axh.grid(linestyle=':')
     axh.axes.tick_params(axis='x', direction='inout', length=10, width=1.5)
-    if p == 'r': axh.set_yticklabels([])
+    if p in ['lr', 'r']: axh.set_yticklabels([])
     axh.set_xlim(left=x_min, right=x_max)
     if p == 'l':
         axh.set_ylabel(y_lab)
@@ -485,7 +485,7 @@ def Plot_Radar_Results(ds1, ds2):
     return fig, plt
 
 
-def Plot_CalcMoments_minus_GivenMoments(ds1):
+def Plot_CalcMoments_minus_GivenMoments(ds1, mom='Ze'):
     ### plot ###
     if pts: print('    Generate subplots:\n')
 
@@ -498,23 +498,43 @@ def Plot_CalcMoments_minus_GivenMoments(ds1):
     xb1 = [ds1.t_plt[0], ds1.t_plt[-1]]
 
     yb1 = [ds1.height_all[0], ds1.height_all[-1]]
-    diffZe = 10 * np.log10(ds1.diffZe)
+    if mom == 'Ze':
+        differ = 10 * np.log10(ds1.diffZe);
+        vmin = np.min(differ);
+        vmax = np.max(differ);
+        z_label = r'\textbf{Reflectivity [dBZ]}'
+        # differ = ds1.diffZe; vmin=0.0; vmax=np.max(ds1.diffZe); z_label=r'\textbf{[mm$^6$/m$^3$]}'
+    elif mom == 'mdv':
+        differ = ds1.diffmdv;
+        vmin = np.min(ds1.diffmdv);
+        vmax = np.max(ds1.diffmdv);
+        z_label = r'\textbf{[m/s]}'
+    elif mom == 'sw':
+        differ = ds1.diffsw;
+        vmin = 0.0;
+        vmax = np.max(ds1.diffsw);
+        z_label = r'\textbf{[m/s]}'
+
     ########################################################################################################
     ########################################################################################################
     # LR_Zelectivity plot
-    if pts: print('       -   Radar Reflectivity Factor   ', end='', flush=True)
+    if pts: print('       -  ', mom, '  ', end='', flush=True)
 
     x_label = r'\textbf{Time [UTC]}'
     y_label = r'\textbf{Height [km]}'
-    z_label = r'\textbf{Reflectivity [dBZ]}'
+
 
     diff.set_title(r'\large{\textbf{LIMRAD 94GHz Radar NoiseFac0 Lv1 (with noise)}}')
     plot_data_set(fig, diff, '',
-                  ds1.t_plt, ds1.height_all, diffZe, vmi=-50, vma=20,
+                  ds1.t_plt, ds1.height_all, differ, vmi=vmin, vma=vmax,
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='lr')
 
-    first_line = r'Difference calculated moments from LV0 and given LV1 moments, Leipzig, Germany,'
+    diff.set_ylabel(y_label)
+    diff.set_ylim(bottom=yb1[0], top=yb1[1])
+    # diff.axes.tick_params(axis='Y', direction='inout', length=10, width=1.5)
+
+    first_line = r'Difference calculated moments from LV0 and given LV1 moments, Leipzig, Germany: ' + mom
     second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
 
     file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}'
@@ -1075,27 +1095,37 @@ def Plot_2D_Interpolation(ds1, ds2):
     return fig, plt
 
 
-def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean, int_b):
-    fig, ax = plt.subplots(1, figsize=(10, 4))
+def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_b=0.0):
+    if thresh == 0.0 and mean == 0.0 and int_b == 0:
+        plot_boundaries = False
+    else:
+        plot_boundaries = True
 
+    # convert from linear units to logarithic units
     doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
-
-    if int_b[0] > -1 and int_b[1] > -1:
-        x_0 = ds.DopplerBins[c][int(int_b[0])]
-        x_1 = ds.DopplerBins[c][int(int_b[1])]
-        ax.axvline(x_0, color='k', linestyle='--', linewidth=1)
-        ax.axvline(x_1, color='k', linestyle='--', linewidth=1)
-
-    mean = np.multiply(np.ma.log10(mean), 10.0)
-    thresh = np.multiply(np.ma.log10(thresh), 10.0)
 
     x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
 
+    # plot spectra
+    fig, ax = plt.subplots(1, figsize=(10, 4))
     ax.plot(ds.DopplerBins[c], doppler_spec, color='blue', label='Doppler Spec')
 
-    ax.plot([x1, x2], [thresh, thresh], color='k', linestyle='-', linewidth=2)
-    ax.plot([x1, x2], [mean, mean], color='k', linestyle='--', linewidth=2)
+    if plot_boundaries:
+        mean = np.multiply(np.ma.log10(mean), 10.0)
+        thresh = np.multiply(np.ma.log10(thresh), 10.0)
 
+        # plot mean noise line and threshold
+        ax.plot([x1, x2], [thresh, thresh], color='k', linestyle='-', linewidth=2)
+        ax.plot([x1, x2], [mean, mean], color='k', linestyle='--', linewidth=2)
+
+        # plot integration boundaries
+        if int_b[0] > -1 and int_b[1] > -1:
+            x_0 = ds.DopplerBins[c][int(int_b[0])]
+            x_1 = ds.DopplerBins[c][int(int_b[1])]
+            ax.axvline(x_0, color='k', linestyle='--', linewidth=1)
+            ax.axvline(x_1, color='k', linestyle='--', linewidth=1)
+
+    ax.set_xlim(left=x1, right=x2)
     ax.set_ylim(bottom=zbound[0], top=zbound[1])
     ax.set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
     ax.set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
@@ -1104,6 +1134,90 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh, mean, int_b):
               + str(ds.t_plt[t0]) + ' (UTC)', fontweight='semibold', fontsize=13)
     ax.legend(fontsize=13)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
+
+    return fig, plt, ax
+
+
+def Plot_Doppler_Spectra_Wavelet_Transform(ds, c, t0, h0, zbound, cwtmatr):
+
+    # convert from linear units to logarithic units
+    doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
+
+    x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
+
+    # plot spectra
+    fig, ax = plt.subplots(2, figsize=(10, 6))
+
+    ax[0].set_title("Height: " + str(round(ds.height[c][h0], 2)) + " (km);  Time: "
+              + str(ds.t_plt[t0]) + ' (UTC)', fontweight='semibold', fontsize=13)
+
+    ax[0].plot(ds.DopplerBins[c], doppler_spec, color='blue', label='Doppler Spec')
+
+    ax[0].set_xlim(left=x1, right=x2)
+    ax[0].set_ylim(bottom=zbound[0], top=zbound[1])
+    ax[0].set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
+    ax[0].set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
+    ax[0].grid(linestyle=':')
+    ax[0].legend(fontsize=13)
+
+    ax[1].imshow(cwtmatr, extent=[-1, 1, 31, 1], cmap='PRGn', aspect='auto',
+               vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
+    ax[0].set_title('Wavelet transformation', fontweight='semibold', fontsize=13)
+
+    plt.tight_layout(rect=[0, 0.05, 1, 0.95])
+
+    return fig, plt
+
+
+def Plot_moment_from_spectra(ds, mom):
+    import matplotlib.style
+    mpl.style.use('classic')
+
+    rc('font', size=16)
+
+    fig = plt.figure(figsize=(16, 10))
+
+    plt_Ze = plt.subplot2grid((1, 1), (0, 0))
+
+    x_label = 'Time (UTC)'
+    y_label = 'Height (km)'
+    z_label = 'Reflectivity (dBZ)'
+
+    xb = [ds.t_plt[0], ds.t_plt[-1]]
+
+    yb = [ds.height_all[0], ds.height_all[-1]]
+
+    if mom == 'Ze':
+        moment = ds.Ze;
+        vmin = -50;
+        vmax = 20;
+        z_label = '[dBZ]'
+    elif mom == 'mdv':
+        moment = ds.mdv;
+        vmin = -5;
+        vmax = 3;
+        z_label = '[m/s]'
+    elif mom == 'sw':
+        moment = ds.sw;
+        vmin = 0.0;
+        vmax = 4;
+        z_label = '[m/s]'
+
+    plt_Ze.set_title('LIMRAD94, Leipzig, Germany', size=20)
+    plot_data_set(fig, plt_Ze, '',
+                  ds.t_plt, ds.height_all, moment, vmi=vmin, vma=vmax,
+                  x_min=xb[0], x_max=xb[1], y_min=yb[0], y_max=yb[1],
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='lr')
+
+    plt_Ze.set_ylim(bottom=yb[0], top=yb[1])
+    plt_Ze.set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
+    plt_Ze.set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
+    plt_Ze.grid(linestyle=':')
+
+    place_text(plt_Ze, [0.6, 0.9], 'Number std diviations:' + str(ds.n_std_div))
+
+    plt.tight_layout(rect=[0, 0, 1, 0.99])
+    plt.subplots_adjust(hspace=0.01)
 
     return fig, plt
 
