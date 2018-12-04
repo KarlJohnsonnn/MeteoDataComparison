@@ -63,7 +63,7 @@ else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
     h_min = 0.0  # (km)  - lower y-axis limit
     h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '181202'  # in YYMMDD
+    date = '181203'  # in YYMMDD
     time_intervall = '000000-240000'  # in HHMM-HHMM
 
 
@@ -94,10 +94,10 @@ print('         - height from: ', h_min, '(km)  to: ', h_max, ' (km) \n')
 # LR_lv0 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/noise/180810/LV0/', date, time_intervall, [h_min, h_max])
 # LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/calibrated/180729/LV1/', date, time_intervall, [h_min, h_max])
 
-#LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/', date, time_intervall, [h_min, h_max])
+LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/', date, time_intervall, [h_min, h_max])
 
 # LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/', date, time_intervall, [h_min, h_max])
-LR_lv1 = nc2.LIMRAD94('/Volumes/Data_Storag/MeteoData/LIMRad94/LV1/', date, time_intervall, [h_min, h_max])
+#LR_lv1 = nc2.LIMRAD94('/Volumes/Data_Storag/MeteoData/LIMRad94/LV0/', date, time_intervall, [h_min, h_max])
 
 # LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/noise/180810/LV1/', date, time_intervall, [h_min, h_max])
 # LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/VdResDiff/180810/LV1/', '180810', time_intervall, [h_min, h_max])

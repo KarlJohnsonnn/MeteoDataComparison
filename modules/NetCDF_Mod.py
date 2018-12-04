@@ -63,13 +63,17 @@ class LIMRAD94_LV0():
 
         self.ncfiles = []
         for il in range_file_list:
-            file_name = str(glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV0.NC'))
-            self.ncfiles.append(file_name[2:-2])
+            try:
+                file_name = glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV0.NC')
+                self.ncfiles.append(file_name)
 
-            if file_name[2:-2] == '':
-                print('   Error!  File: "' + file_name + '" not found --> exit!')
-                print('   Check LIMRAD folder!')
+            except Exception as e:
+                print('Something went wrong:', e)
+                print('Change to: [path_to_data]/YYMMDD/LVx/')
+                print('   Error!  File not found --> exit!')
                 exit(0)
+
+        self.ncfiles = sorted([item for sublist in self.ncfiles for item in sublist])
 
         #        self.ncfiles = []
         #        flat_list = []
@@ -87,7 +91,6 @@ class LIMRAD94_LV0():
         #                exit(0)
         #
         #        n_nc_files = len(self.ncfiles)
-
         n_nc_files = len(self.ncfiles)
 
         file = self.ncfiles[0]
@@ -454,14 +457,17 @@ class LIMRAD94_LV1():
 
         self.ncfiles = []
         for il in range_file_list:
-            file_name = str(glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV1.NC'))
-            self.ncfiles.append(file_name[2:-2])
+            try:
+                file_name = glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV1.NC')
+                self.ncfiles.append(file_name)
 
-            if file_name[2:-2] == '':
-                print('   Error!  File: "' + file_name + '" not found --> exit!')
-                print('   Check LIMRAD folder!')
+            except Exception as e:
+                print('Something went wrong:', e)
+                print('Change to: [path_to_data]/YYMMDD/LVx/')
+                print('   Error!  File not found --> exit!')
                 exit(0)
 
+        self.ncfiles = sorted([item for sublist in self.ncfiles for item in sublist])
         n_nc_files = len(self.ncfiles)
 
         file = self.ncfiles[0]

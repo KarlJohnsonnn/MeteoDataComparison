@@ -23,15 +23,24 @@ class LIMRAD94():
         # os.chdir(LIMRAD_path)  # path to data needs to be fit to the devices file structure
 
         try:
+            lenargs = len(args)
             # check input parameter
             if len(args) < 1:
                 print('You need to specify a date at least!')
                 exit(0)
 
             # if one argument is given it contains the path to one specific file
-            elif len(args) == 2:
+            elif lenargs >= 1:
                 file_path = args[0]
-                heightminmax = args[1]
+
+                if lenargs == 2:
+                    heightminmax = args[1]
+                    self.h_min = heightminmax[0]
+                    self.h_max = heightminmax[1]
+                else:
+                    self.h_min = 0.0
+                    self.h_max = 12.0
+
                 file_str = file_path[file_path.rfind('/') + 1:]
 
                 self.ncfiles = file_path
@@ -54,15 +63,13 @@ class LIMRAD94():
                 iFile = file_path
 
 
-                self.h_min = heightminmax[0]
-                self.h_max = heightminmax[1]
 
             # if there are four values given, the args contain the:
             #   - path to the data folder (string):                     -> args[0]
             #   - date in format (string):              YYMMDD          -> args[1]
             #   - time interval of the date (string):   HHMMSS-HHMMSS   -> args[2]
             #   - height range from/to in km (2*float): [h_min, h_max]  -> args[3]
-            elif len(args) > 3:
+            elif lenargs > 3:
 
                 folder_path = args[0]
                 date_str = args[1]

@@ -27,7 +27,7 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
     if text: text = r'\huge{\textbf{' + text + '}}'
     if text.find('sw') > 0 or text.find('Spectral Width') > 0:
         cp = axh.pcolormesh(x, y, z, norm=mcolors.LogNorm(vmin=vmi, vmax=vma), cmap='jet')
-        if p == 'r':
+        if p in ['lr', 'r']:
             divider1 = make_axes_locatable(axh)
             cax3 = divider1.append_axes("right", size="3%", pad=0.1)
             formatter = LogFormatter(10, labelOnlyBase=False)
@@ -43,7 +43,7 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
 
         place_text(axh, [.02, 1.075], text)
         cp = axh.pcolormesh(x, y, z, vmin=vmi, vmax=vma, cmap=mymap)
-        if p == 'r':
+        if p in ['lr', 'r']:
             divider1 = make_axes_locatable(axh)
             cax4 = divider1.append_axes("right", size="3%", pad=0.1)
             bounds = np.linspace(-30, 0, 500)
@@ -53,14 +53,14 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
     else:
         place_text(axh, [.02, 1.075], text)
         cp = axh.pcolormesh(x, y, z, vmin=vmi, vmax=vma, cmap='jet')
-        if p == 'r':
+        if p in ['lr', 'r']:
             divider1 = make_axes_locatable(axh)
             cax0 = divider1.append_axes("right", size="3%", pad=0.1)
             cbar = fig.colorbar(cp, cax=cax0, ax=axh)
             cbar.set_label(z_lab)
     axh.grid(linestyle=':')
     axh.axes.tick_params(axis='x', direction='inout', length=10, width=1.5)
-    if p == 'r': axh.set_yticklabels([])
+    if p in ['lr', 'r']: axh.set_yticklabels([])
     axh.set_xlim(left=x_min, right=x_max)
     if p == 'l':
         axh.set_ylabel(y_lab)
@@ -528,11 +528,11 @@ def Plot_CalcMoments_minus_GivenMoments(ds1, mom='Ze'):
     plot_data_set(fig, diff, '',
                   ds1.t_plt, ds1.height_all, differ, vmi=vmin, vma=vmax,
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='lr')
 
     diff.set_ylabel(y_label)
     diff.set_ylim(bottom=yb1[0], top=yb1[1])
-    diff.axes.tick_params(axis='Y', direction='inout', length=10, width=1.5)
+    # diff.axes.tick_params(axis='Y', direction='inout', length=10, width=1.5)
 
     first_line = r'Difference calculated moments from LV0 and given LV1 moments, Leipzig, Germany: ' + mom
     second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
@@ -1138,6 +1138,37 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_b=0.0)
     return fig, plt, ax
 
 
+def Plot_Doppler_Spectra_Wavelet_Transform(ds, c, t0, h0, zbound, cwtmatr):
+
+    # convert from linear units to logarithic units
+    doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
+
+    x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
+
+    # plot spectra
+    fig, ax = plt.subplots(2, figsize=(10, 6))
+
+    ax[0].set_title("Height: " + str(round(ds.height[c][h0], 2)) + " (km);  Time: "
+              + str(ds.t_plt[t0]) + ' (UTC)', fontweight='semibold', fontsize=13)
+
+    ax[0].plot(ds.DopplerBins[c], doppler_spec, color='blue', label='Doppler Spec')
+
+    ax[0].set_xlim(left=x1, right=x2)
+    ax[0].set_ylim(bottom=zbound[0], top=zbound[1])
+    ax[0].set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
+    ax[0].set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
+    ax[0].grid(linestyle=':')
+    ax[0].legend(fontsize=13)
+
+    ax[1].imshow(cwtmatr, extent=[-1, 1, 31, 1], cmap='PRGn', aspect='auto',
+               vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
+    ax[0].set_title('Wavelet transformation', fontweight='semibold', fontsize=13)
+
+    plt.tight_layout(rect=[0, 0.05, 1, 0.95])
+
+    return fig, plt
+
+
 def Plot_moment_from_spectra(ds, mom):
     import matplotlib.style
     mpl.style.use('classic')
@@ -1176,7 +1207,7 @@ def Plot_moment_from_spectra(ds, mom):
     plot_data_set(fig, plt_Ze, '',
                   ds.t_plt, ds.height_all, moment, vmi=vmin, vma=vmax,
                   x_min=xb[0], x_max=xb[1], y_min=yb[0], y_max=yb[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='lr')
 
     plt_Ze.set_ylim(bottom=yb[0], top=yb[1])
     plt_Ze.set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
