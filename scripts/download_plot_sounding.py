@@ -18,17 +18,39 @@ necessary packages:
 
 """
 
+########################################################################################################################
+# THE FOLLOWING 3 LINES ARE NECESSARY FOR INPUT OF modules/ FOLDER !!!
+#
+import sys, os
+SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
+########################################################################################################################
+
 from datetime import datetime
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from metpy.units import units
 import metpy.calc as mpcalc
 from metpy.plots import Hodograph, SkewT
 from modules.wyoming import WyomingUpperAir
+from modules.Parameter_Mod import meteo_path
 
 ####################################################
 # Create a datetime object for the sounding and string of the station identifier.
+# gather arguments
+if len(sys.argv) == 5:
+    year  = int(sys.argv[1])
+    month = int(sys.argv[2])
+    day   = int(sys.argv[3])
+    hour  = int(sys.argv[4])
+
+else:
+    year  = 2018
+    month = 12
+    day   = 3
+    hour  = 12
+
+
 date = datetime(2018, 12, 3, 12)
 station = 'SCCI'
 
@@ -127,8 +149,11 @@ plt.legend(['Temperature','Dew Point','LCL','parcel profile'])
 filename= str(date.year) + str(date.month).zfill(2) + str(date.day).zfill(2) \
        +'_'+ str(date.hour) + '_'   + station  + '_sounding'
 
-file = '/Users/willi/data/MeteoData/' + filename  + '.png'
+file = meteo_path + filename  + '.png'
 fig.savefig(file, dpi=100, format='png')
 plt.close()
 
-df.to_csv('/Users/willi/data/MeteoData/'+ filename + '.txt',sep='\t',index=None)
+df.to_csv(meteo_path + filename + '.txt',sep='\t',index=None)
+
+print('    Save File :: ' + file)
+print('    Save File :: ' + meteo_path + filename + '.txt')
