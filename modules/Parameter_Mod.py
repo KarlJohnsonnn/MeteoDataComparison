@@ -2,16 +2,6 @@
 
 pts = True  # print some informations to screen
 
-interpolate_cn = False
-create_nc_file = False
-calc_doppler_spectra = False
-plot_radar_results   = False
-plot_compare_noise   = False
-plot_for_poster      = False
-plot_comparisons     = False
-plot_interp2d        = False
-plot_interpolation_scatter = False
-
 # constants
 chirpTable_min_height = 100.0    # (m)
 
@@ -23,16 +13,14 @@ h_max = 15.0
 dpi_val = 100
 
 # file extensions of different NetCDF datasets
-LIMRAD_file_extension = '*.LV1.NC'
+LIMRAD_file_extension = '*.LV*.NC'
 mira_file_extension   = '*mira.nc'
 mmclx_file_extension  = '*.mmclx'
 
 # path to meteorological data
-#meteo_path  = '/home/tvogl/PhD/comparison_limrad_mira'
-meteo_path  = '/Users/willi/data/MeteoData/'
-#LIMRAD_path = '/home/tvogl/PhD/comparison_limrad_mira/LIMRAD'
-LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/noise/'
-MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'
+meteo_path  = ''  # path to folder where output (png, txt) is stored
+LIMRAD_path = ''  # path to folder where LIMRAD94 LV0.NC and LV1.NC is stored
+MIRA_path   = ''  # path to folder where MIRA .mira and .mmclx is stored
 
 #interp_meth = 'linear'
 interp_meth = 'NearestNeighbour'
