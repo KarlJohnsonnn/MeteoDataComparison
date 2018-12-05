@@ -1,7 +1,0 @@
-#!/bin/bash
-for i in {0..8}
-do
-	python Spectra_to_Moments.py 180810 0500 0600 0. 12. $i.0
-done
-
-convert -delay 60 /Users/willi/data/MeteoData/180810_NoiseFac0_Lv0_to_moments_Ze_*.png Ze_stddiv.gif
