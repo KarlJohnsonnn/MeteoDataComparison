@@ -20,7 +20,7 @@ h_min = 0.0
 h_max = 15.0
 
 # dots per inch parameter for .png
-dpi_val = 200
+dpi_val = 100
 
 # file extensions of different NetCDF datasets
 LIMRAD_file_extension = '*.LV1.NC'
@@ -28,9 +28,10 @@ mira_file_extension   = '*mira.nc'
 mmclx_file_extension  = '*.mmclx'
 
 # path to meteorological data
-meteo_path  = '/home/tvogl/PhD/comparison_limrad_mira'
-LIMRAD_path = '/home/tvogl/PhD/comparison_limrad_mira/LIMRAD'
-# LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1'
+#meteo_path  = '/home/tvogl/PhD/comparison_limrad_mira'
+meteo_path  = '/Users/willi/data/MeteoData/'
+#LIMRAD_path = '/home/tvogl/PhD/comparison_limrad_mira/LIMRAD'
+LIMRAD_path = '/Users/willi/data/MeteoData/LIMRad94/noise/'
 MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'
 
 #interp_meth = 'linear'

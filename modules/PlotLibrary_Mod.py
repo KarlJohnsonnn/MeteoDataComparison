@@ -1095,7 +1095,7 @@ def Plot_2D_Interpolation(ds1, ds2):
     return fig, plt
 
 
-def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_b=0.0):
+def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_a=0.0, int_b=0.0):
     if thresh == 0.0 and mean == 0.0 and int_b == 0:
         plot_boundaries = False
     else:
@@ -1108,7 +1108,7 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_b=0.0)
 
     # plot spectra
     fig, ax = plt.subplots(1, figsize=(10, 4))
-    ax.plot(ds.DopplerBins[c], doppler_spec, color='blue', label='Doppler Spec')
+    ax.plot(ds.DopplerBins[c], doppler_spec, color='blue', linestyle=':', label='Doppler Spec')
 
     if plot_boundaries:
         mean = np.multiply(np.ma.log10(mean), 10.0)
@@ -1119,9 +1119,9 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_b=0.0)
         ax.plot([x1, x2], [mean, mean], color='k', linestyle='--', linewidth=2)
 
         # plot integration boundaries
-        if int_b[0] > -1 and int_b[1] > -1:
-            x_0 = ds.DopplerBins[c][int(int_b[0])]
-            x_1 = ds.DopplerBins[c][int(int_b[1])]
+        if int_a > -1 and int_b > -1:
+            x_0 = ds.DopplerBins[c][int(int_a)]
+            x_1 = ds.DopplerBins[c][int(int_b)]
             ax.axvline(x_0, color='k', linestyle='--', linewidth=1)
             ax.axvline(x_1, color='k', linestyle='--', linewidth=1)
 
@@ -1135,36 +1135,56 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_b=0.0)
     ax.legend(fontsize=13)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
 
-    return fig, plt, ax
+    return fig, plt
 
 
-def Plot_Doppler_Spectra_Wavelet_Transform(ds, c, t0, h0, zbound, cwtmatr):
+def Plot_Doppler_Spectra_Wavelet_Transform(ds, vhspec_norm, c, t0, h0, zbound, cwtmatr, widths):
 
     # convert from linear units to logarithic units
     doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
+    cwtmatr_spec = cwtmatr
+
+    #cwtmatr_spec = np.multiply(np.ma.log10(cwtmtr), 10.0)
 
     x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
 
     # plot spectra
-    fig, ax = plt.subplots(2, figsize=(10, 6))
+    fig, ax = plt.subplots(3, figsize=(10, 10))
 
-    ax[0].set_title("Height: " + str(round(ds.height[c][h0], 2)) + " (km);  Time: "
-              + str(ds.t_plt[t0]) + ' (UTC)', fontweight='semibold', fontsize=13)
 
-    ax[0].plot(ds.DopplerBins[c], doppler_spec, color='blue', label='Doppler Spec')
+    ax[0].set_title("Doppler Spectra, height: " + str(round(ds.height[c][h0], 2)) + " (km);  time: "
+              + str(ds.t_plt[t0]) + ' (UTC)', fontweight='bold', fontsize=13)
+
+    ax[0].plot(ds.DopplerBins[c], doppler_spec, linestyle=':', color='blue', label='Doppler Spec')
 
     ax[0].set_xlim(left=x1, right=x2)
-    ax[0].set_ylim(bottom=zbound[0], top=zbound[1])
-    ax[0].set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
-    ax[0].set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
+    ax[0].set_ylim(bottom=-55, top=20)
     ax[0].grid(linestyle=':')
     ax[0].legend(fontsize=13)
 
-    ax[1].imshow(cwtmatr, extent=[-1, 1, 31, 1], cmap='PRGn', aspect='auto',
-               vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
-    ax[0].set_title('Wavelet transformation', fontweight='semibold', fontsize=13)
 
-    plt.tight_layout(rect=[0, 0.05, 1, 0.95])
+    ax[1].plot(ds.DopplerBins[c], vhspec_norm, linestyle=':', color='blue', label='normalized Spec')
+
+    ax[1].set_xlim(left=x1, right=x2)
+    ax[1].set_ylim(bottom=zbound[0], top=zbound[1])
+    ax[1].set_xlabel('Doppler Velocity (m/s)', fontweight='bold', fontsize=13)
+    ax[1].set_ylabel('Normalized Doppler Spectrum', fontweight='bold', fontsize=13)
+    ax[1].grid(linestyle=':')
+    ax[1].legend(fontsize=13)
+
+    img = ax[2].imshow(cwtmatr_spec, extent=[x1, x2, widths[-1], widths[0]], cmap='gist_stern', aspect='auto',
+               #vmax=x2, vmin=x1)
+                       vmax=2.0, vmin=0.0)
+
+    ax[2].set_title('wavelet transformation', fontweight='bold', fontsize=13)
+
+    divider = make_axes_locatable(ax[2])
+    cax = divider.new_vertical(size="5%", pad=0.5, pack_start=True)
+    fig.add_axes(cax)
+    fig.colorbar(img, cax=cax, orientation="horizontal")
+
+    plt.tight_layout(rect=[0, 0.05, 1, 0.95], h_pad=0.1)
+    #plt.show()
 
     return fig, plt
 
