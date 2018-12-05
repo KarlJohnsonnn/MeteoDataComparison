@@ -1,10 +1,11 @@
-import sys
-import warnings
+########################################################################################################################
+# THE FOLLOWING 3 LINES ARE NECESSARY FOR INPUT OF modules/ FOLDER !!!
+#
+import sys, os
+SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
+########################################################################################################################
 
-import modules.NetCDF_Mod as nc
-from modules.PlotLibrary_Mod import *
-from modules.Utility_Mod import *
-from scipy import signal
 
 '''
 ####################################################################################################################
@@ -19,17 +20,22 @@ from scipy import signal
 
 
 
-
-    The example call to the routine:    $  python Show_Spectra.py 180810 0500 0600 0.0 12.0
+    The example call to the routine: user$  python Show_Spectra.py 180810 0500 0600 0.0 12.0
                                                                     |      |    |    |   |
                                                                    date   from to  from  to
                                                                             (UTC)     (km)
 
-    The path to the netcdf files must contain: [...]/YYMMDD/LVx/
+    The user has to specify the path to the LIMRAD94 LV0 and LV1 files under modules/Parameter_Mod.py !
 
 ####################################################################################################################
 '''
-start_time = time.clock()
+
+# other imports
+import warnings
+from modules.NetCDF_Mod import *
+from modules.PlotLibrary_Mod import *
+from modules.Utility_Mod import *
+from scipy import signal
 
 
 # Print Head
@@ -41,7 +47,6 @@ if pts:
     print('\n' * 2)
 
 # gather arguments
-
 if len(sys.argv) >= 6:
     date = str(sys.argv[1])
     time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
@@ -71,12 +76,13 @@ warnings.filterwarnings("ignore")
 ######################################################################################################
 '''
 
-# ----- LIMRAD 94GHz Radar data extraction
-print('     date: ', date, time_intervall, h_min, h_max)
-print('     is this the correct folder??')
+start_time = time.clock()
 
-LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [h_min, h_max])
-LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [h_min, h_max])
+# ----- LIMRAD 94GHz Radar data extraction
+print('    date: ', date, time_intervall, h_min, h_max)
+
+LR_lv0 = LIMRAD94_LV0(date, time_intervall, [h_min, h_max])
+LR_lv1 = LIMRAD94_LV1(date, time_intervall, [h_min, h_max])
 
 if pts: print('')
 
@@ -109,7 +115,6 @@ save_moments_without_noise = False
 
 
 if save_spectra_to_png:
-    n_png = sum(LR_lv0.n_height) * LR_lv0.Time
     n_png = LR_lv0.Time
     i_png = 0
 
@@ -117,26 +122,14 @@ if save_spectra_to_png:
         ichirp, itime, iheight = gather_user_input(LR_lv0)
     else:
         ichirp = 2
-        iheight = 57
+        iheight = 58
         itime = 50
 
     LR_lv0.VHSpec_nrm = []
 
-    # normalize spectrum
-
     # for ic in range(LR_lv0.no_c):
     for itime in range(LR_lv0.Time):
-    # itime = t0
 
-    # show mean noise, threshold, and integration lines + spectrum
-    #            fig, plt = Plot_Doppler_Spectra(LR_lv0, ic, t0, h0, [-40, 10],
-    #                                            threshold[ic][t0, h0],
-    #                                            mean_noise[ic][t0, h0],
-    #                                            integration_bounds[ic][t0, h0, :])
-
-
-        # show only spectra
-        #fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-60, 20])
         VHmin = LR_lv0.VHSpec[ichirp][itime, iheight].min()
         VHmax = LR_lv0.VHSpec[ichirp][itime, iheight].max()
         VHSpec_nrm = (LR_lv0.VHSpec[ichirp][itime, iheight]-VHmin)/(VHmax - VHmin)
@@ -145,12 +138,19 @@ if save_spectra_to_png:
 
         widths = np.linspace(1, 7, n_scales)
         cwtmatr = signal.cwt(VHSpec_nrm, signal.ricker, widths)
-        
 
+        # show spectra, normalized spectra and wavlet transformation
+        fig, plt = Plot_Doppler_Spectra_Wavelet_Transform(LR_lv0, VHSpec_nrm, ichirp, itime, iheight,
+                                                          [-0.05, 1.05], cwtmatr, widths)
 
-        fig, plt = Plot_Doppler_Spectra_Wavelet_Transform(LR_lv0, VHSpec_nrm, ichirp, itime, iheight, [-0.05, 1.05], cwtmatr, widths)
+        # show mean noise, threshold, and integration lines + spectrum
+        #fig, plt = Plot_Doppler_Spectra(LR_lv0, ic, t0, h0, [-40, 10],
+        #                               threshold[ic][t0, h0],
+        #                               mean_noise[ic][t0, h0],
+        #                               integration_bounds[ic][t0, h0, :])
 
-        #plt.show()
+        # show only spectra
+        #fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-60, 20])
 
         datestring = str(LR_lv0.t_plt[itime])
         idxSpace = str(datestring).find(' ')
@@ -159,9 +159,7 @@ if save_spectra_to_png:
                + '_spectra_' + str(i_png).zfill(3) + '.png'
 
         fig.savefig(file, dpi=100, format='png')
-        plt.close()
-        if pts: print('    Save Figure to File :: ' + file + '\n')
-        # if pts: print("    Save spectra: {} of {} ".format(i_png, n_png), end="\r")
+        if pts: print('    Save Figure to File :: ' + file + '   {} of {} ".format(i_png, n_png), end="\r")')
         i_png += 1
 
 ########################################################################################################################

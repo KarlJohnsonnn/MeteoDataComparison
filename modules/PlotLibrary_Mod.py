@@ -523,7 +523,6 @@ def Plot_CalcMoments_minus_GivenMoments(ds1, mom='Ze'):
     x_label = r'\textbf{Time [UTC]}'
     y_label = r'\textbf{Height [km]}'
 
-
     diff.set_title(r'\large{\textbf{LIMRAD 94GHz Radar NoiseFac0 Lv1 (with noise)}}')
     plot_data_set(fig, diff, '',
                   ds1.t_plt, ds1.height_all, differ, vmi=vmin, vma=vmax,
@@ -629,7 +628,6 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
-
     first_line = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
     second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
     third_line = r'using: LIMRAD94 and MIRA35 data;  no attenuation correction'
@@ -641,6 +639,7 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
     plt.subplots_adjust(hspace=0.025, wspace=0.0075)
 
     return fig, plt
+
 
 def Plot_Comparison(ds1, ds2):
     ########################################################################
@@ -704,7 +703,6 @@ def Plot_Comparison(ds1, ds2):
     #                      label1='LIMRAD', marker1='+', label2='MIRA', marker2='o',
     #                      x_min=x_lim_left_Ze, x_max=x_lim_right_Ze,
     #                      y_min=yb1[0], y_max=yb1[1], x_lab='dBZ', y_lab='height (km)', ax='y')
-
 
     Comp_avgH_Ze_plot.set_title(r'\textbf{Averaged over range}' + '\n' + r'\textbf{Reflectivity}')
     plot_avg_data_set(Comp_avgH_Ze_plot, '',
@@ -1139,49 +1137,44 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_a=0.0,
 
 
 def Plot_Doppler_Spectra_Wavelet_Transform(ds, vhspec_norm, c, t0, h0, zbound, cwtmatr, widths):
+    fontsize = 12
 
     # convert from linear units to logarithic units
     doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
     cwtmatr_spec = cwtmatr
 
-    #cwtmatr_spec = np.multiply(np.ma.log10(cwtmtr), 10.0)
+    # cwtmatr_spec = np.multiply(np.ma.log10(cwtmtr), 10.0)
 
     x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
 
     # plot spectra
     fig, ax = plt.subplots(3, figsize=(10, 10))
 
+    ax[0].set_title('Doppler spectra, normalized and wavlet transformation, height: '
+                    + str(round(ds.height[c][h0], 2)) + ' (km);  time: '
+                    + str(ds.t_plt[t0]) + ' (UTC)', fontweight='bold', fontsize=fontsize)
 
-    ax[0].set_title("Doppler Spectra, height: " + str(round(ds.height[c][h0], 2)) + " (km);  time: "
-              + str(ds.t_plt[t0]) + ' (UTC)', fontweight='bold', fontsize=13)
-
-    ax[0].plot(ds.DopplerBins[c], doppler_spec, linestyle=':', color='blue', label='Doppler Spec')
-
+    ax[0].plot(ds.DopplerBins[c], doppler_spec, marker='.', linestyle='-', color='blue', label='Doppler Spec')
     ax[0].set_xlim(left=x1, right=x2)
     ax[0].set_ylim(bottom=-55, top=20)
+    ax[0].set_ylabel('Doppler spectrum (dBZ)', fontweight='bold', fontsize=fontsize)
     ax[0].grid(linestyle=':')
-    ax[0].legend(fontsize=13)
 
-
-    ax[1].plot(ds.DopplerBins[c], vhspec_norm, linestyle=':', color='blue', label='normalized Spec')
-
+    ax[1].plot(ds.DopplerBins[c], vhspec_norm, marker='.', linestyle='-', color='blue', label='normalized Spec')
     ax[1].set_xlim(left=x1, right=x2)
     ax[1].set_ylim(bottom=zbound[0], top=zbound[1])
-    ax[1].set_xlabel('Doppler Velocity (m/s)', fontweight='bold', fontsize=13)
-    ax[1].set_ylabel('Normalized Doppler Spectrum', fontweight='bold', fontsize=13)
+    ax[1].set_xlabel('Doppler Velocity (m/s)', fontweight='bold', fontsize=fontsize)
+    ax[1].set_ylabel('normalized spectrum (-)', fontweight='bold', fontsize=fontsize)
     ax[1].grid(linestyle=':')
-    ax[1].legend(fontsize=13)
 
-    img = ax[2].imshow(cwtmatr_spec, extent=[x1, x2, widths[-1], widths[0]], cmap='gist_stern', aspect='auto',
-               #vmax=x2, vmin=x1)
-                       vmax=2.0, vmin=0.0)
-
-    ax[2].set_title('wavelet transformation', fontweight='bold', fontsize=13)
-
+    img = ax[2].imshow(cwtmatr_spec, extent=[x1, x2, widths[-1], widths[0]],
+                       cmap='gist_stern', aspect='auto', vmin=0.0, vmax=2.0)
+    ax[2].set_ylabel('wavelet scale parameter', fontweight='bold', fontsize=fontsize)
     divider = make_axes_locatable(ax[2])
     cax = divider.new_vertical(size="5%", pad=0.5, pack_start=True)
     fig.add_axes(cax)
-    fig.colorbar(img, cax=cax, orientation="horizontal")
+    cbar = fig.colorbar(img, cax=cax, orientation="horizontal")
+    cbar.set_label('Magnitude', fontsize=fontsize)
 
     plt.tight_layout(rect=[0, 0.05, 1, 0.95], h_pad=0.1)
     #plt.show()
