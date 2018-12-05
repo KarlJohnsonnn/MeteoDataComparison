@@ -1,3 +1,11 @@
+########################################################################################################################
+# THE FOLLOWING 3 LINES ARE NECESSARY FOR INPUT OF modules/ FOLDER !!!
+#
+import sys, os
+SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
+########################################################################################################################
+
 import modules.NetCDF_Mod2 as nc2
 from modules.Utility_Mod import *
 
@@ -28,8 +36,8 @@ from modules.Utility_Mod import *
 #file1 = '/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/LV1/180808_050001_P01_ZEN.LV1.NC'
 #file2 = '/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/LV1/180820_050000_P01_ZEN.LV1.NC'
 
-file1 = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/180808_050001_P01_ZEN.LV1.NC'
-file2 = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/180820_050000_P01_ZEN.LV1.NC'
+file1 = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV0_LV1/180808_050001_P01_ZEN.LV1.NC'
+file2 = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV0_LV1/180820_050000_P01_ZEN.LV1.NC'
 
 # create lists of constants and variables you want to compare
 constants_to_compare = ['AvgNum', 'NoiseFilt', 'SampDur', 'MaxVel', 'DoppRes']
