@@ -1,9 +1,11 @@
-import sys
-import warnings
+########################################################################################################################
+# THE FOLLOWING 3 LINES ARE NECESSARY FOR INPUT OF modules/ FOLDER !!!
+#
+import sys, os
+SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
+########################################################################################################################
 
-import modules.NetCDF_Mod as nc
-from modules.PlotLibrary_Mod import *
-from modules.Utility_Mod import *
 
 '''
 ####################################################################################################################
@@ -28,6 +30,13 @@ from modules.Utility_Mod import *
 
 ####################################################################################################################
 '''
+
+import warnings
+import modules.NetCDF_Mod as nc
+from modules.PlotLibrary_Mod import *
+from modules.Utility_Mod import *
+
+
 start_time = time.clock()
 
 n_std_diviations = 6.0
@@ -78,7 +87,6 @@ warnings.filterwarnings("ignore")
 # ----- LIMRAD 94GHz Radar data extraction
 print('    date: ', date, time_intervall, h_min, h_max)
 print('    standard deviations for moment calc: ', n_std_diviations, '\n')
-print('    is this the correct folder??\n')
 
 LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [h_min, h_max])
 LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [h_min, h_max])
@@ -100,9 +108,11 @@ if pts: print('')
 '''
 
 # Logicals for different tasks
+user_input = False
+include_noise = False
 calc_doppler_spectra = True
-save_spectra_to_png = True
-save_noise_comparison = False
+save_spectra_to_png = False
+save_noise_comparison = True
 save_moment_differences = False
 save_moments_without_noise = False
 
@@ -123,7 +133,6 @@ if calc_doppler_spectra:
     mean_noise, threshold, variance, numnoise, integration_bounds = remove_noise(LR_lv0, n_std_diviations)
     if pts: print('    - all noise removed ')
 
-    include_noise = False
     if include_noise:
         for ic in range(LR_lv0.no_c):
             integration_bounds[ic][:, :, 0] = 0
@@ -131,10 +140,10 @@ if calc_doppler_spectra:
 
 
     output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, LR_lv0.DoppRes)
-    # output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, LR_lv0.DoppRes)
 
-    if pts: print('    - moments calculated \n')
-    if pts: print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.3f} sec.')
+    if pts:
+        print('    - moments calculated \n')
+        print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.3f} sec.')
 
     LR_lv0.ZeLin = output[0].T
     LR_lv0.Ze = np.ma.log10(LR_lv0.ZeLin) * 10.0
@@ -162,35 +171,17 @@ if calc_doppler_spectra:
 
 
 if save_spectra_to_png:
-    n_png = sum(LR_lv0.n_height) * LR_lv0.Time
     n_png = LR_lv0.Time
     i_png = 0
 
-    ic = 2
-    h0 = 57
-
-    bsp_time = string_to_datetime(LR_lv0, '05:00:00')
-    bsp_height = 6.0
-
-    bsp_height0 = min(LR_lv0.height_all, key=lambda x: abs(x - bsp_height))
-    bsp_time0 = min(LR_lv0.t_plt, key=lambda x: abs(x - bsp_time))
-
-    itime = LR_lv0.t_plt.index(bsp_time0)
-
-    for ic in range(LR_lv0.no_c):
-        try:
-            idx_height = list(LR_lv0.height[ic]).index(bsp_height0)
-            if idx_height > 0:
-                ichirp = ic
-                iheight = idx_height
-
-                break
-        except:
-            dummy = 0
+    if user_input:
+        ichirp, itime, iheight = gather_user_input(LR_lv0)
+    else:
+        ichirp = 2
+        iheight = 58
+        itime = 50
 
 
-    ichirp = 2
-    iheight = 57
     # for ic in range(LR_lv0.no_c):
     for t0 in range(LR_lv0.Time):
         itime = t0

@@ -154,7 +154,7 @@ if save_spectra_to_png:
 
         datestring = str(LR_lv0.t_plt[itime])
         idxSpace = str(datestring).find(' ')
-        file = '/Users/willi/data/MeteoData/LIMRad94/PNG/' + date + '_' \
+        file = meteo_path + date + '_' \
                + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(LR_lv0.height[ichirp][iheight]) \
                + '_spectra_' + str(i_png).zfill(3) + '.png'
 
