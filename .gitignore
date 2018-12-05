@@ -1,11 +1,10 @@
 # exclude programs in main folder, add the individually if necessary
-*.py
+#*.py
 
 # exclude plots in main folder
 *.log
 *.png
 *.gif
-
 
 # exclude cached stuff
 venv*
