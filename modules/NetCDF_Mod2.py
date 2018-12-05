@@ -30,7 +30,7 @@ class LIMRAD94():
                 exit(0)
 
             # if one argument is given it contains the path to one specific file
-            elif lenargs >= 1:
+            elif 3 > lenargs >= 1:
                 file_path = args[0]
 
                 if lenargs == 2:
@@ -75,6 +75,7 @@ class LIMRAD94():
                 date_str = args[1]
                 time_str = args[2]
                 heightminmax = args[3]
+                self.lvl = args[4]
 
                 # gathering self.year, self.month, self.day for convertion to UTC time
                 self.time_int = time_str
@@ -87,15 +88,15 @@ class LIMRAD94():
                 self.h_max = heightminmax[1]
 
                 # check path for LV0 or LV1 files, if subfolder /LVx/ (x=0 or x=1) not existent raise error
-                try:
-                    pos_lvl = folder_path.find('LV')
-                    if pos_lvl < 0: raise Exception('Folder path does not contain LVx information (x=0 or x=1)!')
-                except Exception as e:
-                    print('Something went wrong:', e)
-                    print('Change to: [path_to_data]/YYMMDD/LVx/')
-                    sys.exit()
-                else:
-                    self.lvl = folder_path[pos_lvl:pos_lvl + 3]
+#                try:
+#                    pos_lvl = folder_path.find('LV')
+#                    if pos_lvl < 0: raise Exception('Folder path does not contain LVx information (x=0 or x=1)!')
+#                except Exception as e:
+#                    print('Something went wrong:', e)
+#                    print('Change to: [path_to_data]/YYMMDD/LVx/')
+#                    sys.exit()
+#                else:
+#                    self.lvl = folder_path[pos_lvl:pos_lvl + 3]
 
                 # count LVx files in the given folder
                 files_path = folder_path + '*' + date_str + '*' + self.lvl + '.NC'
@@ -335,30 +336,12 @@ class LIMRAD94():
                     regex = re.compile('C' + str(iC))
                     match = re.match(regex, ivar)
 
+                    if ivar.find('Spec') > 0 > ivar.find('SpecW'): spec_log = True
+                    else: spec_log = False
+
                     if match is not None:
                         try:
-                            if True:
-
-                                if iC == 1:
-                                    self.time_series_2D[iMDF].update({ivar[2:]: {
-                                        'Dim': self.time_series_2D[iMDF][ivar]['Dim'],
-                                        'LongName': self.time_series_2D[iMDF][ivar]['LongName'][:-9],
-                                        'Unit': self.time_series_2D[iMDF][ivar]['Unit'],
-                                        'Val': self.time_series_2D[iMDF][ivar]['Val']}})
-
-                                else:
-                                    self.time_series_2D[iMDF][ivar[2:]]['Dim'][1] = \
-                                        self.time_series_2D[iMDF][ivar[2:]]['Dim'][1] + \
-                                        self.time_series_2D[iMDF][ivar]['Dim'][1]
-                                    self.time_series_2D[iMDF][ivar[2:]]['Val'] = np.concatenate((
-                                        self.time_series_2D[iMDF][ivar[2:]]['Val'],
-                                        self.time_series_2D[iMDF][ivar]['Val']), axis=1)
-
-                                # delete data for individual chirps
-                                del self.time_series_2D[iMDF][ivar]
-
-                            else:
-
+                            if spec_log:
                                 if iC == 1:
                                     self.time_series_3D[iMDF].update({ivar[2:]: {
                                         'Dim': self.time_series_3D[iMDF][ivar]['Dim'],
@@ -376,6 +359,25 @@ class LIMRAD94():
 
                                 # delete data for individual chirps
                                 del self.time_series_3D[iMDF][ivar]
+
+                            else:
+                                if iC == 1:
+                                    self.time_series_2D[iMDF].update({ivar[2:]: {
+                                        'Dim': self.time_series_2D[iMDF][ivar]['Dim'],
+                                        'LongName': self.time_series_2D[iMDF][ivar]['LongName'][:-9],
+                                        'Unit': self.time_series_2D[iMDF][ivar]['Unit'],
+                                        'Val': self.time_series_2D[iMDF][ivar]['Val']}})
+
+                                else:
+                                    self.time_series_2D[iMDF][ivar[2:]]['Dim'][1] = \
+                                        self.time_series_2D[iMDF][ivar[2:]]['Dim'][1] + \
+                                        self.time_series_2D[iMDF][ivar]['Dim'][1]
+                                    self.time_series_2D[iMDF][ivar[2:]]['Val'] = np.concatenate((
+                                        self.time_series_2D[iMDF][ivar[2:]]['Val'],
+                                        self.time_series_2D[iMDF][ivar]['Val']), axis=1)
+
+                                # delete data for individual chirps
+                                del self.time_series_2D[iMDF][ivar]
 
                         except Exception as e:
                             print('Something went wrong during data type construction: ', e)

@@ -1,9 +1,11 @@
-#!/home/wschimmel/anaconda3/bin/python
-import sys, time
-import warnings
+########################################################################################################################
+# THE FOLLOWING 3 LINES ARE NECESSARY FOR INPUT OF modules/ FOLDER !!!
+#
+import sys, os
+SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
+########################################################################################################################
 
-import modules.NetCDF_Mod2 as nc2
-from modules.Parameter_Mod import *
 
 '''
 ####################################################################################################################
@@ -24,16 +26,15 @@ from modules.Parameter_Mod import *
     The path to the netcdf files must contain: [...]/YYMMDD/LVx/
 
 
-
 ####################################################################################################################
 '''
-path_to_data   = '/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/LV1/'
-path_to_output = '/projekt2/remsens/data/LIMRAD94/leipzig/calibrated/2018/'
 
+import time
+import warnings
 
+import modules.NetCDF_Mod2 as nc2
+from modules.Parameter_Mod import *
 
-#path_to_data = '/Users/willi/data/MeteoData/LIMRad94/calibrated/all/LV1/'
-#path_to_output = '/Users/willi/Desktop/tmp/limrad_to_cloudnet/'
 
 # Print Head
 if pts:
@@ -51,7 +52,7 @@ if len(sys.argv) == 6:
 
 else:
 
-    date = '180729'  # in YYMMDD
+    date = '181201'  # in YYMMDD
     time_intervall = '000000-240000'  # in HHMMSS-HHMMSS
     h_min = 0.0  # in X.XX     (float, unit: km - lower y-axis limit)
     h_max = 12.0  # in X.XX     (float, unit: km - upper y-axis limit)
@@ -80,9 +81,9 @@ if pts:
 ######################################################################################################
 '''
 
-LR_lv1 = nc2.LIMRAD94(path_to_data, date, time_intervall, [h_min, h_max])
+LR_lv1 = nc2.LIMRAD94(LIMRAD_path, date, time_intervall, [h_min, h_max], 'LV1')
 
-LR_lv1.save(path_to_output)
+LR_lv1.save(meteo_path)
 
 #
 #

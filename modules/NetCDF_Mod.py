@@ -74,23 +74,6 @@ class LIMRAD94_LV0():
                 exit(0)
 
         self.ncfiles = sorted([item for sublist in self.ncfiles for item in sublist])
-
-        #        self.ncfiles = []
-        #        flat_list = []
-        #        for il in range_file_list:
-        #            file_name = str(glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV0.NC'))
-        #
-        #            flat_list = file_name.split(",")
-        #
-        #            for iFile in flat_list:
-        #                self.ncfiles.append(iFile[2:-1])
-        #
-        #            if file_name[2:-2] == '':
-        #                print('   Error!  File: "' + file_name + '" not found --> exit!')
-        #                print('   Check LIMRAD folder!')
-        #                exit(0)
-        #
-        #        n_nc_files = len(self.ncfiles)
         n_nc_files = len(self.ncfiles)
 
         file = self.ncfiles[0]
