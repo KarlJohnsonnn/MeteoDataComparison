@@ -21,11 +21,11 @@ This is the version 0.1 of the Meteorological-Data-Comparision Package. It's per
      
     $ cp Parameter_Mod.py_untouched Parameter_Mod.py
     
-     Then specify your local paths:
+     Then specify your local paths, e.g.:
      
-    - meteo_path  = '/Users/willi/data/MeteoData/'              # path to radar data home path
-    - LIMRAD_path = '/Users/willi/data/MeteoData/LIMRAD94/'     # path to LIMRAD94 NetCDF files
-    - MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'         # path to MIRA NetCDF files
+    - meteo_path  = '[user]/data/MeteoData/'              # path to radar data home path
+    - LIMRAD_path = '[user]/data/MeteoData/LIMRAD94/'     # path to LIMRAD94 NetCDF files
+    - MIRA_path   = '[user]/data/MeteoData/MIRA/'         # path to MIRA NetCDF files
    
    The folder structure is as follows:
     
