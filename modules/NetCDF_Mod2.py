@@ -550,6 +550,17 @@ class cloudnet_categorization:
 
 class MIRA35_spectra():
 
+    '''
+        Input arguments for initialization of the MIRA35_spectra either:
+
+            - one argument:     1. path_to_the_mira_spectrum_file
+
+            - four arguments:   1. path_to_the_mira_spectra_folder
+                                2. date string in format:       YYYMMDD
+                                3. time intervall in format:    HHMMSS-HHMMSS
+                                4. range intervall in format:   [h_min, h_max]
+    '''
+
     def __init__(self, *args):
         # check input parameter
         if len(args) < 1:
