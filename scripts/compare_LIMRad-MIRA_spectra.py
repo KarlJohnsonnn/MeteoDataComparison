@@ -2,13 +2,15 @@
 # THE FOLLOWING 3 LINES ARE NECESSARY FOR INPUT OF modules/ FOLDER !!!
 #
 import sys, os
-SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
-sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
+#SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+#sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
 ########################################################################################################################
 
 import warnings
 
 import modules.NetCDF_Mod as nc
+import modules.NetCDF_Mod2 as nc2
+
 from modules.PlotLibrary_Mod import *
 from modules.Utility_Mod import *
 
@@ -35,8 +37,6 @@ from modules.Utility_Mod import *
 
 ####################################################################################################################
 '''
-start_time = time.clock()
-
 n_std_diviations = 2.0
 
 # Print Head
@@ -60,10 +60,10 @@ if len(sys.argv) >= 6:
 else:
 
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-    height = 1.8  # (km)  - height of the spectrum to compare
+    height = 2  # (km)  - height of the spectrum to compare
     date = '181203'  # in YYMMDD
-    time_intervall = '0100-0200'  # in HHMM-HHMM
-    time ='0130' # time of the spectrum to compare
+    time_intervall = '0000-0100'  # in HHMM-HHMM
+    time ='0020' # time of the spectrum to compare
 
 warnings.filterwarnings("ignore")
 
@@ -93,6 +93,7 @@ if pts: print('')
 
 # ----- MIRA 35GHz Radar data extraction
 
+MIRA_lv0 = nc2.MIRA35_spectra('/home/tvogl/PhD/comparison_limrad_mira/MIRA/D20181203_T0000_0030_Pun_zspc2nc_v1_02_standard.nc4')
 
 '''
 ####################################################################################################################
@@ -174,11 +175,12 @@ if save_spectra_to_png:
     ic = 2
     h0 = 57
 
-    bsp_time = string_to_datetime(LR_lv0, '01:25:00')
-    bsp_height = 1.8
+    bsp_time = string_to_datetime(LR_lv0, '00:20:00')
+    bsp_height = 2
 
     bsp_height0 = min(LR_lv0.height_all, key=lambda x: abs(x - bsp_height))
     bsp_time0 = min(LR_lv0.t_plt, key=lambda x: abs(x - bsp_time))
+
 
     itime = LR_lv0.t_plt.index(bsp_time0)
 
@@ -192,6 +194,11 @@ if save_spectra_to_png:
                 break
         except:
             dummy = 0
+
+     mira_height0 = min(MIRA_lv0.variables['range'], key=lambda x: abs(x - (bsp_height * 1000)))
+
+     mira_timestamp=datetime.datetime.utcfromtimestamp(MIRA_lv0.variables['time'])
+     #mira_time0= min(MIRA_lv0.variables['time'])
 
     # for ic in range(LR_lv0.no_c):
     # for t0 in range(LR_lv0.Time):
@@ -207,7 +214,7 @@ if save_spectra_to_png:
 
     datestring = str(LR_lv0.t_plt[itime])
     idxSpace = str(datestring).find(' ')
-    file = '/home/tvogl/PhD/comparison_limrad_mira/' + date + '_' \
+    file = '/home/tvogl/PhD/comparison_limrad_mira/LIMRad94' + date + '_' \
            + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(LR_lv0.height_all[iheight]) \
            + '_spectra_' + str(i_png).zfill(3) + '.png'
 
@@ -259,3 +266,5 @@ if save_moments_without_noise:
         if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
 
 if pts: print(f'    Total Elapsed Time = {time.clock() - start_time:.3f} sec.\n')
+
+fig, plt, ax = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-60, 20])

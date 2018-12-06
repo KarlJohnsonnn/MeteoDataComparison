@@ -1099,7 +1099,7 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_a=0.0,
     else:
         plot_boundaries = True
 
-    # convert from linear units to logarithic units
+    # convert from linear units to logarithmic units
     doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
 
     x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
@@ -1133,7 +1133,7 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_a=0.0,
     ax.legend(fontsize=13)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
 
-    return fig, plt
+    return fig, plt, ax
 
 
 def Plot_Doppler_Spectra_Wavelet_Transform(ds, vhspec_norm, c, t0, h0, zbound, cwtmatr, widths):
