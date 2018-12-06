@@ -6,6 +6,7 @@ import sys
 
 import netCDF4
 import numpy as np
+import datetime
 
 from modules.Parameter_Mod import *
 from modules.Utility_Mod import datetime_from_seconds
@@ -668,5 +669,5 @@ class MIRA35_spectra():
                                                           axis=0)
 
             nc_data_set.close()
-
-        self.variables.update({'t_plt': [datetime_from_seconds(t) for t in self.variables['time']]})
+        self.variables.update({'t_plt': [datetime.datetime(1070, 1, 1, 0, 0, 0)
+                     + datetime.timedelta(seconds=int(self.variables['time'][i])) for i in range(len(self.variables['time']))]})
