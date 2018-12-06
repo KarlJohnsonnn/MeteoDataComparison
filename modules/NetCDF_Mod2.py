@@ -8,6 +8,7 @@ import netCDF4
 import numpy as np
 
 from modules.Parameter_Mod import *
+from modules.Utility_Mod import datetime_from_seconds
 
 # fixed paramters
 max_MDF_files = 10
@@ -568,13 +569,55 @@ class MIRA35_spectra():
             self.conversion = splitted[4]+'_'+splitted[5]+'_'+splitted[6]
             self.nc_type  = splitted[7]
 
-
             # gathering self.year, self.month, self.day for conversion to UTC time
             self.year = int(date_str[:4])
             self.month = int(date_str[4:6])
             self.day = int(date_str[6:8])
+            self.ncfiles = []
+            self.ncfiles.append(file_path)
 
-        nc_data_set = netCDF4.Dataset(file_path, 'r')
+        else:
+            folder_path = args[0] + 'spectra/'
+            date_str = args[1]
+            time_str = args[2]
+
+            # gathering self.year, self.month, self.day for convertion to UTC time
+            self.time_int = time_str
+            self.year = int(date_str[:2])
+            self.month = int(date_str[2:4])
+            self.day = int(date_str[4:6])
+
+            # set minimum and maximum height (for plotting)
+            self.h_min = args[3][0]
+            self.h_max = args[3][1]
+
+            # count LVx files in the given folder
+            files_path = folder_path + '*' + date_str + '*.nc4'
+            all_ncfiles = [name for name in glob.glob(files_path)]
+
+            # Save only the files which are in between the time_int boundaries
+            try:
+                self.ncfiles = []
+                for iFile in all_ncfiles:
+                    path_to_file, file_name = iFile.rsplit('/', 1)
+                    splitted = file_name.split('_')
+                    time_start = splitted[1][1:]
+                    time_end   = splitted[2]
+                    if time_str[:4] <= time_start <= time_str[-6:-2] and time_str[:4] <= time_end <= time_str[-6:-2]:
+                        self.ncfiles.append(folder_path + file_name)
+
+                self.n_files = len(self.ncfiles)
+
+            except Exception as e:
+                print('Something went wrong during listing of nc4 mira files', e)
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, ' at Line ', exc_tb.tb_lineno)
+
+            # muss noch sortiert werden?????
+            #permutation = np.argsort(np.array(only_times))
+
+        nc_data_set = netCDF4.Dataset(self.ncfiles[0], 'r')
 
         self.dimension_list = list(nc_data_set.dimensions.keys())
         self.variable_list = list(nc_data_set.variables.keys())
@@ -582,7 +625,36 @@ class MIRA35_spectra():
         self.dimensions = dict()
         self.variables = dict()
 
-        for idim in self.dimension_list: self.dimensions.update({idim: nc_data_set.dimensions[idim].size})
-        for ivar in self.variable_list:  self.variables.update({ivar: np.array(nc_data_set.variables[ivar][:])})
+        for idim in self.dimension_list:
+            self.dimensions.update({idim: nc_data_set.dimensions[idim].size})
+        for ivar in self.variable_list:
+            size_var = nc_data_set.variables[ivar].shape
+            if len(size_var) > 1:
+                self.variables.update({ivar: np.transpose(nc_data_set.variables[ivar][:], (2, 1, 0))})
+            else:
+                self.variables.update({ivar: np.array(nc_data_set.variables[ivar][:])})
 
         nc_data_set.close()
+
+        for ifile in range(1, self.n_files):
+
+            nc_data_set = netCDF4.Dataset(self.ncfiles[ifile], 'r')
+
+            for idim in self.dimension_list:
+                self.dimensions[idim] = np.append(self.dimensions[idim], nc_data_set.dimensions[idim].size)
+
+            for ivar in self.variable_list:
+
+                size_var = nc_data_set.variables[ivar].shape
+                if len(size_var) > 1:
+                    self.variables[ivar] = np.concatenate((self.variables[ivar],
+                                                           np.transpose(nc_data_set.variables[ivar][:], (2, 1, 0))),
+                                                          axis=0)
+                else:
+                    self.variables[ivar] = np.concatenate((self.variables[ivar],
+                                                           np.array(nc_data_set.variables[ivar][:])),
+                                                          axis=0)
+
+            nc_data_set.close()
+
+        self.variables.update({'t_plt': [datetime_from_seconds(t) for t in self.variables['time']]})
