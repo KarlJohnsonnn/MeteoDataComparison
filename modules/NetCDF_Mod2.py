@@ -586,6 +586,7 @@ class MIRA35_spectra():
             self.day = int(date_str[6:8])
             self.ncfiles = []
             self.ncfiles.append(file_path)
+            self.n_files = 1
 
         else:
             folder_path = args[0] + 'spectra/'
