@@ -669,5 +669,8 @@ class MIRA35_spectra():
                                                           axis=0)
 
             nc_data_set.close()
+
+        # convert unix time into datetime format for plotting
         self.variables.update({'t_plt': [datetime.datetime(1970, 1, 1, 0, 0, 0)
-                     + datetime.timedelta(seconds=int(self.variables['time'][i])) for i in range(len(self.variables['time']))]})
+                                         + datetime.timedelta(seconds=int(self.variables['time'][i]))
+                                         for i in range(len(self.variables['time']))]})
