@@ -23,8 +23,6 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
    
     The example call to the routine:    $  python LIMRAD94_to_Cloudnet.py 180729 000000 240000 0.0 12.0 
 
-    The path to the netcdf files must contain: [...]/YYMMDD/LVx/
-
 
 ####################################################################################################################
 '''
