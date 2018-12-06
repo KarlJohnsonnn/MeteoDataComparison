@@ -5,7 +5,7 @@ This is the version 0.1 of the Meteorological-Data-Comparision Package. It's per
 
 # Installation
 
-  1.  make sure to install Python 3.6 or a later verison, e.g. go to https://www.anaconda.com/download/ and download depending on your operating system (this may take a while)
+  1.  make sure to install Python 3.6 or a later verison, e.g. go to https://www.anaconda.com/download/ and pick a download depending on your operating system (this may take a while)
       
   
   2.  the following packages are nessessarry, type: conda install [packagename]
