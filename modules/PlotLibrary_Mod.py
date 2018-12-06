@@ -1133,6 +1133,44 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_a=0.0,
     ax.legend(fontsize=13)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
 
+    return fig, plt
+
+
+def Plot_Doppler_Spectra_LIMRad_MIRA(ds, c, t0, h0, zbound,ds2,t1,h1):
+    # ds = Limrad Level 0 file
+    # c = number of chirp
+    # t0 = time index LIMRad
+    # h0 = height index LIMRad
+    # zbound = boundaries for reflectivity axis
+    # ds2 = doppler spectra MIRA
+    # t1 = time index MIRA
+    # h1 = height index LIMRad
+
+    # convert from linear units to logarithmic units
+    doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]), 10.0)
+    doppler_spec_mira = np.multiply(np.ma.log10(ds2.variables['Z'][t1, h1, :]), 10.0)
+    #x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]
+    x1, x2 = [-4, 2]
+    fig, ax = plt.subplots(1,2, figsize=(10, 4))
+    ax[0].plot(ds.DopplerBins[c], doppler_spec, color='blue', linestyle=':', label='Doppler Spec LIMRad')
+    ax[0].set_xlim(left=x1, right=x2)
+    #ax[0].set_ylim(bottom=zbound[0], top=zbound[1])
+    ax[0].set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
+    ax[0].set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
+    ax[0].grid(linestyle=':')
+    ax[0].set_title("Height: " + str(round(ds.height[c][h0], 2)) + " (km);  Time: "
+              + str(ds.t_plt[t0]) + ' (UTC)', fontweight='semibold', fontsize=13)
+    ax[0].legend(fontsize=13)
+    ax[1].plot(ds2.variables['velocity'],doppler_spec_mira, color='blue',linestyle=':', label='Doppler Spec MIRA')
+    ax[1].set_xlim(left=x1, right=x2)
+    ax[1].set_xlabel('Doppler Velocity (m/s)', fontweight='semibold', fontsize=13)
+    ax[1].set_ylabel('Reflectivity (dBZ)', fontweight='semibold', fontsize=13)
+    ax[1].grid(linestyle=':')
+    ax[1].set_title("Height: " + str(round(ds2.dimensions['range'][h1], 2)) + " (km);  Time: "
+                    + str(ds2.variables['t_plt'][t1]) + ' (UTC)', fontweight='semibold', fontsize=13)
+    ax[1].legend(fontsize=13)
+    plt.tight_layout(rect=[0, 0.05, 1, 0.95])
+
     return fig, plt, ax
 
 
