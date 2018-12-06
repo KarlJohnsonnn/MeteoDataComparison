@@ -5,18 +5,19 @@ This is the version 0.1 of the Meteorological-Data-Comparision Package. It's per
 
 # Installation
 
-  1.  make sure to install Python 3.6 or a later verison (use anaconda3 for your discribution)
+  1.  make sure to install Python 3.6 or a later verison, e.g. go to https://www.anaconda.com/download/ and download depending on your operating system (this may take a while)
+      
   
-  2.  the following packages are nessessarry ( type:  pip install [packagename] or conda install [packagename])
-        - numpy
-        - matplotlib
-        - netCDF4
-        - numba
-        - scipy
-        - ...
+  2.  the following packages are nessessarry, type: conda install [packagename]
+     
+     $ conda install -c anaconda numpy
+     $ conda install -c conda-forge matplotlib
+     $ conda install -c conda-forge netcdf4
+     $ conda install -c anaconda numba 
+     $ conda install -c anaconda scipy 
         
-  3. Define global paths via Parameter_Mod.py file in the subfolder modules/. 
-     Make a copy of Parameter_Mod.py_untouched and save it as Parameter_Mod.py. 
+  3. Make a copy of Parameter_Mod.py_untouched and save it as Parameter_Mod.py. 
+     Then define global paths in Parameter_Mod. 
      
     $ cp Parameter_Mod.py_untouched Parameter_Mod.py
     
@@ -25,4 +26,14 @@ This is the version 0.1 of the Meteorological-Data-Comparision Package. It's per
     - meteo_path  = '/Users/willi/data/MeteoData/'              # path to radar data home path
     - LIMRAD_path = '/Users/willi/data/MeteoData/LIMRAD94/'     # path to LIMRAD94 NetCDF files
     - MIRA_path   = '/Users/willi/data/MeteoData/MIRA/'         # path to MIRA NetCDF files
+   
+   The folder structure is as follows:
+    
+      MIRA_parth/mmclx/[files].mmclx
+         --"--  /calibrated/[files].mira
+         --"--  /spectra/[files].nc4
+                 
+      /LIMRAD_path/calibrated/[momentfiles]LV1.NC   
+                --"--        /[spectrafiles].LV0.NC           
+          
   
