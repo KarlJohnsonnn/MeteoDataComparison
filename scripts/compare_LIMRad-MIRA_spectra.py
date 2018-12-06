@@ -52,9 +52,9 @@ else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
     height = 2  # (km)  - height of the spectrum to compare
     date = '181203'  # in YYMMDD
-    time_intervall = '0000-0100'  # in HHMM-HHMM
+    time_intervall = '0100-0200'  # in HHMM-HHMM
     time ='0020' # time of the spectrum to compare
-    spectra_height = [2, 2.5, 5]
+    spectra_height = [2.273, 1.648, 1.416]
 
 
 warnings.filterwarnings("ignore")
@@ -81,14 +81,14 @@ print('     is this the correct folder??')
 LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [height-0.1, height+0.1])
 LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [height-0.1, height+0.1])
 
-spectra_time = [string_to_datetime(LR_lv0, '00:20:00'), string_to_datetime(LR_lv0, '00:20:00'),
-                string_to_datetime(LR_lv0, '00:20:00')]
+spectra_time = [string_to_datetime(LR_lv0, '01:58:09'), string_to_datetime(LR_lv0, '01:30:56'),
+                string_to_datetime(LR_lv0, '01:33:30')]
 
 if pts: print('importing MIRA file...\n')
 
 # ----- MIRA 35GHz Radar data extraction
 
-MIRA_lv0 = nc2.MIRA35_spectra('/home/tvogl/PhD/comparison_limrad_mira/MIRA/spectra/D20181203_T0000_0030_Pun_zspc2nc_v1_02_standard.nc4')
+MIRA_lv0 = nc2.MIRA35_spectra('/home/tvogl/PhD/comparison_limrad_mira/MIRA/spectra/D20181203_T0000_0230_Pun_zspc2nc_v1_02_standard.nc4')
 
 '''
 ####################################################################################################################
@@ -141,10 +141,10 @@ if save_spectra_to_png:
         idxSpace = str(datestring).find(' ')
         file = '/home/tvogl/PhD/comparison_limrad_mira/' + date + '_' \
               + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(LR_lv0.height_all[iheight]) \
-              + 'LIMRad_MIRA_spectra_' + str(i_png).zfill(3) + '.png'
+              + 'LIMRad_MIRA_spectra_' + '.png'
 
         fig.savefig(file, dpi=100, format='png')
         plt.close()
         if pts:
-           print("    Save spectra: {} of {} ".format(i_png, n_png), end="\r")
+           print("    Save spectra: {} ".format(i_png+1), end="\r")
         i_png += 1
