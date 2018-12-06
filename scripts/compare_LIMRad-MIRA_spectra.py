@@ -131,7 +131,7 @@ if save_spectra_to_png:
                     break
             except:
                 dummy = 0
-        mira_height0 = min(MIRA_lv0.variables['range'], key=lambda x: abs(x - (bsp_height * 100)))
+        mira_height0 = min(MIRA_lv0.variables['range'], key=lambda x: abs(x - (bsp_height * 1000)))
         mira_time0 = min(MIRA_lv0.variables['t_plt'], key=lambda  x: abs(x - bsp_time))
         mitime = MIRA_lv0.variables['t_plt'].index(mira_time0)
         miheight = list(MIRA_lv0.variables['range']).index(mira_height0)
