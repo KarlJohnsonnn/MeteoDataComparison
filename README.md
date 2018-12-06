@@ -33,7 +33,7 @@ This is the version 0.1 of the Meteorological-Data-Comparision Package. It's per
          --"--  /calibrated/[files].mira
          --"--  /spectra/[files].nc4
                  
-      /LIMRAD_path/calibrated/[momentfiles]LV1.NC   
+      /LIMRAD_path/calibrated/[momentfiles].LV1.NC   
                 --"--        /[spectrafiles].LV0.NC           
           
   
