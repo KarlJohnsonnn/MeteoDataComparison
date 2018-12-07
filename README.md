@@ -46,7 +46,7 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
  
     ![Spectra of LIMRAD94 (blue) and MIRA35 (red)](PNG/20181203_01:30:57_1.64028LIMRad_MIRA_spectra_.png)
    
- - **download_plot_sounding.py:** Download and save plot and metadata of soundings of station 'SCCI'. Two external packages have to be installed:
+ - **download_plot_sounding.py:** Download and save plot and metadata of soundings of station 'SCCI' provided by http://weather.uwyo.edu/upperair/sounding.html . Two external packages have to be installed:
        
        $ conda install -c conda-forge metpy
        $ conda install -c conda-forge siphon
