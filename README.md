@@ -62,10 +62,10 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
  
  - **Compare_MDFs.py:** Compare the dimensions and variables of two LIMRAD94 files. This is for a quick look of differences in performance of the RPG 94GHz radar. The user specifies two files ( *file1* and *file2* ) in the Compare_MDFs.py script, a list of dimensions and a list of variables of interest. Example lists:
  
- ```python
-    constants_to_compare = ['AvgNum', 'NoiseFilt', 'SampDur', 'MaxVel', 'DoppRes']
-    variables_to_compare = ['SeqIntTime', 'QualFlag', 'Status', 'TPow']
- ```
+       ```python
+       constants_to_compare = ['AvgNum', 'NoiseFilt', 'SampDur', 'MaxVel', 'DoppRes']
+       variables_to_compare = ['SeqIntTime', 'QualFlag', 'Status', 'TPow']
+       ```
  
    Start the routine with:
  
@@ -77,7 +77,9 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
  
     ![Spectra and wavelet transform](PNG/180810_05:20:16-05:29:57_6.49963_spectra_001.gif)
  
- - **Spectra_to_Moments.py:** Calculates the radar moments Ze (reflectivity), mdv (mean Doppler velocity), sw (spectral width), skew (skewness), and kurt (kurtosis) from LV0 NetCDF4 files provides by the RPG 94GHz radar. The user is able to specify the number of standart deviations above the mean noise for the threshold where noise is cut. 
+ - **Spectra_to_Moments.py:** Calculates the radar moments Ze (reflectivity), mdv (mean Doppler velocity), sw (spectral width), skew (skewness), and kurt (kurtosis) from LV0 NetCDF4 files provides by the RPG 94GHz radar. The user is able to specify the number of standart deviations above the mean noise for the threshold where noise is cut. Calling the routine from bash requires additional arguments, e.g.: date in YYYYMMDD, time intervall (from-to) in HHMMSS HHMMSS, minimum height in km (two floats) and the number of standart deviations. Example call:
+ 
+       $ python Spectra_to_Moments.py 20180810 050000 060000 0.0 12.0 2.0
 
     ![Noisy LV1 files and calculated moments from LV0 files](PNG/180810_NoiseFac0_Lv1_Lv0moments_no_noise.png)
     ![Calculated radar moments for different noise thresholds](PNG/Ze_stddiv.gif)
