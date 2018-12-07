@@ -2,6 +2,7 @@
 # THE FOLLOWING 3 LINES ARE NECESSARY FOR INPUT OF modules/ FOLDER !!!
 #
 import sys, os
+
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
 ########################################################################################################################
@@ -36,7 +37,6 @@ import modules.NetCDF_Mod as nc
 from modules.PlotLibrary_Mod import *
 from modules.Utility_Mod import *
 
-
 start_time = time.clock()
 
 n_std_diviations = 6.0
@@ -65,7 +65,6 @@ else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
     date = '20180810'  # in YYYYMMDD
     time_intervall = '052000-053000'  # in HHMMSS-HHMMSS
-
 
 warnings.filterwarnings("ignore")
 
@@ -125,10 +124,12 @@ if calc_doppler_spectra:
 
     tstart = time.time()
 
+    # fill values needs to be masked for noise removal otherwise wrong results
     for ic in range(LR_lv0.no_c):
         LR_lv0.VHSpec[ic] = np.ma.masked_less_equal(LR_lv0.VHSpec[ic], -999.0)
 
-    # Estimate Noise Floor using Hildebrand & Sekhon Algorithm
+    # Estimate Noise Floor for all chirps, timesteps and heighsteps aka. for all pixels
+    # Algorithm used: Hildebrand & Sekhon
     mean_noise, threshold, variance, numnoise, integration_bounds = remove_noise(LR_lv0, n_std_diviations)
     if pts: print('    - all noise removed ')
 
@@ -137,12 +138,16 @@ if calc_doppler_spectra:
             integration_bounds[ic][:, :, 0] = 0
             integration_bounds[ic][:, :, 1] = -1
 
-
+    #  dimensions:
+    #       -   LR_lv0.VHSpec       [Nchirps][Ntime,Nheight]
+    #       -   LR_lv0.DopplerBins  [Nchirps]
+    #       -   integration_bounds  [2]
+    #       -   DoppRes             [Nchirps]
     output = spectra_to_moments(LR_lv0.VHSpec, LR_lv0.DopplerBins, integration_bounds, LR_lv0.DoppRes)
 
     if pts:
         print('    - moments calculated \n')
-        print(f'    Elapsed time for noise floor estimation and plotting = {time.time()-tstart:.3f} sec.')
+        print(f'    Elapsed time for noise floor estimation and plotting = {time.time() - tstart:.3f} sec.')
 
     LR_lv0.ZeLin = output[0].T
     LR_lv0.Ze = np.ma.log10(LR_lv0.ZeLin) * 10.0
@@ -155,6 +160,11 @@ if calc_doppler_spectra:
     LR_lv0.diffmdv = np.ma.subtract(LR_lv0.mdv, LR_lv1.mdv)
     LR_lv0.diffsw = np.ma.subtract(LR_lv0.sw, LR_lv1.sw)
 
+    # print mean differences of Ze, mdv, sw
+    compare_datasets(LR_lv0, LR_lv1)
+
+    # this is just for debugging
+
 #    for iT in range(LR_lv0.n_time):
 #        for iR in range(len(LR_lv0.height_all)):
 #            print(' difference l0mom - l1mom = {}:{}:{}'.format(LR_lv0.t_plt[iT].hour,
@@ -162,7 +172,6 @@ if calc_doppler_spectra:
 #                                                                LR_lv0.t_plt[iT].second),
 #                  '  height = {:.5f} (km)    diffmdv '.format(LR_lv0.height_all[iR]), LR_lv0.diffmdv[iR, iT])
 
-    compare_datasets(LR_lv0, LR_lv1)
 
 ########################################################################################################################
 ########################################################################################################################
@@ -180,7 +189,6 @@ if save_spectra_to_png:
         iheight = 58
         itime = 50
 
-
     # for ic in range(LR_lv0.no_c):
     for t0 in range(LR_lv0.Time):
         itime = t0
@@ -197,7 +205,7 @@ if save_spectra_to_png:
 
         datestring = str(LR_lv0.t_plt[itime])
         idxSpace = str(datestring).find(' ')
-        file = '/Users/willi/data/MeteoData/LIMRad94/PNG2/' + date + '_' \
+        file = LIMRAD_path + 'PNG2/' + date + '_' \
                + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(LR_lv0.height[ichirp][iheight]) \
                + '_spectra_' + str(i_png).zfill(3) + '.png'
 
@@ -248,5 +256,4 @@ if save_moments_without_noise:
 
         if pts: print('    Save Figure to File :: ' + meteo_path + file + '\n')
 
-
-if pts: print(f'    Total Elapsed Time = {time.clock()-start_time:.3f} sec.\n')
+if pts: print(f'    Total Elapsed Time = {time.clock() - start_time:.3f} sec.\n')

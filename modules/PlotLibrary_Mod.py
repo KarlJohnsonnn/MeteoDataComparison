@@ -35,8 +35,8 @@ def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max,
             cbar.set_ticklabels([0.1, 0.2, 0.5, 1, 2])
             cbar.set_label(z_lab)
     elif text.find('ldr') > 0 or text.find('Linear Depolarisation Ratio') > 0:
-        colors1 = plt.cm.binary(np.linspace(0.5, 0.5, 1))
-        colors2 = plt.cm.jet(np.linspace(0, 0, 178))
+        colors1 = plt.cm.binary(0.5)
+        colors2 = plt.cm.jet(np.zeros(1, 178))
         colors3 = plt.cm.jet(np.linspace(0, 1, 77))
         colors = np.vstack((colors1, colors2, colors3))
         mymap = mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
@@ -409,7 +409,7 @@ def Plot_Radar_Results(ds1, ds2):
     plot_data_set(fig, mira_Zg_plot, '',
                   ds2.t_plt, ds2.height, ds2.Ze, vmi=-50, vma=20,
                   x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
+                  x_lab='', y_lab=y_label, z_lab=z_label, p='r')
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -429,7 +429,7 @@ def Plot_Radar_Results(ds1, ds2):
     plot_data_set(fig, mira_VELg_plot, '',
                   ds2.t_plt, ds2.height, ds2.mdv, vmi=-4, vma=2,
                   x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
+                  x_lab='', y_lab=y_label, z_lab=z_label, p='r')
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -448,7 +448,7 @@ def Plot_Radar_Results(ds1, ds2):
     plot_data_set(fig, mira_RMSg_plot, 'sw',
                   ds2.t_plt, ds2.height, ds2.sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
                   x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label)
+                  x_lab='', y_lab=y_label, z_lab=z_label, p='r')
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -468,7 +468,7 @@ def Plot_Radar_Results(ds1, ds2):
     plot_data_set(fig, mira_ldr_plot, '',
                   ds2.t_plt, ds2.height, ds2.ldr, vmi=-30, vma=0,
                   x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label)
+                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
 
     if pts: print('\u2713\n')  # #print checkmark (✓) on screen
 

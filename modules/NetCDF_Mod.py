@@ -842,26 +842,30 @@ class MIRA35_LV1():
             exit(0)
 
         elif len(args) == 1:
-            date     = args[0]
+            file_path= args[0]
+            date     = args[1]
             time_int = '000000-240000'
             h_bounds = [0.0, 12.0]
             fext     = '*mira.nc'
         elif len(args) < 4:
-            date     = args[0]
-            time_int = args[1]
-            h_bounds = args[2]
+            file_path= args[0]
+            date     = args[1]
+            time_int = args[2]
+            h_bounds = args[3]
             fext     = '*mira.nc'
         else:
-            date     = args[0]
-            time_int = args[1]
-            h_bounds = args[2]
-            fext     = args[3]
+            file_path= args[0]
+            date     = args[1]
+            time_int = args[2]
+            h_bounds = args[3]
+            fext     = args[4]
 
 
-        comp_hours = [int(time_int[0:2]), int(time_int[5:7])]
-        comp_minutes = [int(time_int[2:4]), int(time_int[7:9])]
+        comp_hours = [int(time_int[:2]), int(time_int[7:9])]
+        comp_minutes = [int(time_int[2:4]), int(time_int[9:11])]
+        comp_seconds = [int(time_int[4:6]), int(time_int[11:])]
 
-        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
+        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.) + np.divide(comp_seconds, 3600.)
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
         self.year  = int(date[:4])
