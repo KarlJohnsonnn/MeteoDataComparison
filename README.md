@@ -69,6 +69,6 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
     ![Noisy LV1 files and calculated moments from LV0 files](PNG/180810_NoiseFac0_Lv1_Lv0moments_no_noise.png)
     ![Calculated radar moments for different noise thresholds](PNG/Ze_stddiv.gif)
 
- - PlaygroundNC_Toolv2.py: Call to input routines for LIMRAD94 and MIRA35 files, also good for quicklooks.
+ - **PlaygroundNC_Toolv2.py:** Call to input routines for LIMRAD94 and MIRA35 files, also good for quicklooks.
  
     ![Quicklook of LIMRAD94 and MIRA35 data](PNG/180729_profiles_timeseries.png)
