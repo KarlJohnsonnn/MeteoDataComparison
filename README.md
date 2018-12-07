@@ -60,7 +60,13 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
       
        $ python LIMRAD94_to_Cloudnet.py 20180729 000000 240000
  
- - **Compare_MDFs.py:** Compare the dimensions and variables of two LIMRAD94 files. This is for a quick look of differences in performance of the RPG 94GHz radar. The user specifies two files ( *file1* and *file2* ) in the Compare_MDFs.py script, a list of dimensions and a list of variables of interest. Start the routine with:
+ - **Compare_MDFs.py:** Compare the dimensions and variables of two LIMRAD94 files. This is for a quick look of differences in performance of the RPG 94GHz radar. The user specifies two files ( *file1* and *file2* ) in the Compare_MDFs.py script, a list of dimensions and a list of variables of interest. Example lists:
+ 
+ '''python
+    constants_to_compare = ['AvgNum', 'NoiseFilt', 'SampDur', 'MaxVel', 'DoppRes']
+    variables_to_compare = ['SeqIntTime', 'QualFlag', 'Status', 'TPow']
+ '''
+   Start the routine with:
  
        $ python Compare_MDFs.py
  
