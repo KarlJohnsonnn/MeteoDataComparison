@@ -51,19 +51,18 @@ if pts:
 
 # gather arguments
 
-if len(sys.argv) >= 6:
+h_min = 0.0  # (km)  - lower y-axis limit
+h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
+if len(sys.argv) >= 4:
     date = str(sys.argv[1])
     time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
-    h_min, h_max = float(sys.argv[4]), float(sys.argv[5])
-
+    if len(sys.argv) >= 6:
+        h_min, h_max = float(sys.argv[4]), float(sys.argv[5])
     if len(sys.argv) == 7:
         n_std_diviations = float(sys.argv[6])
 
 else:
-
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-    h_min = 0.0  # (km)  - lower y-axis limit
-    h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
     date = '20180810'  # in YYYYMMDD
     time_intervall = '050000-060000'  # in HHMMSS-HHMMSS
 
