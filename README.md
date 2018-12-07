@@ -44,7 +44,7 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
  
  - compare_LIMRad-MIRA_spectra.py: Generating plots of LIMRAD94 and MIRA35 spectra.
  
-    ![alt text](https://github.com/KarlJohnsonnn/MeteoDataComparison/blob/master/PNG/20181203_01:30:57_1.64028LIMRad_MIRA_spectra_.png)
+    ![Spectra of LIMRAD94 (blue) and MIRA35 (red)](PNG/20181203_01:30:57_1.64028LIMRad_MIRA_spectra_.png)
    
  - download_plot_sounding.py: Download and save plot and metadata of soundings of station 'SCCI'. Two external packages have to be installed:
        
@@ -54,10 +54,13 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
    Input parameter: YYYY MM DD HH. Expample call for the routine: 
  
        $ python download_plot_sounding.py 2018 12 3 12
-    ![alt text](https://github.com/KarlJohnsonnn/MeteoDataComparison/blob/master/PNG/20181203_12_SCCI_sounding.png)
+    ![Sounding from 2018 Dez. 3 at 12 (UTC)](PNG/20181203_12_SCCI_sounding.png)
     
  - LIMRAD94_to_Cloudnet.py: Concatinates LIMRAD94 LV1 files to one daily file and generate a NetCDF4 file for the input to the Cloudnet Matlab routines.
  
  - Compare_MDFs.py: Compare the dimensions and variables of two LIMRAD94 files. This is for a quick look of differences in performance of the RPG 94GHz radar. The user specifies two files in the Compare_MDFs.py script, a list of dimensions and a list of variables of interest.
  
- - 
+ - Show_spectra.py: Generates a series of spectrum(dBZ)/normalized spectrum(-)/wavelet transformation plots and save it as png for later concatination to gif file.  
+ 
+ - Spectra_to_Moments.py: Calculates the radar moments Ze (reflectivity), mdv (mean Doppler velocity), sw (spectral width), skew (skewness), and kurt (kurtosis) from LV0 NetCDF4 files provides by the RPG 94GHz radar. The user is able to specify the number of standart deviations for the threshold where noise is cut. 
+
