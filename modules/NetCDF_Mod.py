@@ -41,9 +41,9 @@ class LIMRAD94_LV0():
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
         self.time_int = time_int
-        self.year = int('20' + date[:2])
-        self.month = int(date[2:4])
-        self.day = int(date[4:6])
+        self.year = int(date[:4])
+        self.month = int(date[4:6])
+        self.day = int(date[6:8])
 
         time = [0, 0, 0, 0]
         time[0] = datetime.datetime(self.year, self.month, self.day, hour=int(comp_hours[0]),
@@ -64,7 +64,7 @@ class LIMRAD94_LV0():
         self.ncfiles = []
         for il in range_file_list:
             try:
-                file_name = glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV0.NC')
+                file_name = glob.glob('*'+ date[2:] +'_' + str(il).zfill(2) + '*.LV0.NC')
                 self.ncfiles.append(file_name)
 
             except Exception as e:
@@ -405,7 +405,7 @@ class LIMRAD94_LV1():
 
         elif len(args) == 1:
             date     = args[0]
-            time_int = '0000-2400'
+            time_int = '000000-240000'
             h_bounds = [0.0, 12.0]
 
         else:
@@ -420,9 +420,9 @@ class LIMRAD94_LV1():
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
         self.time_int = time_int
-        self.year = int('20' + date[:2])
-        self.month = int(date[2:4])
-        self.day = int(date[4:6])
+        self.year = int(date[:4])
+        self.month = int(date[4:6])
+        self.day = int(date[6:8])
 
         time = [0, 0, 0, 0]
         time[0] = datetime.datetime(self.year, self.month, self.day, hour=int(comp_hours[0]), minute=int(comp_minutes[0]))
@@ -441,7 +441,7 @@ class LIMRAD94_LV1():
         self.ncfiles = []
         for il in range_file_list:
             try:
-                file_name = glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV1.NC')
+                file_name = glob.glob('*'+ date[2:] +'_' + str(il).zfill(2) + '*.LV1.NC')
                 self.ncfiles.append(file_name)
 
             except Exception as e:
@@ -822,7 +822,7 @@ class MIRA35_LV1():
 
         elif len(args) == 1:
             date     = args[0]
-            time_int = '0000-2400'
+            time_int = '000000-240000'
             h_bounds = [0.0, 12.0]
             fext     = '*mira.nc'
         elif len(args) < 4:
@@ -843,9 +843,9 @@ class MIRA35_LV1():
         clock = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
-        self.year  = int('20' + date[:2])
-        self.month = int(date[2:4])
-        self.day   = int(date[4:6])
+        self.year  = int(date[:4])
+        self.month = int(date[4:6])
+        self.day   = int(date[6:8])
 
         time = [0, 0, 0, 0]
         time[0] = datetime.datetime(self.year, self.month, self.day, hour=int(comp_hours[0]), minute=int(comp_minutes[0]))
@@ -857,7 +857,7 @@ class MIRA35_LV1():
 
         if fext == '*mira.nc':
             os.chdir(MIRA_path + 'calibrated/')  # path to data needs to be fit to the devices file structure
-            self.ncfiles = glob.glob('20' + date + '*mira.nc')
+            self.ncfiles = glob.glob(date +'*mira.nc')
 
             #if pts: print("    Loading MIRA35 (mira.nc) NC-files ({} of {})".format(0, 1), end="\r")
 
@@ -945,7 +945,7 @@ class MIRA35_LV1():
 
             self.ncfiles = []
             for il in range_file_list:
-                file_name = str(glob.glob('20' + date + '_' + str(il).zfill(2) + '*.mmclx'))
+                file_name = str(glob.glob(date +'_' + str(il).zfill(2) + '*.mmclx'))
                 self.ncfiles.append(file_name[2:-2])
 
             if file_name[2:-2] == '':

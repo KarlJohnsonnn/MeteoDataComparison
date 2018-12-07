@@ -90,15 +90,15 @@ class LIMRAD94():
                 self.h_max = heightminmax[1]
 
                 # check path for LV0 or LV1 files, if subfolder /LVx/ (x=0 or x=1) not existent raise error
-#                try:
-#                    pos_lvl = folder_path.find('LV')
-#                    if pos_lvl < 0: raise Exception('Folder path does not contain LVx information (x=0 or x=1)!')
-#                except Exception as e:
-#                    print('Something went wrong:', e)
-#                    print('Change to: [path_to_data]/YYMMDD/LVx/')
-#                    sys.exit()
-#                else:
-#                    self.lvl = folder_path[pos_lvl:pos_lvl + 3]
+                #                try:
+                #                    pos_lvl = folder_path.find('LV')
+                #                    if pos_lvl < 0: raise Exception('Folder path does not contain LVx information (x=0 or x=1)!')
+                #                except Exception as e:
+                #                    print('Something went wrong:', e)
+                #                    print('Change to: [path_to_data]/YYMMDD/LVx/')
+                #                    sys.exit()
+                #                else:
+                #                    self.lvl = folder_path[pos_lvl:pos_lvl + 3]
 
                 # count LVx files in the given folder
                 files_path = folder_path + '*' + date_str + '*' + self.lvl + '.NC'
@@ -244,7 +244,6 @@ class LIMRAD94():
         i_nc_file = 0
         n_nc_file = self.n_files
 
-
         for iMDF in range(len(self.num_MDF)):
             self.time_series_1D[iMDF] = dict()
             self.time_series_2D[iMDF] = dict()
@@ -338,8 +337,10 @@ class LIMRAD94():
                     regex = re.compile('C' + str(iC))
                     match = re.match(regex, ivar)
 
-                    if ivar.find('Spec') > 0 > ivar.find('SpecW'): spec_log = True
-                    else: spec_log = False
+                    if ivar.find('Spec') > 0 > ivar.find('SpecW'):
+                        spec_log = True
+                    else:
+                        spec_log = False
 
                     if match is not None:
                         try:
@@ -550,7 +551,6 @@ class cloudnet_categorization:
 
 
 class MIRA35_spectra():
-
     '''
         Input arguments for initialization of the MIRA35_spectra either:
 
@@ -578,8 +578,8 @@ class MIRA35_spectra():
             self.time_start = splitted[1][1:]
             self.time_end = splitted[2]
             self.location = splitted[3]
-            self.conversion = splitted[4]+'_'+splitted[5]+'_'+splitted[6]
-            self.nc_type  = splitted[7]
+            self.conversion = splitted[4] + '_' + splitted[5] + '_' + splitted[6]
+            self.nc_type = splitted[7]
 
             # gathering self.year, self.month, self.day for conversion to UTC time
             self.year = int(date_str[:4])
@@ -596,13 +596,17 @@ class MIRA35_spectra():
 
             # gathering self.year, self.month, self.day for convertion to UTC time
             self.time_int = time_str
-            self.year = int(date_str[:2])
-            self.month = int(date_str[2:4])
-            self.day = int(date_str[4:6])
+            self.year = int(date_str[:4])
+            self.month = int(date_str[4:6])
+            self.day = int(date_str[6:8])
 
             # set minimum and maximum height (for plotting)
-            self.h_min = args[3][0]
-            self.h_max = args[3][1]
+            if len(args) == 4:
+                self.h_min = args[3][0]
+                self.h_max = args[3][1]
+            else:
+                self.h_min = 0.
+                self.h_max = 12.
 
             # count LVx files in the given folder
             files_path = folder_path + '*' + date_str + '*.nc4'
@@ -614,9 +618,10 @@ class MIRA35_spectra():
                 for iFile in all_ncfiles:
                     path_to_file, file_name = iFile.rsplit('/', 1)
                     splitted = file_name.split('_')
-                    time_start = splitted[1][1:]
-                    time_end   = splitted[2]
-                    if time_str[:4] <= time_start <= time_str[-6:-2] and time_str[:4] <= time_end <= time_str[-6:-2]:
+                    time_start = int(splitted[1][1:])
+                    time_end = int(splitted[2])
+                    if int(time_str[:4]) <= time_start <= int(time_str[-4:]) \
+                            and int(time_str[:4]) <= time_end <= int(time_str[-4:]):
                         self.ncfiles.append(folder_path + file_name)
 
                 self.n_files = len(self.ncfiles)
@@ -628,7 +633,7 @@ class MIRA35_spectra():
                 print(exc_type, fname, ' at Line ', exc_tb.tb_lineno)
 
             # muss noch sortiert werden?????
-            #permutation = np.argsort(np.array(only_times))
+            # permutation = np.argsort(np.array(only_times))
 
         nc_data_set = netCDF4.Dataset(self.ncfiles[0], 'r')
 
@@ -660,17 +665,16 @@ class MIRA35_spectra():
 
                 size_var = nc_data_set.variables[ivar].shape
                 if len(size_var) > 1:
-                    self.variables[ivar] = np.concatenate((self.variables[ivar],
-                                                           np.transpose(nc_data_set.variables[ivar][:], (2, 1, 0))),
-                                                          axis=0)
+                    self.variables[ivar] = \
+                        np.concatenate((self.variables[ivar], np.transpose(nc_data_set.variables[ivar][:], (2, 1, 0))),
+                                       axis=0)
                 else:
-                    self.variables[ivar] = np.concatenate((self.variables[ivar],
-                                                           np.array(nc_data_set.variables[ivar][:])),
-                                                          axis=0)
+                    if ivar != 'velocity':
+                        self.variables[ivar] = \
+                            np.concatenate((self.variables[ivar], np.array(nc_data_set.variables[ivar][:])), axis=0)
 
             nc_data_set.close()
 
         # convert unix time into datetime format for plotting
         self.variables.update({'t_plt': [datetime.datetime(1970, 1, 1, 0, 0, 0)
-                                         + datetime.timedelta(seconds=int(self.variables['time'][i]))
-                                         for i in range(len(self.variables['time']))]})
+                                         + datetime.timedelta(seconds=int(itime)) for itime in self.variables['time']]})

@@ -51,7 +51,7 @@ else:
     hour  = 12
 
 
-date = datetime(2018, 12, 3, 12)
+date = datetime(year, month, day, hour)
 station = 'SCCI'
 
 ####################################################

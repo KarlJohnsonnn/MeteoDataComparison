@@ -7,8 +7,8 @@ __pycache__/
 
 # exclude plots in main folder
 *.log
-*.png
-*.gif
+#*.png
+#*.gif
 
 # exclude cached stuff
 venv*
