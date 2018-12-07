@@ -37,3 +37,9 @@ This is the version 0.1 of the Meteorological-Data-Comparision Package. It's per
                 --"--        /[spectrafiles].LV0.NC           
           
   
+
+# Examples
+
+The scripts/ subfolder contains different excecutable programs, developed for specific tasks. The list below summarizes the main task of all scripts.
+ 
+ - 
