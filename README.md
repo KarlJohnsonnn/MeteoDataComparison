@@ -73,7 +73,7 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
  
  - **Show_spectra.py:** Generates a series of spectrum(dBZ)/normalized spectrum(-)/wavelet transformation plots and save it as png for later concatination to gif file.  
  
-       $ python Show_Spectra.py 20180810 0500 0600 0.0 12.0
+       $ python Show_Spectra.py 20180810 050000 060000 0.0 12.0
  
     ![Spectra and wavelet transform](PNG/180810_05:20:16-05:29:57_6.49963_spectra_001.gif)
  
