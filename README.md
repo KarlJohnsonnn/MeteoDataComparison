@@ -58,13 +58,15 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
     
  - **LIMRAD94_to_Cloudnet.py:** Concatinates LIMRAD94 LV1 files to one daily file and generate a NetCDF4 file for the input to the Cloudnet Matlab routines. Calling the routine from bash requires additional arguments, e.g.: date in YYYYMMDD and time intervall (from-to) in HHMMSS HHMMSS
       
-       $ python LIMRAD94_to_Cloudnet.py 180729 000000 240000
+       $ python LIMRAD94_to_Cloudnet.py 20180729 000000 240000
  
  - **Compare_MDFs.py:** Compare the dimensions and variables of two LIMRAD94 files. This is for a quick look of differences in performance of the RPG 94GHz radar. The user specifies two files ( *file1* and *file2* ) in the Compare_MDFs.py script, a list of dimensions and a list of variables of interest. Start the routine with:
  
        $ python Compare_MDFs.py
  
  - **Show_spectra.py:** Generates a series of spectrum(dBZ)/normalized spectrum(-)/wavelet transformation plots and save it as png for later concatination to gif file.  
+ 
+       $ python Show_Spectra.py 20180810 0500 0600 0.0 12.0
  
     ![Spectra and wavelet transform](PNG/180810_05:20:16-05:29:57_6.49963_spectra_001.gif)
  
