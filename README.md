@@ -51,8 +51,13 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
        $ conda install -c conda-forge metpy
        $ conda install -c conda-forge siphon
  
- Input parameter: YYYY MM DD HH. Expample call for the routine: 
+   Input parameter: YYYY MM DD HH. Expample call for the routine: 
  
        $ python download_plot_sounding.py 2018 12 3 12
     ![alt text](https://github.com/KarlJohnsonnn/MeteoDataComparison/blob/master/PNG/20181203_12_SCCI_sounding.png)
     
+ - LIMRAD94_to_Cloudnet.py: Concatinates LIMRAD94 LV1 files to one daily file and generate a NetCDF4 file for the input to the Cloudnet Matlab routines.
+ 
+ - Compare_MDFs.py: Compare the dimensions and variables of two LIMRAD94 files. This is for a quick look of differences in performance of the RPG 94GHz radar. The user specifies two files in the Compare_MDFs.py script, a list of dimensions and a list of variables of interest.
+ 
+ - 
