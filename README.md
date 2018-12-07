@@ -62,5 +62,7 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
  
  - Show_spectra.py: Generates a series of spectrum(dBZ)/normalized spectrum(-)/wavelet transformation plots and save it as png for later concatination to gif file.  
  
+    ![Spectra and wavelet transform](PNG/180810_05:20:16-05:29:57_6.49963_spectra_001.gif)
+ 
  - Spectra_to_Moments.py: Calculates the radar moments Ze (reflectivity), mdv (mean Doppler velocity), sw (spectral width), skew (skewness), and kurt (kurtosis) from LV0 NetCDF4 files provides by the RPG 94GHz radar. The user is able to specify the number of standart deviations for the threshold where noise is cut. 
 
