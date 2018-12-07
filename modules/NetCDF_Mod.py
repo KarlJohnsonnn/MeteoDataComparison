@@ -18,26 +18,30 @@ class LIMRAD94_LV0():
 
     def __init__(self, *args):
 
-        os.chdir(LIMRAD_path)  # path to data needs to be fit to the devices file structure
 
         if len(args) < 1:
             print('You need to specify a date at least!')
             exit(0)
 
         elif len(args) == 1:
-            date = args[0]
-            time_int = '0000-2400'
+            file_path = args[0]
+            date = args[1]
+            time_int = '000000-240000'
             h_bounds = [0.0, 12.0]
 
         else:
-            date = args[0]
-            time_int = args[1]
-            h_bounds = args[2]
+            file_path = args[0]
+            date = args[1]
+            time_int = args[2]
+            h_bounds = args[3]
 
-        comp_hours = [int(time_int[0:2]), int(time_int[5:7])]
-        comp_minutes = [int(time_int[2:4]), int(time_int[7:9])]
+        os.chdir(file_path)  # path to data needs to be fit to the devices file structure
 
-        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
+        comp_hours = [int(time_int[:2]), int(time_int[7:9])]
+        comp_minutes = [int(time_int[2:4]), int(time_int[9:11])]
+        comp_seconds = [int(time_int[4:6]), int(time_int[11:])]
+
+        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.) + np.divide(comp_seconds, 3600.)  # [hours] + [minutes]/60# + [seconds]
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
         self.time_int = time_int
@@ -64,12 +68,11 @@ class LIMRAD94_LV0():
         self.ncfiles = []
         for il in range_file_list:
             try:
-                file_name = glob.glob('*'+ date[2:] +'_' + str(il).zfill(2) + '*.LV0.NC')
+                file_name = glob.glob('*' + date[2:] + '_' + str(il).zfill(2) + '*.LV0.NC')
                 self.ncfiles.append(file_name)
 
             except Exception as e:
                 print('Something went wrong:', e)
-                print('Change to: [path_to_data]/YYMMDD/LVx/')
                 print('   Error!  File not found --> exit!')
                 exit(0)
 
@@ -397,26 +400,29 @@ class LIMRAD94_LV1():
 
     def __init__(self, *args):
 
-        os.chdir(LIMRAD_path)  # path to data needs to be fit to the devices file structure
-
         if len(args) < 1:
             print('You need to specify a date at least!')
             exit(0)
 
         elif len(args) == 1:
-            date     = args[0]
+            file_path = args[0]
+            date = args[1]
             time_int = '000000-240000'
             h_bounds = [0.0, 12.0]
 
         else:
-            date     = args[0]
-            time_int = args[1]
-            h_bounds = args[2]
+            file_path = args[0]
+            date = args[1]
+            time_int = args[2]
+            h_bounds = args[3]
 
-        comp_hours   = [int(time_int[0:2]), int(time_int[5:7])]
-        comp_minutes = [int(time_int[2:4]), int(time_int[7:9])]
+        os.chdir(file_path)  # path to data needs to be fit to the devices file structure
 
-        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
+        comp_hours = [int(time_int[:2]), int(time_int[7:9])]
+        comp_minutes = [int(time_int[2:4]), int(time_int[9:11])]
+        comp_seconds = [int(time_int[4:6]), int(time_int[11:])]
+
+        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.) + np.divide(comp_seconds, 3600.)  # [hours] + [minutes]/60# + [seconds]
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
         self.time_int = time_int
@@ -441,7 +447,7 @@ class LIMRAD94_LV1():
         self.ncfiles = []
         for il in range_file_list:
             try:
-                file_name = glob.glob('*'+ date[2:] +'_' + str(il).zfill(2) + '*.LV1.NC')
+                file_name = glob.glob('*' + date[2:] + '_' + str(il).zfill(2) + '*.LV1.NC')
                 self.ncfiles.append(file_name)
 
             except Exception as e:
