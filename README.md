@@ -42,4 +42,5 @@ This is the version 0.1 of the Meteorological-Data-Comparision Package. It's per
 
 The scripts/ subfolder contains different excecutable programs, developed for specific tasks. The list below summarizes the main task of all scripts.
  
- - 
+ - compare_LIMRad-MIRA_spectra.py
+   ![alt text](https://github.com/KarlJohnsonnn/MeteoDataComparison/blob/master/PNG/20181203_01:30:57_1.64028LIMRad_MIRA_spectra_.png)
