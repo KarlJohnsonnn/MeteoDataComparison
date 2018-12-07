@@ -20,10 +20,10 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
 
 
 
-    The example call to the routine: user$  python Show_Spectra.py 180810 0500 0600 0.0 12.0
-                                                                    |      |    |    |   |
-                                                                   date   from to  from  to
-                                                                            (UTC)     (km)
+    The example call to the routine: user$  python Show_Spectra.py 20180810 050000 060000 0.0 12.0
+                                                                      |       |      |     |    |
+                                                                     date    from    to   from  to
+                                                                                (UTC)        (km)
 
     The user has to specify the path to the LIMRAD94 LV0 and LV1 files under modules/Parameter_Mod.py !
 
@@ -57,8 +57,8 @@ else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
     h_min = 0.0  # (km)  - lower y-axis limit
     h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '180810'  # in YYMMDD
-    time_intervall = '0500-0600'  # in HHMM-HHMM
+    date = '20180810'  # in YYMMDD
+    time_intervall = '050000-060000'  # in HHMM-HHMM
 
 warnings.filterwarnings("ignore")
 
@@ -81,8 +81,8 @@ start_time = time.clock()
 # ----- LIMRAD 94GHz Radar data extraction
 print('    date: ', date, time_intervall, h_min, h_max)
 
-LR_lv0 = LIMRAD94_LV0(date, time_intervall, [h_min, h_max])
-LR_lv1 = LIMRAD94_LV1(date, time_intervall, [h_min, h_max])
+LR_lv0 = LIMRAD94_LV0(LIMRAD_path, date, time_intervall, [h_min, h_max])
+LR_lv1 = LIMRAD94_LV1(LIMRAD_path, date, time_intervall, [h_min, h_max])
 
 if pts: print('')
 

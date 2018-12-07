@@ -21,7 +21,7 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
    
    
    
-    The example call to the routine:    $  python LIMRAD94_to_Cloudnet.py 180729 000000 240000 0.0 12.0 
+    The example call to the routine:    $  python LIMRAD94_to_Cloudnet.py 20180729 000000 240000
 
 
 ####################################################################################################################
@@ -42,18 +42,19 @@ if pts:
     print('  \u2517' + 49 * '\u2501' + '\u251B' + '\n')
     print('\n' * 2)
 
-# gather arguments
-if len(sys.argv) == 6:
+# gather argument
+h_min = 0.0  # in X.XX     (float, unit: km - lower y-axis limit)
+h_max = 12.0  # in X.XX     (float, unit: km - upper y-axis limit)
+
+if len(sys.argv) >= 4:
     date = str(sys.argv[1])
     time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
-    h_min, h_max = float(sys.argv[4]), float(sys.argv[5])
+    if len(sys.argv) == 6:
+        h_min, h_max = float(sys.argv[4]), float(sys.argv[5])
 
 else:
-
-    date = '181201'  # in YYMMDD
+    date = '20181201'  # in YYMMDD
     time_intervall = '000000-240000'  # in HHMMSS-HHMMSS
-    h_min = 0.0  # in X.XX     (float, unit: km - lower y-axis limit)
-    h_max = 12.0  # in X.XX     (float, unit: km - upper y-axis limit)
 
 warnings.filterwarnings("ignore")
 

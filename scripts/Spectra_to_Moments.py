@@ -64,8 +64,8 @@ else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
     h_min = 0.0  # (km)  - lower y-axis limit
     h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '180810'  # in YYMMDD
-    time_intervall = '0500-0600'  # in HHMM-HHMM
+    date = '20180810'  # in YYYYMMDD
+    time_intervall = '050000-060000'  # in HHMMSS-HHMMSS
 
 
 warnings.filterwarnings("ignore")
@@ -88,8 +88,8 @@ warnings.filterwarnings("ignore")
 print('    date: ', date, time_intervall, h_min, h_max)
 print('    standard deviations for moment calc: ', n_std_diviations, '\n')
 
-LR_lv0 = nc.LIMRAD94_LV0(date, time_intervall, [h_min, h_max])
-LR_lv1 = nc.LIMRAD94_LV1(date, time_intervall, [h_min, h_max])
+LR_lv0 = nc.LIMRAD94_LV0(LIMRAD_path, date, time_intervall, [h_min, h_max])
+LR_lv1 = nc.LIMRAD94_LV1(LIMRAD_path, date, time_intervall, [h_min, h_max])
 
 if pts: print('')
 
