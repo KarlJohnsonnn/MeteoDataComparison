@@ -64,7 +64,7 @@ if len(sys.argv) >= 4:
 else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
     date = '20180810'  # in YYYYMMDD
-    time_intervall = '050000-060000'  # in HHMMSS-HHMMSS
+    time_intervall = '052000-053000'  # in HHMMSS-HHMMSS
 
 
 warnings.filterwarnings("ignore")

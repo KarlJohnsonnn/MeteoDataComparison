@@ -575,13 +575,13 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
     y_label = r'\textbf{Height [km]}'
     z_label = r'\textbf{Reflectivity [dBZ]}'
 
-    LR_Ze_plot.set_title(r'\large{\textbf{LIMRAD 94GHz Radar NoiseFac0 Lv1 (with noise)}}')
+    LR_Ze_plot.set_title(r'\large{\textbf{LIMRAD 94GHz Radar moments NoiseFac0 LV1-file (with noise)}}')
     plot_data_set(fig, LR_Ze_plot, '',
                   ds1.t_plt, ds1.height, ds1.Ze, vmi=-50, vma=20,
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
                   x_lab='', y_lab=y_label, z_lab=z_label, p='l')
 
-    mira_Zg_plot.set_title(r'\large{\textbf{LIMRAD 94GHz Radar moments from spectra Lv0 (with noise)}}')
+    mira_Zg_plot.set_title(r'\large{\textbf{LIMRAD 94GHz Radar calculated moments from spectra LV0-file (without noise)}}')
     plot_data_set(fig, mira_Zg_plot, '',
                   ds2.t_plt, ds2.height_all, ds2.Ze, vmi=-50, vma=20,
                   x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],

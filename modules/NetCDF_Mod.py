@@ -260,24 +260,30 @@ class LIMRAD94_LV0():
                      + datetime.timedelta(seconds=int(time_samp[i])) for i in range(len(time_samp))]
 
         #min_t, max_t = get_time_boundary(time_plot, time)
-        min_t, max_t = [0, None]
-        min_h, max_h = [0, None]
+        #min_t, max_t = [0, None]
+        #min_h, max_h = [0, None]
 
-        self.t_plt = time_plot
+
+        min_t, max_t = get_time_boundary(time_plot, time)
+        min_h, max_h = get_height_boundary(self.height_all, h_bounds[:])
+
+        self.t_plt = time_plot[min_t:max_t]
         self.t_unix = [ts.replace(tzinfo=timezone.utc).timestamp() for ts in self.t_plt]
         self.n_time = len(self.t_unix)
 
-        # build stacked chirps and prune arrays
-        self.CBH = self.CBH
-        self.DDTb = self.DDTb
-        self.LWP = self.LWP
-        self.Rain = self.Rain
+        #self.height_all = self.height_all[min_h:max_h]
 
-        self.SurfPres = self.SurfPres
-        self.SurfRelHum = self.SurfRelHum
-        self.SurfTemp = self.SurfTemp
-        self.SurfWD = self.SurfWD
-        self.SurfWS = self.SurfWS
+        # build stacked chirps and prune arrays
+        self.CBH = self.CBH[min_t:max_t]
+        self.DDTb = self.DDTb[min_t:max_t]
+        self.LWP = self.LWP[min_t:max_t]
+        self.Rain = self.Rain[min_t:max_t]
+
+        self.SurfPres = self.SurfPres[min_t:max_t]
+        self.SurfRelHum = self.SurfRelHum[min_t:max_t]
+        self.SurfTemp = self.SurfTemp[min_t:max_t]
+        self.SurfWD = self.SurfWD[min_t:max_t]
+        self.SurfWS = self.SurfWS[min_t:max_t]
 
         self.VHSpec = list(block for block in VHSpec_chirps)
         self.VSpec = list(block for block in VSpec_chirps)
@@ -286,6 +292,16 @@ class LIMRAD94_LV0():
         self.ImVHSpec = list(block for block in ImVHSpec_chirps)
         self.SLh = list(block for block in SLh_chirps)
         self.SLv = list(block for block in SLv_chirps)
+
+        for ichirp in range(self.no_c):
+            self.VHSpec[ichirp] = self.VHSpec[ichirp][min_t:max_t, :]
+            self.VSpec[ichirp] = self.VSpec[ichirp][min_t:max_t, :]
+            self.HSpec[ichirp] = self.HSpec[ichirp][min_t:max_t, :]
+            self.ReVHSpec[ichirp] = self.ReVHSpec[ichirp][min_t:max_t, :]
+            self.ImVHSpec[ichirp] = self.ImVHSpec[ichirp][min_t:max_t, :]
+            self.SLh[ichirp] = self.SLh[ichirp][min_t:max_t, :]
+            self.SLv[ichirp] = self.SLv[ichirp][min_t:max_t, :]
+
 
         # self.VarDict = {'CBH': False, 'DDTb': False, 'LWP': False, 'Rain': False,
         #                'SurfPres': False, 'SurfRelHum': False, 'SurfTemp': False, 'SurfWD': False, 'SurfWS': False,
@@ -452,7 +468,6 @@ class LIMRAD94_LV1():
 
             except Exception as e:
                 print('Something went wrong:', e)
-                print('Change to: [path_to_data]/YYMMDD/LVx/')
                 print('   Error!  File not found --> exit!')
                 exit(0)
 
