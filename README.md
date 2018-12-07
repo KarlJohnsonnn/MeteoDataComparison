@@ -66,8 +66,7 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
        constants_to_compare = ['AvgNum', 'NoiseFilt', 'SampDur', 'MaxVel', 'DoppRes']
        variables_to_compare = ['SeqIntTime', 'QualFlag', 'Status', 'TPow']
 ```
- 
-   Start the routine with:
+  Start routine:
  
        $ python Compare_MDFs.py
  
@@ -81,7 +80,7 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
  
        $ python Spectra_to_Moments.py 20180810 050000 060000 0.0 12.0 2.0
 
-    ![Noisy LV1 files and calculated moments from LV0 files](PNG/180810_NoiseFac0_Lv1_Lv0moments_no_noise.png)
+    ![Noisy LV1 files and calculated moments from LV0 files](PNG/20180810_NoiseFac0_Lv1_Lv0moments__nstddiv_06.png)
     ![Calculated radar moments for different noise thresholds](PNG/Ze_stddiv.gif)
 
  - **PlaygroundNC_Toolv2.py:** Call to input routines for LIMRAD94 and MIRA35 files, also good for quicklooks.
