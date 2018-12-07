@@ -42,5 +42,11 @@ This is the version 0.1 of the Meteorological-Data-Comparision Package. It's per
 
 The scripts/ subfolder contains different excecutable programs, developed for specific tasks. The list below summarizes the main task of all scripts.
  
- - compare_LIMRad-MIRA_spectra.py
-   ![alt text](https://github.com/KarlJohnsonnn/MeteoDataComparison/blob/master/PNG/20181203_01:30:57_1.64028LIMRad_MIRA_spectra_.png)
+ - compare_LIMRad-MIRA_spectra.py: Generating plots of LIMRAD94 and MIRA35 spectra.
+ 
+    ![alt text](https://github.com/KarlJohnsonnn/MeteoDataComparison/blob/master/PNG/20181203_01:30:57_1.64028LIMRad_MIRA_spectra_.png)
+   
+ - download_plot_sounding.py: Download and save plot and metadata of soundings of station 'SCCI'. Input parameter: YYYY MM DD HH. Expample call for the routine: $ python download_plot_sounding.py 2018 12 3 12
+ 
+    ![alt text](https://github.com/KarlJohnsonnn/MeteoDataComparison/blob/master/PNG/20181203_12_SCCI_sounding.png)
+    
