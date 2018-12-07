@@ -71,4 +71,4 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
 
  **- PlaygroundNC_Toolv2.py:** Call to input routines for LIMRAD94 and MIRA35 files, also good for quicklooks.
  
-    ![Quicklook of LIMRAD94 and MIRA35 data ](PNG/180729_profiles_timeseries.png)
+    ![Quicklook of LIMRAD94 and MIRA35 data](PNG/180729_profiles_timeseries.png)
