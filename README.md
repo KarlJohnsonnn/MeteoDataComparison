@@ -51,7 +51,7 @@ The scripts/ subfolder contains different excecutable programs, developed for sp
        $ conda install -c conda-forge metpy
        $ conda install -c conda-forge siphon
  
-   Input parameter: YYYY MM DD HH. Expample call for the routine: 
+   Input parameter: YYYY MM DD HH. Example call for the routine: 
  
        $ python download_plot_sounding.py 2018 12 3 12
     ![Sounding from 2018 Dez. 3 at 12 (UTC)](PNG/20181203_12_SCCI_sounding.png)
