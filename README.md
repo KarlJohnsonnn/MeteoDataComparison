@@ -63,10 +63,10 @@ The scripts/ subfolder contains different excecutable programs. The list below s
  
  - **Compare_MDFs.py:** Compare the constants and variables of two LIMRAD94 files. This is for a quick look of differences in performance of the RPG 94GHz radar. The user specifies two files ( *file1* and *file2* ) in the Compare_MDFs.py script, a list of constants and a list of variables of interest. Example lists:
 
-       ```python
+```python
        constants_to_compare = ['AvgNum', 'NoiseFilt', 'SampDur', 'MaxVel', 'DoppRes']
        variables_to_compare = ['SeqIntTime', 'QualFlag', 'Status', 'TPow']
-       ```
+```
   Start routine:
  
        $ python Compare_MDFs.py
