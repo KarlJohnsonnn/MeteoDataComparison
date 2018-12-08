@@ -17,7 +17,7 @@ This is version 0.1 of the Meteorological-Data-Comparision Toolbox. It's perpous
      $ conda install -c anaconda scipy 
         
   3. Make a copy of Parameter_Mod.py_untouched and save it as Parameter_Mod.py. 
-     Then define global paths in Parameter_Mod. NOTE: Do not delete or overwrite Parameter_Mod.py_untouched!
+     Then define global paths in Parameter_Mod. **NOTE: Do not delete or overwrite Parameter_Mod.py_untouched!**
      
     $ cp Parameter_Mod.py_untouched Parameter_Mod.py
     
