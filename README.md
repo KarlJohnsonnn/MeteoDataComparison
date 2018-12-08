@@ -22,10 +22,11 @@ This is version 0.1 of the Meteorological-Data-Comparision Toolbox. It's perpous
     $ cp Parameter_Mod.py_untouched Parameter_Mod.py
     
    Then specify your local paths, e.g.:
-     
-    - meteo_path  = '[user]/data/MeteoData/'              # path where output is stored, e.g.: png, log, txt
-    - LIMRAD_path = '[user]/data/MeteoData/LIMRAD94/'     # main path to LIMRAD94 NetCDF files
-    - MIRA_path   = '[user]/data/MeteoData/MIRA/'         # main path to MIRA NetCDF files
+   ```python
+   meteo_path  = '[user]/data/MeteoData/'              # path where output is stored, e.g.: png, log, txt
+   LIMRAD_path = '[user]/data/MeteoData/LIMRAD94/'     # main path to LIMRAD94 NetCDF files
+   MIRA_path   = '[user]/data/MeteoData/MIRA/'         # main path to MIRA NetCDF files
+   ```
    
    The folder structure is as follows:
     
