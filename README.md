@@ -48,7 +48,7 @@ The scripts/ subfolder contains different excecutable programs. The list below s
     ![Spectra of LIMRAD94 (blue) and MIRA35 (red)](PNG/20181203_01:30:57_1.64028LIMRad_MIRA_spectra_.png)
    
  - **download_plot_sounding.py:** Download soundings and save plot + metadata of station 'SCCI' (Chile) provided by http://weather.uwyo.edu/upperair/sounding.html. Two external packages have to be installed:
-       
+     
        $ conda install -c conda-forge metpy
        $ conda install -c conda-forge siphon
  
@@ -62,7 +62,7 @@ The scripts/ subfolder contains different excecutable programs. The list below s
        $ python LIMRAD94_to_Cloudnet.py 20180729 000000 240000
  
  - **Compare_MDFs.py:** Compare the constants and variables of two LIMRAD94 files. This is for a quick look of differences in performance of the RPG 94GHz radar. The user specifies two files ( *file1* and *file2* ) in the Compare_MDFs.py script, a list of constants and a list of variables of interest. Example lists:
- 
+
        ```python
        constants_to_compare = ['AvgNum', 'NoiseFilt', 'SampDur', 'MaxVel', 'DoppRes']
        variables_to_compare = ['SeqIntTime', 'QualFlag', 'Status', 'TPow']
