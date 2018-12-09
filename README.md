@@ -71,7 +71,7 @@ The scripts/ subfolder contains different excecutable programs. The list below s
  
        $ python Compare_MDFs.py
  
- - **Show_spectra.py:** Generates a series of spectrum(dBZ)/normalized spectrum(-)/wavelet transformation plots and save it as png.   
+ - **Show_spectra.py:** Generates a series of spectrum(dBZ)/normalized spectrum(-)/wavelet transformation plots and save it as png. Ricker wavelet (mexican-hat) used for wavelet transformation $ \frac{2}{sqrt(3a)}pi^{1/4} (1 - \frac{x^2}{a^2}) \exp(-\frac{x^2}{a^2})$
  
        $ python Show_Spectra.py 20180810 050000 060000 0.0 12.0
  
