@@ -1,24 +1,24 @@
-LIMRAD/*.nc
-LIMRAD/**/*.png
+# exclude programs in main folder, add the individually if necessary
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.py
+*$py.class
 
-MIRA/**/*.nc
-MIRA/**/*.mira
-MIRA/**/*.mmclx
-MIRA/**/*.png
-
-
+# exclude plots in main folder
 *.log
-*.png
-*.gif
+#*.png
+#*.gif
 
-.idea/*
-
+# exclude cached stuff
 venv*
+.idea/*
 .DS_Store*
 __pycache__*
 __pycache__/**/*.pyc
 
-Read_CloudnetCategorize.py
-ANN_weights/*
+# exclude neural net code 
+neural/*
 
+# should be different for every user depending on the absolut paths
 modules/Parameter_Mod.py

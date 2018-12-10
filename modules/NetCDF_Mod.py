@@ -18,32 +18,36 @@ class LIMRAD94_LV0():
 
     def __init__(self, *args):
 
-        os.chdir(LIMRAD_path)  # path to data needs to be fit to the devices file structure
 
         if len(args) < 1:
             print('You need to specify a date at least!')
             exit(0)
 
         elif len(args) == 1:
-            date = args[0]
-            time_int = '0000-2400'
+            file_path = args[0]
+            date = args[1]
+            time_int = '000000-240000'
             h_bounds = [0.0, 12.0]
 
         else:
-            date = args[0]
-            time_int = args[1]
-            h_bounds = args[2]
+            file_path = args[0]
+            date = args[1]
+            time_int = args[2]
+            h_bounds = args[3]
 
-        comp_hours = [int(time_int[0:2]), int(time_int[5:7])]
-        comp_minutes = [int(time_int[2:4]), int(time_int[7:9])]
+        os.chdir(file_path)  # path to data needs to be fit to the devices file structure
 
-        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
+        comp_hours = [int(time_int[:2]), int(time_int[7:9])]
+        comp_minutes = [int(time_int[2:4]), int(time_int[9:11])]
+        comp_seconds = [int(time_int[4:6]), int(time_int[11:])]
+
+        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.) + np.divide(comp_seconds, 3600.)  # [hours] + [minutes]/60# + [seconds]
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
         self.time_int = time_int
-        self.year = int('20' + date[:2])
-        self.month = int(date[2:4])
-        self.day = int(date[4:6])
+        self.year = int(date[:4])
+        self.month = int(date[4:6])
+        self.day = int(date[6:8])
 
         time = [0, 0, 0, 0]
         time[0] = datetime.datetime(self.year, self.month, self.day, hour=int(comp_hours[0]),
@@ -64,33 +68,15 @@ class LIMRAD94_LV0():
         self.ncfiles = []
         for il in range_file_list:
             try:
-                file_name = glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV0.NC')
+                file_name = glob.glob('*' + date[2:] + '_' + str(il).zfill(2) + '*.LV0.NC')
                 self.ncfiles.append(file_name)
 
             except Exception as e:
                 print('Something went wrong:', e)
-                print('Change to: [path_to_data]/YYMMDD/LVx/')
                 print('   Error!  File not found --> exit!')
                 exit(0)
 
         self.ncfiles = sorted([item for sublist in self.ncfiles for item in sublist])
-
-        #        self.ncfiles = []
-        #        flat_list = []
-        #        for il in range_file_list:
-        #            file_name = str(glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV0.NC'))
-        #
-        #            flat_list = file_name.split(",")
-        #
-        #            for iFile in flat_list:
-        #                self.ncfiles.append(iFile[2:-1])
-        #
-        #            if file_name[2:-2] == '':
-        #                print('   Error!  File: "' + file_name + '" not found --> exit!')
-        #                print('   Check LIMRAD folder!')
-        #                exit(0)
-        #
-        #        n_nc_files = len(self.ncfiles)
         n_nc_files = len(self.ncfiles)
 
         file = self.ncfiles[0]
@@ -274,24 +260,30 @@ class LIMRAD94_LV0():
                      + datetime.timedelta(seconds=int(time_samp[i])) for i in range(len(time_samp))]
 
         #min_t, max_t = get_time_boundary(time_plot, time)
-        min_t, max_t = [0, None]
-        min_h, max_h = [0, None]
+        #min_t, max_t = [0, None]
+        #min_h, max_h = [0, None]
 
-        self.t_plt = time_plot
+
+        min_t, max_t = get_time_boundary(time_plot, time)
+        min_h, max_h = get_height_boundary(self.height_all, h_bounds[:])
+
+        self.t_plt = time_plot[min_t:max_t]
         self.t_unix = [ts.replace(tzinfo=timezone.utc).timestamp() for ts in self.t_plt]
         self.n_time = len(self.t_unix)
 
-        # build stacked chirps and prune arrays
-        self.CBH = self.CBH
-        self.DDTb = self.DDTb
-        self.LWP = self.LWP
-        self.Rain = self.Rain
+        #self.height_all = self.height_all[min_h:max_h]
 
-        self.SurfPres = self.SurfPres
-        self.SurfRelHum = self.SurfRelHum
-        self.SurfTemp = self.SurfTemp
-        self.SurfWD = self.SurfWD
-        self.SurfWS = self.SurfWS
+        # build stacked chirps and prune arrays
+        self.CBH = self.CBH[min_t:max_t]
+        self.DDTb = self.DDTb[min_t:max_t]
+        self.LWP = self.LWP[min_t:max_t]
+        self.Rain = self.Rain[min_t:max_t]
+
+        self.SurfPres = self.SurfPres[min_t:max_t]
+        self.SurfRelHum = self.SurfRelHum[min_t:max_t]
+        self.SurfTemp = self.SurfTemp[min_t:max_t]
+        self.SurfWD = self.SurfWD[min_t:max_t]
+        self.SurfWS = self.SurfWS[min_t:max_t]
 
         self.VHSpec = list(block for block in VHSpec_chirps)
         self.VSpec = list(block for block in VSpec_chirps)
@@ -300,6 +292,16 @@ class LIMRAD94_LV0():
         self.ImVHSpec = list(block for block in ImVHSpec_chirps)
         self.SLh = list(block for block in SLh_chirps)
         self.SLv = list(block for block in SLv_chirps)
+
+        for ichirp in range(self.no_c):
+            self.VHSpec[ichirp] = self.VHSpec[ichirp][min_t:max_t, :]
+            self.VSpec[ichirp] = self.VSpec[ichirp][min_t:max_t, :]
+            self.HSpec[ichirp] = self.HSpec[ichirp][min_t:max_t, :]
+            self.ReVHSpec[ichirp] = self.ReVHSpec[ichirp][min_t:max_t, :]
+            self.ImVHSpec[ichirp] = self.ImVHSpec[ichirp][min_t:max_t, :]
+            self.SLh[ichirp] = self.SLh[ichirp][min_t:max_t, :]
+            self.SLv[ichirp] = self.SLv[ichirp][min_t:max_t, :]
+
 
         # self.VarDict = {'CBH': False, 'DDTb': False, 'LWP': False, 'Rain': False,
         #                'SurfPres': False, 'SurfRelHum': False, 'SurfTemp': False, 'SurfWD': False, 'SurfWS': False,
@@ -414,32 +416,35 @@ class LIMRAD94_LV1():
 
     def __init__(self, *args):
 
-        os.chdir(LIMRAD_path)  # path to data needs to be fit to the devices file structure
-
         if len(args) < 1:
             print('You need to specify a date at least!')
             exit(0)
 
         elif len(args) == 1:
-            date     = args[0]
-            time_int = '0000-2400'
+            file_path = args[0]
+            date = args[1]
+            time_int = '000000-240000'
             h_bounds = [0.0, 12.0]
 
         else:
-            date     = args[0]
-            time_int = args[1]
-            h_bounds = args[2]
+            file_path = args[0]
+            date = args[1]
+            time_int = args[2]
+            h_bounds = args[3]
 
-        comp_hours   = [int(time_int[0:2]), int(time_int[5:7])]
-        comp_minutes = [int(time_int[2:4]), int(time_int[7:9])]
+        os.chdir(file_path)  # path to data needs to be fit to the devices file structure
 
-        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
+        comp_hours = [int(time_int[:2]), int(time_int[7:9])]
+        comp_minutes = [int(time_int[2:4]), int(time_int[9:11])]
+        comp_seconds = [int(time_int[4:6]), int(time_int[11:])]
+
+        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.) + np.divide(comp_seconds, 3600.)  # [hours] + [minutes]/60# + [seconds]
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
         self.time_int = time_int
-        self.year = int('20' + date[:2])
-        self.month = int(date[2:4])
-        self.day = int(date[4:6])
+        self.year = int(date[:4])
+        self.month = int(date[4:6])
+        self.day = int(date[6:8])
 
         time = [0, 0, 0, 0]
         time[0] = datetime.datetime(self.year, self.month, self.day, hour=int(comp_hours[0]), minute=int(comp_minutes[0]))
@@ -458,12 +463,11 @@ class LIMRAD94_LV1():
         self.ncfiles = []
         for il in range_file_list:
             try:
-                file_name = glob.glob('*' + date + '_' + str(il).zfill(2) + '*.LV1.NC')
+                file_name = glob.glob('*' + date[2:] + '_' + str(il).zfill(2) + '*.LV1.NC')
                 self.ncfiles.append(file_name)
 
             except Exception as e:
                 print('Something went wrong:', e)
-                print('Change to: [path_to_data]/YYMMDD/LVx/')
                 print('   Error!  File not found --> exit!')
                 exit(0)
 
@@ -838,31 +842,35 @@ class MIRA35_LV1():
             exit(0)
 
         elif len(args) == 1:
-            date     = args[0]
-            time_int = '0000-2400'
+            file_path= args[0]
+            date     = args[1]
+            time_int = '000000-240000'
             h_bounds = [0.0, 12.0]
             fext     = '*mira.nc'
         elif len(args) < 4:
-            date     = args[0]
-            time_int = args[1]
-            h_bounds = args[2]
+            file_path= args[0]
+            date     = args[1]
+            time_int = args[2]
+            h_bounds = args[3]
             fext     = '*mira.nc'
         else:
-            date     = args[0]
-            time_int = args[1]
-            h_bounds = args[2]
-            fext     = args[3]
+            file_path= args[0]
+            date     = args[1]
+            time_int = args[2]
+            h_bounds = args[3]
+            fext     = args[4]
 
 
-        comp_hours = [int(time_int[0:2]), int(time_int[5:7])]
-        comp_minutes = [int(time_int[2:4]), int(time_int[7:9])]
+        comp_hours = [int(time_int[:2]), int(time_int[7:9])]
+        comp_minutes = [int(time_int[2:4]), int(time_int[9:11])]
+        comp_seconds = [int(time_int[4:6]), int(time_int[11:])]
 
-        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.)  # [hours] + [minutes]/60#
+        clock = np.array(comp_hours) + np.divide(comp_minutes, 60.) + np.divide(comp_seconds, 3600.)
 
         # -- gathering self.year, self.month, self.day for convertion to UTC time
-        self.year  = int('20' + date[:2])
-        self.month = int(date[2:4])
-        self.day   = int(date[4:6])
+        self.year  = int(date[:4])
+        self.month = int(date[4:6])
+        self.day   = int(date[6:8])
 
         time = [0, 0, 0, 0]
         time[0] = datetime.datetime(self.year, self.month, self.day, hour=int(comp_hours[0]), minute=int(comp_minutes[0]))
@@ -874,7 +882,7 @@ class MIRA35_LV1():
 
         if fext == '*mira.nc':
             os.chdir(MIRA_path + 'calibrated/')  # path to data needs to be fit to the devices file structure
-            self.ncfiles = glob.glob('20' + date + '*mira.nc')
+            self.ncfiles = glob.glob(date +'*mira.nc')
 
             #if pts: print("    Loading MIRA35 (mira.nc) NC-files ({} of {})".format(0, 1), end="\r")
 
@@ -962,7 +970,7 @@ class MIRA35_LV1():
 
             self.ncfiles = []
             for il in range_file_list:
-                file_name = str(glob.glob('20' + date + '_' + str(il).zfill(2) + '*.mmclx'))
+                file_name = str(glob.glob(date +'_' + str(il).zfill(2) + '*.mmclx'))
                 self.ncfiles.append(file_name[2:-2])
 
             if file_name[2:-2] == '':

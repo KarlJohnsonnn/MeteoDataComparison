@@ -6,8 +6,10 @@ import sys
 
 import netCDF4
 import numpy as np
+import datetime
 
 from modules.Parameter_Mod import *
+from modules.Utility_Mod import datetime_from_seconds
 
 # fixed paramters
 max_MDF_files = 10
@@ -30,7 +32,7 @@ class LIMRAD94():
                 exit(0)
 
             # if one argument is given it contains the path to one specific file
-            elif lenargs >= 1:
+            elif 3 > lenargs >= 1:
                 file_path = args[0]
 
                 if lenargs == 2:
@@ -75,6 +77,7 @@ class LIMRAD94():
                 date_str = args[1]
                 time_str = args[2]
                 heightminmax = args[3]
+                self.lvl = args[4]
 
                 # gathering self.year, self.month, self.day for convertion to UTC time
                 self.time_int = time_str
@@ -87,15 +90,15 @@ class LIMRAD94():
                 self.h_max = heightminmax[1]
 
                 # check path for LV0 or LV1 files, if subfolder /LVx/ (x=0 or x=1) not existent raise error
-                try:
-                    pos_lvl = folder_path.find('LV')
-                    if pos_lvl < 0: raise Exception('Folder path does not contain LVx information (x=0 or x=1)!')
-                except Exception as e:
-                    print('Something went wrong:', e)
-                    print('Change to: [path_to_data]/YYMMDD/LVx/')
-                    sys.exit()
-                else:
-                    self.lvl = folder_path[pos_lvl:pos_lvl + 3]
+                #                try:
+                #                    pos_lvl = folder_path.find('LV')
+                #                    if pos_lvl < 0: raise Exception('Folder path does not contain LVx information (x=0 or x=1)!')
+                #                except Exception as e:
+                #                    print('Something went wrong:', e)
+                #                    print('Change to: [path_to_data]/YYMMDD/LVx/')
+                #                    sys.exit()
+                #                else:
+                #                    self.lvl = folder_path[pos_lvl:pos_lvl + 3]
 
                 # count LVx files in the given folder
                 files_path = folder_path + '*' + date_str + '*' + self.lvl + '.NC'
@@ -241,7 +244,6 @@ class LIMRAD94():
         i_nc_file = 0
         n_nc_file = self.n_files
 
-
         for iMDF in range(len(self.num_MDF)):
             self.time_series_1D[iMDF] = dict()
             self.time_series_2D[iMDF] = dict()
@@ -335,30 +337,14 @@ class LIMRAD94():
                     regex = re.compile('C' + str(iC))
                     match = re.match(regex, ivar)
 
+                    if ivar.find('Spec') > 0 > ivar.find('SpecW'):
+                        spec_log = True
+                    else:
+                        spec_log = False
+
                     if match is not None:
                         try:
-                            if True:
-
-                                if iC == 1:
-                                    self.time_series_2D[iMDF].update({ivar[2:]: {
-                                        'Dim': self.time_series_2D[iMDF][ivar]['Dim'],
-                                        'LongName': self.time_series_2D[iMDF][ivar]['LongName'][:-9],
-                                        'Unit': self.time_series_2D[iMDF][ivar]['Unit'],
-                                        'Val': self.time_series_2D[iMDF][ivar]['Val']}})
-
-                                else:
-                                    self.time_series_2D[iMDF][ivar[2:]]['Dim'][1] = \
-                                        self.time_series_2D[iMDF][ivar[2:]]['Dim'][1] + \
-                                        self.time_series_2D[iMDF][ivar]['Dim'][1]
-                                    self.time_series_2D[iMDF][ivar[2:]]['Val'] = np.concatenate((
-                                        self.time_series_2D[iMDF][ivar[2:]]['Val'],
-                                        self.time_series_2D[iMDF][ivar]['Val']), axis=1)
-
-                                # delete data for individual chirps
-                                del self.time_series_2D[iMDF][ivar]
-
-                            else:
-
+                            if spec_log:
                                 if iC == 1:
                                     self.time_series_3D[iMDF].update({ivar[2:]: {
                                         'Dim': self.time_series_3D[iMDF][ivar]['Dim'],
@@ -376,6 +362,25 @@ class LIMRAD94():
 
                                 # delete data for individual chirps
                                 del self.time_series_3D[iMDF][ivar]
+
+                            else:
+                                if iC == 1:
+                                    self.time_series_2D[iMDF].update({ivar[2:]: {
+                                        'Dim': self.time_series_2D[iMDF][ivar]['Dim'],
+                                        'LongName': self.time_series_2D[iMDF][ivar]['LongName'][:-9],
+                                        'Unit': self.time_series_2D[iMDF][ivar]['Unit'],
+                                        'Val': self.time_series_2D[iMDF][ivar]['Val']}})
+
+                                else:
+                                    self.time_series_2D[iMDF][ivar[2:]]['Dim'][1] = \
+                                        self.time_series_2D[iMDF][ivar[2:]]['Dim'][1] + \
+                                        self.time_series_2D[iMDF][ivar]['Dim'][1]
+                                    self.time_series_2D[iMDF][ivar[2:]]['Val'] = np.concatenate((
+                                        self.time_series_2D[iMDF][ivar[2:]]['Val'],
+                                        self.time_series_2D[iMDF][ivar]['Val']), axis=1)
+
+                                # delete data for individual chirps
+                                del self.time_series_2D[iMDF][ivar]
 
                         except Exception as e:
                             print('Something went wrong during data type construction: ', e)
@@ -545,4 +550,131 @@ class cloudnet_categorization:
         nc_data_set.close()
 
 
-        pass
+class MIRA35_spectra():
+    '''
+        Input arguments for initialization of the MIRA35_spectra either:
+
+            - one argument:     1. path_to_the_mira_spectrum_file
+
+            - four arguments:   1. path_to_the_mira_spectra_folder
+                                2. date string in format:       YYYMMDD
+                                3. time intervall in format:    HHMMSS-HHMMSS
+                                4. range intervall in format:   [h_min, h_max]
+    '''
+
+    def __init__(self, *args):
+        # check input parameter
+        if len(args) < 1:
+            print('You need to specify a file at least!')
+            exit(0)
+
+        # if one argument is given it contains the path to one specific file
+        elif len(args) == 1:
+            file_path = args[0]
+
+            path_to_file, file_name = file_path.rsplit('/', 1)
+            splitted = file_name.split('_')
+            date_str = splitted[0][1:]
+            self.time_start = splitted[1][1:]
+            self.time_end = splitted[2]
+            self.location = splitted[3]
+            self.conversion = splitted[4] + '_' + splitted[5] + '_' + splitted[6]
+            self.nc_type = splitted[7]
+
+            # gathering self.year, self.month, self.day for conversion to UTC time
+            self.year = int(date_str[:4])
+            self.month = int(date_str[4:6])
+            self.day = int(date_str[6:8])
+            self.ncfiles = []
+            self.ncfiles.append(file_path)
+            self.n_files = 1
+
+        else:
+            folder_path = args[0] + 'spectra/'
+            date_str = args[1]
+            time_str = args[2]
+
+            # gathering self.year, self.month, self.day for convertion to UTC time
+            self.time_int = time_str
+            self.year = int(date_str[:4])
+            self.month = int(date_str[4:6])
+            self.day = int(date_str[6:8])
+
+            # set minimum and maximum height (for plotting)
+            if len(args) == 4:
+                self.h_min = args[3][0]
+                self.h_max = args[3][1]
+            else:
+                self.h_min = 0.
+                self.h_max = 12.
+
+            # count LVx files in the given folder
+            files_path = folder_path + '*' + date_str + '*.nc4'
+            all_ncfiles = [name for name in glob.glob(files_path)]
+
+            # Save only the files which are in between the time_int boundaries
+            try:
+                self.ncfiles = []
+                for iFile in all_ncfiles:
+                    path_to_file, file_name = iFile.rsplit('/', 1)
+                    splitted = file_name.split('_')
+                    time_start = int(splitted[1][1:])
+                    time_end = int(splitted[2])
+                    if int(time_str[:4]) <= time_start <= int(time_str[-4:]) \
+                            and int(time_str[:4]) <= time_end <= int(time_str[-4:]):
+                        self.ncfiles.append(folder_path + file_name)
+
+                self.n_files = len(self.ncfiles)
+
+            except Exception as e:
+                print('Something went wrong during listing of nc4 mira files', e)
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, ' at Line ', exc_tb.tb_lineno)
+
+            # muss noch sortiert werden?????
+            # permutation = np.argsort(np.array(only_times))
+
+        nc_data_set = netCDF4.Dataset(self.ncfiles[0], 'r')
+
+        self.dimension_list = list(nc_data_set.dimensions.keys())
+        self.variable_list = list(nc_data_set.variables.keys())
+
+        self.dimensions = dict()
+        self.variables = dict()
+
+        for idim in self.dimension_list:
+            self.dimensions.update({idim: nc_data_set.dimensions[idim].size})
+        for ivar in self.variable_list:
+            size_var = nc_data_set.variables[ivar].shape
+            if len(size_var) > 1:
+                self.variables.update({ivar: np.transpose(nc_data_set.variables[ivar][:], (2, 1, 0))})
+            else:
+                self.variables.update({ivar: np.array(nc_data_set.variables[ivar][:])})
+
+        nc_data_set.close()
+
+        for ifile in range(1, self.n_files):
+
+            nc_data_set = netCDF4.Dataset(self.ncfiles[ifile], 'r')
+
+            for idim in self.dimension_list:
+                self.dimensions[idim] = np.append(self.dimensions[idim], nc_data_set.dimensions[idim].size)
+
+            for ivar in self.variable_list:
+
+                size_var = nc_data_set.variables[ivar].shape
+                if len(size_var) > 1:
+                    self.variables[ivar] = \
+                        np.concatenate((self.variables[ivar], np.transpose(nc_data_set.variables[ivar][:], (2, 1, 0))),
+                                       axis=0)
+                else:
+                    if ivar != 'velocity':
+                        self.variables[ivar] = \
+                            np.concatenate((self.variables[ivar], np.array(nc_data_set.variables[ivar][:])), axis=0)
+
+            nc_data_set.close()
+
+        # convert unix time into datetime format for plotting
+        self.variables.update({'t_plt': [datetime.datetime(1970, 1, 1, 0, 0, 0)
+                                         + datetime.timedelta(seconds=int(itime)) for itime in self.variables['time']]})

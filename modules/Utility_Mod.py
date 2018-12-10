@@ -242,7 +242,7 @@ def estimate_noise_hs74(spectrum, navg=1, std_div=0.0):
         partial = sorted_spectrum[:npts]
         mean = np.mean(partial)
         var = np.var(partial)
-        if var * navg < mean ** 2.:
+        if var * navg < mean * mean:
             nnoise = npts
         else:
             # partial spectrum no longer has characteristics of white noise
