@@ -66,7 +66,7 @@ warnings.filterwarnings("ignore")
 ######################################################################################################
 
    ########     ###    ########    ###                  #### ##    ## ########  ##     ## ########
-   ##     ##   ## ##      ##      ## ##                  ##  ###   ## ##     ## ##     ##    ##
+   ##     ##   ## ##      ##      , p='r'## ##                  ##  ###   ## ##     ## ##     ##    ##
    ##     ##  ##   ##     ##     ##   ##                 ##  ####  ## ##     ## ##     ##    ##
    ##     ## ##     ##    ##    ##     ##    #######     ##  ## ## ## ########  ##     ##    ##
    ##     ## #########    ##    #########                ##  ##  #### ##        ##     ##    ##
@@ -122,7 +122,7 @@ if save_spectra_to_png:
         ichirp, itime, iheight = gather_user_input(LR_lv0)
     else:
         ichirp = 2
-        iheight = 58
+        iheight = 56
         itime = 50
 
     LR_lv0.VHSpec_nrm = []
@@ -158,8 +158,8 @@ if save_spectra_to_png:
                + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(LR_lv0.height[ichirp][iheight]) \
                + '_spectra_' + str(i_png).zfill(3) + '.png'
 
-        fig.savefig(file, dpi=100, format='png')
-        if pts: print('    Save Figure to File :: ' + file + '   {} of {} ".format(i_png, n_png), end="\r")')
+        fig.savefig(file, dpi=200, format='png')
+        if pts: print('    Save Figure to File :: ' + file + '   {} of {} '.format(i_png, n_png))
         i_png += 1
 
 ########################################################################################################################
