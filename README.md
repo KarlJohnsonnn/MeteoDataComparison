@@ -1,4 +1,4 @@
-# Descibtion
+# Description
 
 This is version 0.1 of the Meteorological-Data-Comparision Toolbox. It's perpous is the investigation of RPG 94GHz FMCW Radar 'LIMRAD94' and Metek 35GHz Pulse Radar 'MIRA35' data files. The user is able generates quicklooks for investigation of radar moments (Ze, mdv, sw, ldr), looking at specific Doppler spectras, plotting them, convert LIMRAD94 data to Cloudnet processing format, etc.
 
