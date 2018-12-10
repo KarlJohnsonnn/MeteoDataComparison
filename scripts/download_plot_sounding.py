@@ -147,13 +147,19 @@ plt.legend(['Temperature','Dew Point','LCL','parcel profile'])
 
 # Save the Figure and the data
 filename= str(date.year) + str(date.month).zfill(2) + str(date.day).zfill(2) \
-       +'_'+ str(date.hour) + '_'   + station  + '_sounding'
+       +'_'+ str(date.hour) + '_'   + station
 
 file = meteo_path + filename  + '.png'
 fig.savefig(file, dpi=100, format='png')
 plt.close()
 
-df.to_csv(meteo_path + filename + '.txt',sep='\t',index=None)
+df.to_csv(meteo_path + filename + '_sounding' + '.txt', sep='\t', index=None)
+
+with open(meteo_path + filename +'_metadata' +'.txt', 'w') as f:
+    for item in df._metadata:
+        for item1, item2 in item.items():
+            f.write(str(item1) + '\t' + str(item2) + '\n')
 
 print('    Save File :: ' + file)
-print('    Save File :: ' + meteo_path + filename + '.txt')
+print('    Save File :: ' + meteo_path + filename + '_metadata' + '.txt')
+print('    Save File :: ' + meteo_path + filename + '_sounding' + '.txt')
