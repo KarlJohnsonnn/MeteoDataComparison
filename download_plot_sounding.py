@@ -1,3 +1,4 @@
+#!/home/wschimmel/anaconda3/bin/python
 # Copyright (c) 2017 Siphon Contributors.
 # Distributed under the terms of the BSD 3-Clause License.
 # SPDX-License-Identifier: BSD-3-Clause
@@ -118,8 +119,8 @@ plt.legend(['Temperature','Dew Point','LCL','parcel profile'])
 filename= str(date.year) + str(date.month).zfill(2) + str(date.day).zfill(2) \
        +'_'+ str(date.hour) + '_'   + station  + '_sounding'
 
-file = '/home/tvogl/PhD/comparison_limrad_mira/' + filename  + '.png'
+file = '/projekt1/remsens/code/MeteoDataComparison' + filename  + '.png'
 fig.savefig(file, dpi=100, format='png')
 plt.close()
 
-df.to_csv('/home/tvogl/PhD/comparison_limrad_mira/'+ filename + '.txt',sep='\t',index=None)
+df.to_csv('/projekt1/remsens/code/MeteoDataComparison'+ filename + '.txt',sep='\t',index=None)
