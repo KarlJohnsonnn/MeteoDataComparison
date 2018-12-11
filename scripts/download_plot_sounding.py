@@ -38,11 +38,13 @@ from modules.Parameter_Mod import meteo_path
 ####################################################
 # Create a datetime object for the sounding and string of the station identifier.
 # gather arguments
+station = 'SCCI'
 if len(sys.argv) == 5:
     year  = int(sys.argv[1])
     month = int(sys.argv[2])
     day   = int(sys.argv[3])
     hour  = int(sys.argv[4])
+    station = sys.argv[5]
 
 else:
     year  = 2018
@@ -52,7 +54,6 @@ else:
 
 
 date = datetime(year, month, day, hour)
-station = 'SCCI'
 
 ####################################################
 # Make the request (a pandas dataframe is returned).
