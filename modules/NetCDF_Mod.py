@@ -978,8 +978,10 @@ class MIRA35_LV1():
                     if len(file_name) > 1:
                         for item in file_name:
                             self.ncfiles.append(item)
-                    else:
+                    elif len(file_name) == 1:
                         self.ncfiles.append(file_name[0])
+                    else:
+                        pass
 
 
                 except Exception as e:
