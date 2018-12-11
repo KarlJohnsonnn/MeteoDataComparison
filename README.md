@@ -52,9 +52,9 @@ The scripts/ subfolder contains different excecutable programs. The list below s
        $ conda install -c conda-forge metpy
        $ conda install -c conda-forge siphon
  
-   Input parameter: YYYY MM DD HH. Example call for the routine: 
+   Five input parameters: YYYY MM DD HH and station. Example call for the routine: 
  
-       $ python download_plot_sounding.py 2018 12 3 12
+       $ python download_plot_sounding.py 2018 12 3 12 SCCI
     ![Sounding from 2018 Dez. 3 at 12 (UTC)](PNG/20181203_12_SCCI_sounding.png)
     
  - **LIMRAD94_to_Cloudnet.py:** Concatinates LIMRAD94 LV1 files and generates a NetCDF4 one day file for the input to the Cloudnet Matlab routines. Calling the routine requires additional arguments, e.g.: date in YYYYMMDD and time intervall (from-to) in HHMMSS HHMMSS
