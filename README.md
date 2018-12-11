@@ -45,7 +45,7 @@ The scripts/ subfolder contains different excecutable programs. The list below s
  
  - **compare_LIMRad-MIRA_spectra.py:** Generating plots of LIMRAD94 and MIRA35 spectra.
  
-    ![Spectra of LIMRAD94 (blue) and MIRA35 (red)](PNG/20181203_01:30:57_1.64028LIMRad_MIRA_spectra_.png)
+    ![Spectra of LIMRAD94 (blue) and MIRA35 (red)](PNG/20181203_01_30_57_1.64028LIMRad_MIRA_spectra_.png)
    
  - **download_plot_sounding.py:** Download soundings and save plot + metadata of station 'SCCI' (Chile) provided by http://weather.uwyo.edu/upperair/sounding.html. Two external packages have to be installed:
      
@@ -75,7 +75,7 @@ The scripts/ subfolder contains different excecutable programs. The list below s
  
        $ python Show_Spectra.py 20180810 050000 060000 0.0 12.0
  
-    ![Spectra and wavelet transform](PNG/180810_05:20:16-05:29:57_6.49963_spectra_001.gif)
+    ![Spectra and wavelet transform](PNG/180810_05_20_16-05_29_57_6.49963_spectra_001.gif)
  
  - **Spectra_to_Moments.py:** Calculates the radar moments Ze (reflectivity), mdv (mean Doppler velocity), sw (spectral width), skew (skewness), and kurt (kurtosis) from LV0 NetCDF4 files provides by the RPG 94GHz radar. The user is able to specify the number of standart deviations above the mean noise for the threshold where noise is cut. Calling the routine requires additional arguments, e.g.: date in YYYYMMDD, time intervall (from-to) in HHMMSS HHMMSS, minimum height in km (two floats) and the number of standart deviations. Example call:
  
