@@ -11,16 +11,34 @@ from matplotlib.ticker import LogFormatter
 # rc('font',**{'family':'serif','serif':['Palatino']})
 
 
-rc('text', usetex=True)
+#rc('text', usetex=True)
 
 from matplotlib import dates
 from matplotlib.font_manager import FontProperties
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.ticker import MaxNLocator
+import matplotlib.style
 from modules.Interpolation_Mod import *
 
 from modules.Parameter_Mod import pts, interp_meth
 from modules.Utility_Mod import correlation
 import numpy as np
+
+
+mpl.style.use('classic')
+rc('font', size=14)
+
+vmi_ze = -50
+vma_ze = 20
+vmi_mdv = -4
+vma_mdv = 3
+vmi_specwidth = 10 ** (-1.5)
+vma_specwidth = 10 ** 0.5
+vmi_ldr = -60
+vma_ldr = 0
+
+site = 'Punta-Arenas'
+country = 'Chile'
 
 
 def plot_data_set(fig, axh, text, x, y, z, vmi, vma, x_min, x_max, y_min, y_max, x_lab, y_lab, z_lab, p='l'):
@@ -373,7 +391,7 @@ def Plot_Radar_Results(ds1, ds2):
     # create figure
     font = FontProperties()
 
-    fig = plt.figure(figsize=(16, 10))
+    fig = plt.figure(figsize=(12, 9))
 
     LR_Ze_plot = plt.subplot2grid((4, 2), (0, 0))
     LR_mdv_plot = plt.subplot2grid((4, 2), (1, 0))  # , rowspan=2)
@@ -390,10 +408,14 @@ def Plot_Radar_Results(ds1, ds2):
     yb1 = [ds1.height[0], ds1.height[-1]]
     yb2 = [ds2.height[0], ds2.height[-1]]
 
+
+
+
+
     ########################################################################################################
     ########################################################################################################
     # LR_Zelectivity plot
-    if pts: print('       -   Radar Reflectivity Factor   ', end='', flush=True)
+    if pts: print('       -   LIMRAD94 plots  ', end='', flush=True)
 
     x_label = r'\textbf{Time [UTC]}'
     y_label = r'\textbf{Height [km]}'
@@ -405,17 +427,6 @@ def Plot_Radar_Results(ds1, ds2):
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
                   x_lab='', y_lab=y_label, z_lab=z_label, p='l')
 
-    mira_Zg_plot.set_title(r'\large{\textbf{MIRA 35GHz Radar}}')
-    plot_data_set(fig, mira_Zg_plot, '',
-                  ds2.t_plt, ds2.height, ds2.Ze, vmi=-50, vma=20,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label, p='r')
-
-    if pts: print('\u2713')  # #print checkmark (✓) on screen
-
-    ########################################################################################################
-    # mean doppler velocity plot
-    if pts: print('       -   Mean Doppler velocity   ', end='', flush=True)
 
     z_label = r'\textbf{Mean Doppler}' + '\n' + r'\textbf{Velocity [m/s]}'
 
@@ -425,17 +436,6 @@ def Plot_Radar_Results(ds1, ds2):
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
                   x_lab='', y_lab=y_label, z_lab=z_label, p='l')
 
-    # MIRA mean Doppler velocity
-    plot_data_set(fig, mira_VELg_plot, '',
-                  ds2.t_plt, ds2.height, ds2.mdv, vmi=-4, vma=2,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label, p='r')
-
-    if pts: print('\u2713')  # #print checkmark (✓) on screen
-
-    ########################################################################################################
-    # spectral width plot
-    if pts: print('       -   Spectral Width   ', end='', flush=True)
 
     z_label = r'\textbf{Spectral Width [m/s]}'
     # LIMRAD spectral width
@@ -444,17 +444,6 @@ def Plot_Radar_Results(ds1, ds2):
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
                   x_lab='', y_lab=y_label, z_lab=z_label, p='l')
 
-    # MIRA spectral width
-    plot_data_set(fig, mira_RMSg_plot, 'sw',
-                  ds2.t_plt, ds2.height, ds2.sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label, p='r')
-
-    if pts: print('\u2713')  # #print checkmark (✓) on screen
-
-    ########################################################################################################
-    # linear depolarization ratio
-    if pts: print('       -   Linear Depolarization Ratio  ', end='', flush=True)
 
     z_label = r'\textbf{Linear Depolarization}' + '\n' + r'\textbf{Ratio [dB]}'
 
@@ -464,13 +453,63 @@ def Plot_Radar_Results(ds1, ds2):
                   x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
                   x_lab=x_label, y_lab=y_label, z_lab=z_label, p='l')
 
-    # MIRA linear depolarization ratio
-    plot_data_set(fig, mira_ldr_plot, '',
-                  ds2.t_plt, ds2.height, ds2.ldr, vmi=-30, vma=0,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
+    if pts: print('\u2713\n')  # #print checkmark (✓) on screen
+
+    ########################################################################################################
+    ########################################################################################################
+
+    if pts: print('       -   MIRA35 plots  ', end='', flush=True)
+
+    # since pcolormesh connects all dots and mira is scanning some times there will be horizontal lines in the plots
+    # for the scanning time intervalls, therefore the loop
+    time_diff = np.diff(ds2.t_unix)
+    gap_loc = np.where(time_diff > 20.)
+    gap_loc = np.append(np.insert(gap_loc[0][:]+1, 0, 0), ds2.n_time)
+    len_gap_loc = len(gap_loc)
+
+    for igap in range(len_gap_loc-1):
+
+        left = gap_loc[igap]
+        right = gap_loc[igap+1]-1
+
+        time_span = ds2.t_plt[left:right]
+
+        Ze  = ds2.Ze[:, left:right]
+        mdv = ds2.mdv[:, left:right]
+        sw  = ds2.sw[:, left:right]
+        ldr = ds2.ldr[:, left:right]
+
+
+        mira_Zg_plot.set_title(r'\large{\textbf{MIRA 35GHz Radar}}')
+        plot_data_set(fig, mira_Zg_plot, '',
+                      time_span, ds2.height, Ze, vmi=-50, vma=20,
+                      x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
+                      x_lab='', y_lab=y_label, z_lab=z_label, p='r')
+
+        # MIRA mean Doppler velocity
+        plot_data_set(fig, mira_VELg_plot, '',
+                      time_span, ds2.height, mdv, vmi=-4, vma=2,
+                      x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
+                      x_lab='', y_lab=y_label, z_lab=z_label, p='r')
+
+        # MIRA spectral width
+        plot_data_set(fig, mira_RMSg_plot, 'sw',
+                      time_span, ds2.height, sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
+                      x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
+                      x_lab='', y_lab=y_label, z_lab=z_label, p='r')
+
+
+        # MIRA linear depolarization ratio
+        plot_data_set(fig, mira_ldr_plot, '',
+                      time_span, ds2.height, ldr, vmi=-30, vma=0,
+                      x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
+                      x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
 
     if pts: print('\u2713\n')  # #print checkmark (✓) on screen
+    ########################################################################################################
+
+
+    site = ds2.location
 
     first_line = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
     second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
