@@ -42,7 +42,7 @@ plot_radar_results = True
 
 ####################################################################################################################
 '''
-start_time = time.clock()
+start_time = time.time()
 
 # Print Head
 if pts:
@@ -62,8 +62,8 @@ else:
 
     hmin = 0.0  # (km)  - lower y-axis limit
     hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '20181209'  # in YYMMDD
-    time_intervall = '000000-030000'  # in HHMM-HHMM
+    date = '20181204'  # in YYMMDD
+    time_intervall = '000000-235959'  # in HHMM-HHMM
 
 warnings.filterwarnings("ignore")
 
@@ -122,4 +122,4 @@ if plot_radar_results:
 
 
 
-if pts: print(f'    Total Elapsed Time = {time.clock()-start_time:.3f} sec.\n')
+if pts: print(f'    Total Elapsed Time = {time.time()-start_time:.3f} sec.\n')

@@ -2,7 +2,8 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-!*.py
+*.py
+!/*.py
 *$py.class
 
 # exclude plots in main folder
