@@ -962,24 +962,24 @@ class MIRA35_LV1():
             os.chdir(MIRA_path + 'mmclx/')  # path to data needs to be fit to the devices file structure
 
 
-            first_file = int(clock[0]) - np.remainder(int(clock[0]), 3)
+            first_file = int(clock[0]) - np.remainder(int(clock[0]), 1)
             if clock[1] - int(clock[1]) > 0.0:
                 last_file = int(clock[1]) + 1
             else:
                 last_file = int(clock[1])
 
-            range_file_list = list(range(first_file, last_file, 3))
+            range_file_list = list(range(first_file, last_file, 1))
 
 
             self.ncfiles = []
             for il in range_file_list:
                 try:
-                    file_name = glob.glob('*' + date[2:] + '_' + str(il).zfill(2) + '*.mmclx')
+                    file_name = glob.glob('*' + date + '_' + str(il).zfill(2) + '*.mmclx')
                     if len(file_name) > 1:
                         for item in file_name:
                             self.ncfiles.append(item)
                     else:
-                        self.ncfiles.append(file_name)
+                        self.ncfiles.append(file_name[0])
 
 
                 except Exception as e:
