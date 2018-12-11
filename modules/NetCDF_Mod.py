@@ -7,7 +7,7 @@ from datetime import timezone
 import netCDF4
 import numpy as np
 
-from modules.Interpolation_Mod import interpolate2d
+#from modules.Interpolation_Mod import interpolate2d
 from modules.Parameter_Mod import *
 
 
@@ -800,15 +800,15 @@ class LIMRAD94_LV1():
 
         # for var in self.VarDict:
         #    if var:  interp_z = interpolate2d(self.t_unix, self.height, z1.T, coordinates, mode=mth, bounds_error=False)
-
-        if self.VarDict['Ze']:  interp_Ze = interpolate2d(self.t_unix, self.height, self.Ze.T, coordinates, mode=mth,
-                                                          bounds_error=False)
-        if self.VarDict['mdv']: interp_mdv = interpolate2d(self.t_unix, self.height, self.mdv.T, coordinates, mode=mth,
-                                                           bounds_error=False)
-        if self.VarDict['sw']:  interp_sw = interpolate2d(self.t_unix, self.height, self.sw.T, coordinates, mode=mth,
-                                                          bounds_error=False)
-        if self.VarDict['ldr']: interp_ldr = interpolate2d(self.t_unix, self.height, self.ldr.T, coordinates, mode=mth,
-                                                           bounds_error=False)
+#
+#        if self.VarDict['Ze']:  interp_Ze = interpolate2d(self.t_unix, self.height, self.Ze.T, coordinates, mode=mth,
+#                                                          bounds_error=False)
+#        if self.VarDict['mdv']: interp_mdv = interpolate2d(self.t_unix, self.height, self.mdv.T, coordinates, mode=mth,
+#                                                           bounds_error=False)
+#        if self.VarDict['sw']:  interp_sw = interpolate2d(self.t_unix, self.height, self.sw.T, coordinates, mode=mth,
+#                                                          bounds_error=False)
+#        if self.VarDict['ldr']: interp_ldr = interpolate2d(self.t_unix, self.height, self.ldr.T, coordinates, mode=mth,
+#                                                           bounds_error=False)
 
         # interp_z = np.ma.masked_equal(interp_Ze, 0.0)
 
@@ -1137,34 +1137,34 @@ class MIRA35_LV1():
 
         # for var in self.VarDict:
         #    if var:  interp_z = interpolate2d(self.t_unix, self.height, z1.T, coordinates, mode=mth, bounds_error=False)
-
-        if self.VarDict['Ze']:
-            interp_Ze = interpolate2d(self.t_unix, self.height, self.Ze.T, coordinates, mode=mth, bounds_error=False)
-            interp_Ze = np.ma.masked_less_equal(interp_Ze, -80.0)
-            interp_Ze = np.ma.masked_invalid(interp_Ze)
-            interp_Ze = np.reshape(interp_Ze, (len_t, len_h)).T
-            self.Ze_interp = interp_Ze
-
-        if self.VarDict['mdv']:
-            interp_mdv = interpolate2d(self.t_unix, self.height, self.mdv.T, coordinates, mode=mth, bounds_error=False)
-            interp_mdv = np.ma.masked_less_equal(interp_mdv, -30.0)
-            interp_mdv = np.ma.masked_invalid(interp_mdv)
-            interp_mdv = np.reshape(interp_mdv, (len_t, len_h)).T
-            self.mdv_interp = interp_mdv
-
-        if self.VarDict['sw']:
-            interp_sw = interpolate2d(self.t_unix, self.height, self.sw.T, coordinates, mode=mth, bounds_error=False)
-            interp_sw = np.ma.masked_less_equal(interp_sw, -30.0)
-            interp_sw = np.ma.masked_invalid(interp_sw)
-            interp_sw = np.reshape(interp_sw, (len_t, len_h)).T
-            self.sw_interp = interp_sw
-
-        if self.VarDict['ldr']:
-            interp_ldr = interpolate2d(self.t_unix, self.height, self.ldr.T, coordinates, mode=mth, bounds_error=False)
-            interp_ldr = np.ma.masked_less_equal(interp_ldr, -30.0)
-            interp_ldr = np.ma.masked_invalid(interp_ldr)
-            interp_ldr = np.reshape(interp_ldr, (len_t, len_h)).T
-            self.ldr_interp = interp_ldr
+#
+#        if self.VarDict['Ze']:
+#            interp_Ze = interpolate2d(self.t_unix, self.height, self.Ze.T, coordinates, mode=mth, bounds_error=False)
+#            interp_Ze = np.ma.masked_less_equal(interp_Ze, -80.0)
+#            interp_Ze = np.ma.masked_invalid(interp_Ze)
+#            interp_Ze = np.reshape(interp_Ze, (len_t, len_h)).T
+#            self.Ze_interp = interp_Ze
+#
+#        if self.VarDict['mdv']:
+#            interp_mdv = interpolate2d(self.t_unix, self.height, self.mdv.T, coordinates, mode=mth, bounds_error=False)
+#            interp_mdv = np.ma.masked_less_equal(interp_mdv, -30.0)
+#            interp_mdv = np.ma.masked_invalid(interp_mdv)
+#            interp_mdv = np.reshape(interp_mdv, (len_t, len_h)).T
+#            self.mdv_interp = interp_mdv
+#
+#        if self.VarDict['sw']:
+#            interp_sw = interpolate2d(self.t_unix, self.height, self.sw.T, coordinates, mode=mth, bounds_error=False)
+#            interp_sw = np.ma.masked_less_equal(interp_sw, -30.0)
+#            interp_sw = np.ma.masked_invalid(interp_sw)
+#            interp_sw = np.reshape(interp_sw, (len_t, len_h)).T
+#            self.sw_interp = interp_sw
+#
+#        if self.VarDict['ldr']:
+#            interp_ldr = interpolate2d(self.t_unix, self.height, self.ldr.T, coordinates, mode=mth, bounds_error=False)
+#            interp_ldr = np.ma.masked_less_equal(interp_ldr, -30.0)
+#            interp_ldr = np.ma.masked_invalid(interp_ldr)
+#            interp_ldr = np.reshape(interp_ldr, (len_t, len_h)).T
+#            self.ldr_interp = interp_ldr
 
         # interp_z = np.ma.masked_equal(interp_Ze, 0.0)
 
