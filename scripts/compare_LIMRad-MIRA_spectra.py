@@ -53,7 +53,7 @@ else:
     height = 2  # (km)  - height of the spectrum to compare
     date = '20181203'  # in YYMMDD
     time_intervall = '010000-020000'  # in HHMM-HHMM
-    time = '0020' # time of the spectrum to compare
+    time = '002000' # time of the spectrum to compare
     spectra_height = [2.273, 1.648, 1.416]
 
 

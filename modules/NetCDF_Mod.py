@@ -477,6 +477,8 @@ class LIMRAD94_LV1():
         file = self.ncfiles[0]
         nc_data_set = netCDF4.Dataset(file, 'r')
 
+
+
         # find the number of range gates per chirp sequence,
         # also find the resolution of each chirp and
         # calculate the vector containing the height-steps
@@ -960,30 +962,37 @@ class MIRA35_LV1():
             os.chdir(MIRA_path + 'mmclx/')  # path to data needs to be fit to the devices file structure
 
 
-            first_file = int(clock[0]) - np.remainder(int(clock[0]), 3)
+            first_file = int(clock[0]) - np.remainder(int(clock[0]), 1)
             if clock[1] - int(clock[1]) > 0.0:
                 last_file = int(clock[1]) + 1
             else:
                 last_file = int(clock[1])
 
-            range_file_list = list(range(first_file, last_file, 3))
+            range_file_list = list(range(first_file, last_file, 1))
+
 
             self.ncfiles = []
             for il in range_file_list:
-                file_name = str(glob.glob(date +'_' + str(il).zfill(2) + '*.mmclx'))
-                self.ncfiles.append(file_name[2:-2])
+                try:
+                    file_name = glob.glob('*' + date + '_' + str(il).zfill(2) + '*.mmclx')
+                    if len(file_name) > 1:
+                        for item in file_name:
+                            self.ncfiles.append(item)
+                    else:
+                        self.ncfiles.append(file_name[0])
 
-            if file_name[2:-2] == '':
-                print('   Error!  File not found --> exit!')
-                print('   Check LIMRAD folder!')
-                exit(0)
 
-            file = self.ncfiles[0]
+                except Exception as e:
+                    print('Something went wrong:', e)
+                    print('   Error!  File not found --> exit!')
+                    exit(0)
 
-            if file == '':
-                print('   Error!  File: "' + file + '" not found --> exit!')
-                print('   Check MIRA folder!')
-                exit(0)
+            self.ncfiles = sorted([item for item in self.ncfiles])
+
+            nc_data_set = netCDF4.Dataset(self.ncfiles[0], 'r')
+            self.location = nc_data_set.location
+            self.reference = nc_data_set.reference
+            self.title = nc_data_set.title
 
 
             # conversion from decimal hour to datetime
@@ -996,7 +1005,7 @@ class MIRA35_LV1():
             for file in self.ncfiles:
 
                 nc_data_set = netCDF4.Dataset(file, 'r')
-                tmp = np.array(nc_data_set.variables['time'])
+                tmp = np.array(nc_data_set.variables['time'][:])
                 time_samp = np.append(time_samp, tmp)                        # Number of seconds since 1/1/2001 00:00:00 [UTC]
                 self.cum_time_gates[i_nc_file + 1] = self.cum_time_gates[i_nc_file] + len(tmp)
                 i_nc_file += 1
