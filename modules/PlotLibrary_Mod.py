@@ -1147,7 +1147,9 @@ def Plot_Doppler_Spectra_LIMRad_MIRA(ds, c, t0, h0, zbound,ds2,t1,h1):
     # h1 = height index LIMRad
 
     # convert from linear units to logarithmic units
-    doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]*ds.DoppRes[c]), 10.0)
+    #doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]*ds.DoppRes[c]), 10.0)
+
+    doppler_spec = np.multiply(np.ma.log10(ds.VHSpec[c][t0, h0, :]/2.0), 10.0)
     doppler_spec_mira = np.multiply(np.ma.log10(ds2.variables['Z'][t1, h1, :]), 10.0)
     doppler_spec_mira = doppler_spec_mira[::-1]
     #x1, x2 = [ds.DopplerBins[c][0], ds.DopplerBins[c][-1]]

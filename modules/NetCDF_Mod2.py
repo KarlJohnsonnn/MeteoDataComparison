@@ -620,8 +620,8 @@ class MIRA35_spectra():
                     splitted = file_name.split('_')
                     time_start = int(splitted[1][1:])
                     time_end = int(splitted[2])
-                    if int(time_str[:4]) <= time_start <= int(time_str[-4:]) \
-                            and int(time_str[:4]) <= time_end <= int(time_str[-4:]):
+                    if int(time_str[:6]) <= time_start <= int(time_str[-6:]) \
+                            and int(time_str[:6]) <= time_end <= int(time_str[-6:]):
                         self.ncfiles.append(folder_path + file_name)
 
                 self.n_files = len(self.ncfiles)
