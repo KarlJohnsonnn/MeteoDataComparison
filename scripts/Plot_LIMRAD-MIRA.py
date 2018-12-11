@@ -1,5 +1,4 @@
 
-import warnings
 
 ########################################################################################################################
 # THE FOLLOWING 3 LINES ARE NECESSARY FOR INPUT OF modules/ FOLDER !!!
@@ -9,6 +8,7 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
 ########################################################################################################################
 
+import warnings, time
 import modules.NetCDF_Mod as nc
 from modules.PlotLibrary_Mod import *
 from modules.Utility_Mod import *
