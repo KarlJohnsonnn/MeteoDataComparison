@@ -42,7 +42,7 @@ plot_radar_results = True
 
 ####################################################################################################################
 '''
-start_time = time.clock()
+start_time = time.time()
 
 # Print Head
 if pts:
@@ -122,4 +122,4 @@ if plot_radar_results:
 
 
 
-if pts: print(f'    Total Elapsed Time = {time.clock()-start_time:.3f} sec.\n')
+if pts: print(f'    Total Elapsed Time = {time.time()-start_time:.3f} sec.\n')
