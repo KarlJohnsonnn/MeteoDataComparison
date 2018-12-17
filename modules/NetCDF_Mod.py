@@ -1,7 +1,7 @@
 import datetime
 import glob
 import os
-import time
+import time, sys
 from datetime import timezone
 
 import netCDF4
@@ -79,8 +79,15 @@ class LIMRAD94_LV0():
         self.ncfiles = sorted([item for sublist in self.ncfiles for item in sublist])
         n_nc_files = len(self.ncfiles)
 
-        file = self.ncfiles[0]
-        nc_data_set = netCDF4.Dataset(file, 'r')
+        try:
+            file = self.ncfiles[0]
+            nc_data_set = netCDF4.Dataset(file, 'r')
+        except Exception as e:
+            print('Something went wrong during data type construction: ', e)
+
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, ' at Line ', exc_tb.tb_lineno)
 
         # find the number of range gates per chirp sequence,
         # also find the resolution of each chirp and
@@ -474,8 +481,15 @@ class LIMRAD94_LV1():
         self.ncfiles = sorted([item for sublist in self.ncfiles for item in sublist])
         n_nc_files = len(self.ncfiles)
 
-        file = self.ncfiles[0]
-        nc_data_set = netCDF4.Dataset(file, 'r')
+        try:
+            file = self.ncfiles[0]
+            nc_data_set = netCDF4.Dataset(file, 'r')
+        except Exception as e:
+            print('Something went wrong during data type construction: ', e)
+
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, ' at Line ', exc_tb.tb_lineno)
 
 
 

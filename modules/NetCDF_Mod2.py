@@ -81,9 +81,9 @@ class LIMRAD94():
 
                 # gathering self.year, self.month, self.day for convertion to UTC time
                 self.time_int = time_str
-                self.year = int('20' + date_str[:2])
-                self.month = int(date_str[2:4])
-                self.day = int(date_str[4:6])
+                self.year = int(date_str[:4])
+                self.month = int(date_str[4:6])
+                self.day = int(date_str[6:8])
 
                 # set minimum and maximum height (for plotting)
                 self.h_min = heightminmax[0]
@@ -101,7 +101,7 @@ class LIMRAD94():
                 #                    self.lvl = folder_path[pos_lvl:pos_lvl + 3]
 
                 # count LVx files in the given folder
-                files_path = folder_path + '*' + date_str + '*' + self.lvl + '.NC'
+                files_path = folder_path + '*' + date_str[2:] + '*' + self.lvl + '.NC'
                 all_ncfiles = [name for name in glob.glob(files_path)]
 
                 # Save only the files which are in between the time_int boundaries
