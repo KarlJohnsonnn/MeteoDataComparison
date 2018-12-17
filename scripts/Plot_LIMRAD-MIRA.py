@@ -114,7 +114,7 @@ if plot_radar_results:
 
     fig, plt = Plot_Radar_Results(LR_lv1, MMCLX_data)
 
-    file = date + '_profiles_timeseries.png'
+    file = date + '_' + time_intervall + '_profiles_timeseries.png'
     fig.savefig(meteo_path + file, dpi=dpi_val, format='png')
     plt.close()
 

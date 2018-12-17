@@ -37,6 +37,7 @@ vmi_specwidth = 10 ** (-1.5)
 vma_specwidth = 10 ** 0.5
 vmi_ldr = -60
 vma_ldr = 0
+vmi_skew = 0
 
 site = 'Punta-Arenas'
 country = 'Chile'
@@ -142,11 +143,12 @@ def Plot_Time_Series(ds, variable):
                     cbar.set_label(z_lab)
                     sub_plts[ivar].set_xticklabels([])
                 else:
-                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, map='jet')
+                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_mdv, vmax=vma_mdv, cmap='jet')
                     divider1 = make_axes_locatable(sub_plts[ivar])
                     cax0 = divider1.append_axes("right", size="3%", pad=0.1)
                     cbar = fig.colorbar(cp, cax=cax0, ax=sub_plts[ivar])
                     cbar.set_label(z_lab)
+                    #plt.show()
 
             # sub_plts[ivar].hold(True)
 
