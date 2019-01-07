@@ -92,10 +92,12 @@ print('         - height from: ', h_min, '(km)  to: ', h_max, ' (km) \n')
 #LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/VdResDiff/180810/LV1/', '180810', time_intervall, [h_min, h_max])
 #LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/VdResDiff/180810/LV1/VdRes2cms_180810_055219_P10_ZEN.LV1.NC')
 
+LR_lv0 = nc2.LIMRAD94(LIMRAD_path, date, time_intervall, [h_min, h_max], 'LV0')
 LR_lv1 = nc2.LIMRAD94(LIMRAD_path, date, time_intervall, [h_min, h_max], 'LV1')
 #LR_lv1.save('/Users/willi/Desktop/tmp/limrad_to_cloudnet/')
 
 # fig, plt = Plot_Time_Series(LR_lv1, ['ZE'])
+fig, plt = Plot_Time_Series(LR_lv0, ['VNoisePow'])
 fig, plt = Plot_Time_Series(LR_lv1, ['ZE', 'MeanVel', 'SpecWidth', 'SLDR', 'Skew'])
 ##
 file = meteo_path + date + '_' + time_intervall + '_time_series_LIMRAD94.png'

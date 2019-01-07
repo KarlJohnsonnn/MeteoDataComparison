@@ -83,11 +83,12 @@ class LIMRAD94_LV0():
             file = self.ncfiles[0]
             nc_data_set = netCDF4.Dataset(file, 'r')
         except Exception as e:
-            print('Something went wrong during data type construction: ', e)
+            print('Something went wrong during data type construction: No data found!')
 
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, ' at Line ', exc_tb.tb_lineno)
+            sys.exit(-1)
 
         # find the number of range gates per chirp sequence,
         # also find the resolution of each chirp and

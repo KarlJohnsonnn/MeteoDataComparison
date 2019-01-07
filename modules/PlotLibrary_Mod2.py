@@ -122,7 +122,7 @@ def Plot_Time_Series(ds, variable):
                     cbar.set_ticklabels(np.linspace(vmi_ldr, vma_ldr, 6))
                     cbar.set_label(z_lab)
 
-                elif variable[ivar] == 'ZE':
+                elif variable[ivar] in ['ZE', 'ZE2', 'VNoisePow', 'HNoisePow']:
 
                     Z = np.ma.log10(np.ma.masked_less_equal(Z, 0.)) * 10.0
                     z_lab = variable[ivar] + ' (dBZ)'
@@ -179,6 +179,7 @@ def Plot_Time_Series(ds, variable):
 
     plt.tight_layout(rect=[0, 0.01, 1, 0.955])
     plt.subplots_adjust(hspace=0.025)
+    plt.show()
 
     return fig,  sub_plts[ivar]
 
