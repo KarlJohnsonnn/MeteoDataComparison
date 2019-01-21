@@ -1,6 +1,8 @@
 import calendar
 import datetime
-import os, sys
+import os
+import sys
+
 import numpy as np
 import pandas as pd
 from numba import jit
@@ -25,6 +27,16 @@ def seconds_since_epoch(dtm):
 def datetime_from_seconds(seconds):
     """ """
     return datetime.datetime.utcfromtimestamp(seconds)
+
+
+def lin2z(array):
+    """linear values to dB (for np.array or single number)"""
+    return 10 * np.ma.log10(array)
+
+
+def z2lin(array):
+    """dB to linear values (for np.array or single number)"""
+    return 10 ** (array / 10.)
 
 
 def findBasesTops(dbz_m, range_v):
