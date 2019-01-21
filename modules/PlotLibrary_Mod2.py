@@ -99,7 +99,7 @@ def Plot_Time_Series(ds, variable):
                 X_bound.append(min(X))
                 X_bound.append(max(X))
 
-                if variable[ivar] == 'SpecWidth':
+                if variable[ivar] in ['SpecWidth', 'SpecWidth2']:
                     cp = sub_plts[ivar].pcolormesh(X, Y, Z,
                                                    norm=mcolors.LogNorm(vmin=vmi_specwidth, vmax=vma_specwidth),
                                                    cmap='jet')
@@ -113,16 +113,23 @@ def Plot_Time_Series(ds, variable):
 
                 elif variable[ivar] == 'SLDR':
 
-                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_ldr, vmax=vma_ldr, cmap='jet')
-                    divider1 = make_axes_locatable(sub_plts[ivar])
-                    cax4 = divider1.append_axes("right", size="3%", pad=0.1)
-                    bounds = np.linspace(vmi_ldr, vma_ldr, 100)
-                    cbar = fig.colorbar(cp, cax=cax4, ax=sub_plts[ivar], boundaries=bounds,
-                                        ticks=np.linspace(vmi_ldr, vma_ldr, 6))
-                    cbar.set_ticklabels(np.linspace(vmi_ldr, vma_ldr, 6))
-                    cbar.set_label(z_lab)
+                    colors1 = plt.cm.binary(np.linspace(0.5, 0.5, 1))
+                    colors2 = plt.cm.jet(np.linspace(0, 0, 178))
+                    colors3 = plt.cm.jet(np.linspace(0, 1, 77))
+                    colors = np.vstack((colors1, colors2, colors3))
+                    mymap = mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
 
-                elif variable[ivar] == 'ZE':
+                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_ldr, vmax=vma_ldr, cmap=mymap)
+
+                    divider1 = make_axes_locatable(sub_plts[ivar])
+                    cax4 = divider1.append_axes("right", size="3%", pad=0.5)
+                    bounds = np.linspace(-30, 0, 500)
+                    cbar = fig.colorbar(cp, cax=cax4, ax=sub_plts[ivar], boundaries=bounds,
+                                        ticks=[-30, -25, -20, -15, -10, -5, 0])
+                    cbar.set_ticklabels([-30, -25, -20, -15, -10, -5, 0])
+                    cbar.set_label('dB')
+
+                elif variable[ivar] in ['ZE', 'ZE2', 'Kurt', 'Skew']:
 
                     Z = np.ma.log10(np.ma.masked_less_equal(Z, 0.)) * 10.0
                     z_lab = variable[ivar] + ' (dBZ)'
@@ -135,7 +142,7 @@ def Plot_Time_Series(ds, variable):
                     cbar.set_label(z_lab)
                     sub_plts[ivar].set_xticklabels([])
 
-                elif variable[ivar] == 'MeanVel':
+                elif variable[ivar] in ['MeanVel', 'MeanVel2']:
                     cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_mdv, vmax=vma_mdv, cmap='jet')
                     divider1 = make_axes_locatable(sub_plts[ivar])
                     cax0 = divider1.append_axes("right", size="3%", pad=0.1)
@@ -143,7 +150,7 @@ def Plot_Time_Series(ds, variable):
                     cbar.set_label(z_lab)
                     sub_plts[ivar].set_xticklabels([])
                 else:
-                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_mdv, vmax=vma_mdv, cmap='jet')
+                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=Z.min(), vmax=Z.max(), cmap='jet')
                     divider1 = make_axes_locatable(sub_plts[ivar])
                     cax0 = divider1.append_axes("right", size="3%", pad=0.1)
                     cbar = fig.colorbar(cp, cax=cax0, ax=sub_plts[ivar])
@@ -179,6 +186,7 @@ def Plot_Time_Series(ds, variable):
 
     plt.tight_layout(rect=[0, 0.01, 1, 0.955])
     plt.subplots_adjust(hspace=0.025)
+    # plt.show()
 
     return fig,  sub_plts[ivar]
 

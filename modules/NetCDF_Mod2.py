@@ -1,3 +1,4 @@
+import datetime
 import glob
 import os
 import os.path
@@ -6,10 +7,8 @@ import sys
 
 import netCDF4
 import numpy as np
-import datetime
 
 from modules.Parameter_Mod import *
-from modules.Utility_Mod import datetime_from_seconds
 
 # fixed paramters
 max_MDF_files = 10
@@ -417,7 +416,7 @@ class LIMRAD94():
             ds.createDimension('C' + str(ic + 1) + 'Range', self.dimensions[0]['Range'][ic])
             ds.createDimension('C' + str(ic + 1) + 'Vel', self.dimensions[0]['Vel'][ic])
 
-        self.nc_add_variable(ds, 'time', np.float32, ('time',),
+        self.nc_add_variable(ds, 'time', np.uint32, ('time',),
                              'Seconds since 01.01.2001 00:00 UTC', '[sec]',
                              self.time_series_1D[0]['Time']['Val'])
 

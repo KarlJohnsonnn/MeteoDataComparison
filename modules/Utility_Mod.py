@@ -1,6 +1,8 @@
 import calendar
 import datetime
-import os, sys
+import os
+import sys
+
 import numpy as np
 import pandas as pd
 from numba import jit
@@ -25,6 +27,16 @@ def seconds_since_epoch(dtm):
 def datetime_from_seconds(seconds):
     """ """
     return datetime.datetime.utcfromtimestamp(seconds)
+
+
+def lin2z(array):
+    """linear values to dB (for np.array or single number)"""
+    return 10 * np.ma.log10(array)
+
+
+def z2lin(array):
+    """dB to linear values (for np.array or single number)"""
+    return 10 ** (array / 10.)
 
 
 def findBasesTops(dbz_m, range_v):
@@ -399,10 +411,21 @@ def spectra_to_moments(spectra_linear_units, velocity_bins, bounds, DoppRes):
 
                     # hier signal durch 2 teilen .... warum?? weil VH = Vspec+Hspec???? ask Alexander Myagkov why
                     signal = spectra_linear_units[ic][iT, iR, lb:ub]  # extract power spectra in chosen range
+
+                    #if ic == 0:
+                    #    if np.sum(signal) < 5.e-6:
+                    #        hydro_meteor = False
+                    #    elif np.sum(np.ma.diff(np.ma.masked_less_equal(signal, -999.))) < 5.e-6:
+                    #        hydro_meteor = False
+                    #    else:
+                    #        hydro_meteor =  True
+                    #else:
+                    hydro_meteor = True
+
                     velocity_bins_extr = velocity_bins[ic][lb:ub]  # extract velocity bins in chosen Vdop bin range
                     signal_sum = np.nansum(signal)  # linear full spectrum Ze [mm^6/m^3], scalar
 
-                    if np.isfinite(signal_sum):  # check if Ze_linear is not NaN
+                    if np.isfinite(signal_sum) and hydro_meteor:  # check if Ze_linear is not NaN
 
                         # Ze_linear = signal_sum
                         Ze_linear = signal_sum / 2.0
@@ -414,6 +437,7 @@ def spectra_to_moments(spectra_linear_units, velocity_bins, bounds, DoppRes):
                         mdv[iT, iR_out] = np.nansum(velocity_bins_extr * pwr_nrm)
                         sw[iT, iR_out] = np.sqrt(
                             np.abs(np.nansum(np.multiply(pwr_nrm, np.square(velocity_bins_extr - mdv[iT, iR_out])))))
+
                         skew[iT, iR_out] = np.nansum(
                             pwr_nrm * np.power(velocity_bins_extr - mdv[iT, iR_out], 3.0)) / np.power(sw[iT, iR_out],
                                                                                                       3.0)

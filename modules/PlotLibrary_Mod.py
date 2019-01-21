@@ -612,10 +612,8 @@ def Plot_CalcMoments_minus_GivenMoments(ds1, mom='Ze'):
     y_label = r'\textbf{Height [km]}'
 
     diff.set_title(r'\large{\textbf{LIMRAD 94GHz Radar NoiseFac0 Lv1 (with noise)}}')
-    plot_data_set(fig, diff, '',
-                  ds1.t_plt, ds1.height_all, differ, vmi=vmin, vma=vmax,
-                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='lr')
+    plot_data_set(fig, diff, mom,
+                  ds1.t_plt, ds1.height_all, differ, z_lab=z_label, p='lr')
 
     diff.set_ylabel(y_label)
     diff.set_ylim(bottom=yb1[0], top=yb1[1])
@@ -652,28 +650,29 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
     xb2 = [ds2.t_plt[0], ds2.t_plt[-1]]
 
     yb1 = [ds1.height[0], ds1.height[-1]]
-    yb2 = [ds2.height[0], ds2.height[-1]]
+    yb2 = [ds2.height_all[0], ds2.height_all[-1]]
 
+
+    n_bin_x = 7
+    n_bin_y = 8
     ########################################################################################################
     ########################################################################################################
     # LR_Zelectivity plot
     if pts: print('       -   Radar Reflectivity Factor   ', end='', flush=True)
 
-    x_label = r'\textbf{Time [UTC]}'
-    y_label = r'\textbf{Height [km]}'
-    z_label = r'\textbf{Reflectivity [dBZ]}'
+    x_label = 'Time [UTC]'
+    y_label = 'Height [km]'
+    z_label = 'Reflectivity [dBZ]'
 
-    LR_Ze_plot.set_title(r'\large{\textbf{LIMRAD 94GHz Radar moments NoiseFac0 LV1-file (with noise)}}')
-    plot_data_set(fig, LR_Ze_plot, '',
-                  ds1.t_plt, ds1.height, ds1.Ze, vmi=-50, vma=20,
-                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label, p='l')
+    LR_Ze_plot.set_title('LIMRAD 94GHz Radar moments NoiseFac0 LV1-file (with noise)')
+    plot_data_set(fig, LR_Ze_plot, 'Ze',
+                  ds1.t_plt, ds1.height, ds1.Ze,
+                  z_lab=z_label, p='l')
 
-    mira_Zg_plot.set_title(r'\large{\textbf{LIMRAD 94GHz Radar calculated moments from spectra LV0-file (without noise)}}')
-    plot_data_set(fig, mira_Zg_plot, '',
-                  ds2.t_plt, ds2.height_all, ds2.Ze, vmi=-50, vma=20,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label, p='r')
+    mira_Zg_plot.set_title('LIMRAD 94GHz Radar calculated moments from spectra LV0-file (without noise)')
+    plot_data_set(fig, mira_Zg_plot, 'Ze',
+                  ds2.t_plt, ds2.height_all, ds2.Ze,
+                   z_lab=z_label, p='r')
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -681,19 +680,17 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
     # mean doppler velocity plot
     if pts: print('       -   Mean Doppler velocity   ', end='', flush=True)
 
-    z_label = r'\textbf{Mean Doppler}' + '\n' + r'\textbf{Velocity [m/s]}'
+    z_label = 'Mean Doppler\n Velocity [m/s]'
 
     # LIMRAD mean Doppler velocity
-    plot_data_set(fig, LR_mdv_plot, '',
-                  ds1.t_plt, ds1.height, ds1.mdv, vmi=-4, vma=2,
-                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label, p='l')
+    plot_data_set(fig, LR_mdv_plot, 'mdv',
+                  ds1.t_plt, ds1.height, ds1.mdv,
+                  z_lab=z_label, p='l')
 
     # MIRA mean Doppler velocity
-    plot_data_set(fig, mira_VELg_plot, '',
-                  ds2.t_plt, ds2.height_all, ds2.mdv, vmi=-4, vma=2,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab='', y_lab=y_label, z_lab=z_label, p='r')
+    plot_data_set(fig, mira_VELg_plot, 'mdv',
+                  ds2.t_plt, ds2.height_all, ds2.mdv,
+                  z_lab=z_label, p='r')
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
@@ -701,26 +698,69 @@ def Plot_Compare_NoiseFac0(ds1, ds2):
     # spectral width plot
     if pts: print('       -   Spectral Width   ', end='', flush=True)
 
-    z_label = r'\textbf{Spectral Width [m/s]}'
+    z_label = 'Spectral Width [m/s]'
     # LIMRAD spectral width
     plot_data_set(fig, LR_sw_plot, 'sw',
-                  ds1.t_plt, ds1.height, ds1.sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
-                  x_min=xb1[0], x_max=xb1[1], y_min=yb1[0], y_max=yb1[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='l')
+                  ds1.t_plt, ds1.height, ds1.sw,
+                  z_lab=z_label, p='l')
 
     # MIRA spectral width
     plot_data_set(fig, mira_RMSg_plot, 'sw',
-                  ds2.t_plt, ds2.height_all, ds2.sw, vmi=10 ** (-1.5), vma=10 ** 0.5,
-                  x_min=xb2[0], x_max=xb2[1], y_min=yb2[0], y_max=yb2[1],
-                  x_lab=x_label, y_lab=y_label, z_lab=z_label, p='r')
+                  ds2.t_plt, ds2.height_all, ds2.sw,
+                   z_lab=z_label, p='r')
+
+    LR_Ze_plot.set_xlim(left=xb1[0], right=xb1[1])
+    LR_Ze_plot.set_ylim(bottom=yb1[0], top=yb1[1])
+    # LR_Ze_plot.xaxis.set_major_locator(MaxNLocator(n_bin_x))
+    LR_Ze_plot.locator_params(axis='y', nbins=n_bin_y)
+    LR_Ze_plot.axes.xaxis.set_ticklabels([])
+
+    LR_mdv_plot.set_xlim(left=xb1[0], right=xb1[1])
+    LR_mdv_plot.set_ylim(bottom=yb1[0], top=yb1[1])
+    # LR_mdv_plot.xaxis.set_major_locator(MaxNLocator(n_bin_x))
+    LR_mdv_plot.locator_params(axis='y', nbins=n_bin_y)
+    LR_mdv_plot.axes.xaxis.set_ticklabels([])
+
+    LR_sw_plot.set_xlim(left=xb1[0], right=xb1[1])
+    LR_sw_plot.set_ylim(bottom=yb1[0], top=yb1[1])
+    # LR_sw_plot.xaxis.set_major_locator(MaxNLocator(n_bin_x))
+    LR_sw_plot.locator_params(axis='y', nbins=n_bin_y)
+    LR_sw_plot.axes.xaxis.set_ticklabels([])
+
+    LR_sw_plot.xaxis.set_major_formatter(mpl.dates.DateFormatter('%H:%M'))
+    LR_sw_plot.set_xlabel(x_label)
+
+    mira_Zg_plot.set_xlim(left=xb1[0], right=xb1[1])
+    mira_Zg_plot.set_ylim(bottom=yb2[0], top=yb2[1])
+    mira_Zg_plot.set_yticklabels([])
+    # mira_Zg_plot.xaxis.set_major_locator(MaxNLocator(n_bin_x))
+    mira_Zg_plot.locator_params(axis='y', nbins=n_bin_y)
+    mira_Zg_plot.axes.xaxis.set_ticklabels([])
+
+    mira_VELg_plot.set_xlim(left=xb1[0], right=xb1[1])
+    mira_VELg_plot.set_ylim(bottom=yb2[0], top=yb2[1])
+    mira_VELg_plot.set_yticklabels([])
+    # mira_VELg_plot.xaxis.set_major_locator(MaxNLocator(n_bin_x))
+    mira_VELg_plot.locator_params(axis='y', nbins=n_bin_y)
+    mira_VELg_plot.axes.xaxis.set_ticklabels([])
+
+    mira_RMSg_plot.set_xlim(left=xb1[0], right=xb1[1])
+    mira_RMSg_plot.set_ylim(bottom=yb2[0], top=yb2[1])
+    mira_RMSg_plot.set_yticklabels([])
+    # mira_RMSg_plot.xaxis.set_major_locator(MaxNLocator(n_bin_x))
+    mira_RMSg_plot.locator_params(axis='y', nbins=n_bin_y)
+    mira_RMSg_plot.axes.xaxis.set_ticklabels([])
+
+    mira_RMSg_plot.xaxis.set_major_formatter(mpl.dates.DateFormatter('%H:%M'))
+    mira_RMSg_plot.set_xlabel(x_label)
 
     if pts: print('\u2713')  # #print checkmark (✓) on screen
 
-    first_line = r'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,'
-    second_line = r'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),'
-    third_line = r'using: LIMRAD94 and MIRA35 data;  no attenuation correction'
+    first_line = 'Comparison of LIMRAD 94GHz and MIRA 35GHz Radar Data, Leipzig, Germany,\n'
+    second_line = 'from: ' + str(xb1[0]) + ' (UTC)  to:  ' + str(xb1[1]) + ' (UTC),\n'
+    third_line = 'using: LIMRAD94 and MIRA35 data;  no attenuation correction'
 
-    file_name = r'\textbf{' + first_line + '}\n' + r'\textbf{' + second_line + '}\n' + r'\textbf{' + third_line + '}'
+    file_name = first_line +second_line + third_line
     plt.suptitle(file_name)
 
     plt.tight_layout(rect=[0, 0.01, 1, 0.90])
@@ -1194,7 +1234,7 @@ def Plot_Doppler_Spectra(ds, c, t0, h0, zbound, thresh=0.0, mean=0.0, int_a=0.0,
 
     # plot spectra
     fig, ax = plt.subplots(1, figsize=(10, 4))
-    ax.plot(ds.DopplerBins[c], doppler_spec, color='blue', linestyle=':', label='Doppler Spec')
+    ax.plot(ds.DopplerBins[c], doppler_spec, color='blue', linestyle='-', linewidth=2, label='Doppler Spec')
 
     if plot_boundaries:
         mean = np.multiply(np.ma.log10(mean), 10.0)

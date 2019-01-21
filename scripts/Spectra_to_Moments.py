@@ -32,14 +32,14 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
 ####################################################################################################################
 '''
 
-import warnings
+import warnings, time
 import modules.NetCDF_Mod as nc
 from modules.PlotLibrary_Mod import *
 from modules.Utility_Mod import *
 
 start_time = time.clock()
 
-n_std_diviations = 6.0
+n_std_diviations = 1.0
 
 # Print Head
 if pts:
@@ -63,8 +63,8 @@ if len(sys.argv) >= 4:
 
 else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-    date = '20180810'  # in YYYYMMDD
-    time_intervall = '052000-053000'  # in HHMMSS-HHMMSS
+    date = '20181218'  # in YYYYMMDD
+    time_intervall = '080000-090000'  # in HHMMSS-HHMMSS
 
 warnings.filterwarnings("ignore")
 
@@ -185,27 +185,31 @@ if save_spectra_to_png:
     if user_input:
         ichirp, itime, iheight = gather_user_input(LR_lv0)
     else:
-        ichirp = 2
-        iheight = 58
-        itime = 50
+        ichirp = 0
+        iheight = 38
+        itime = 130
+
+        fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-70, 20])
 
     # for ic in range(LR_lv0.no_c):
-    for t0 in range(LR_lv0.Time):
-        itime = t0
+    #for t0 in range(LR_lv0.Time):
+    for h0 in range(len(LR_lv0.height[ichirp])):
+        #itime = t0
+        #iheight = h0
 
         # show mean noise, threshold, and integration lines + spectrum
-        fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-40, 10],
-                                        thresh=threshold[ichirp][itime, iheight],
-                                        mean=mean_noise[ichirp][itime, iheight],
-                                        int_a=integration_bounds[ichirp][itime, iheight, 0],
-                                        int_b=integration_bounds[ichirp][itime, iheight, 1])
+        #fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-40, 10],
+        #                                thresh=threshold[ichirp][itime, iheight],
+        #                                mean=mean_noise[ichirp][itime, iheight],
+        #                                int_a=integration_bounds[ichirp][itime, iheight, 0],
+        #                                int_b=integration_bounds[ichirp][itime, iheight, 1])
 
         # show only spectra
-        #    fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-60, 20])
+        fig, plt = Plot_Doppler_Spectra(LR_lv0, ichirp, itime, iheight, [-70, 20])
 
         datestring = str(LR_lv0.t_plt[itime])
         idxSpace = str(datestring).find(' ')
-        file = LIMRAD_path + 'PNG2/' + date + '_' \
+        file = meteo_path + 'PNG/' + date + '_' \
                + str(datestring[idxSpace + 1:]) + '_' + '{:.5f}'.format(LR_lv0.height[ichirp][iheight]) \
                + '_spectra_' + str(i_png).zfill(3) + '.png'
 
