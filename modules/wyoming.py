@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from siphon._tools import get_wind_components
 from siphon.http_util import HTTPEndPoint
+from datetime import datetime
 
 warnings.filterwarnings('ignore', 'Pandas doesn\'t allow columns to be created', UserWarning)
 
@@ -44,8 +45,8 @@ class WyomingUpperAir(HTTPEndPoint):
 
         """
         endpoint = cls()
-        df = endpoint._get_data(time, site_id, **kwargs)
-        return df
+        df, metadata = endpoint._get_data(time, site_id, **kwargs)
+        return df, metadata
 
     def _get_data(self, time, site_id, region='naconf'):
         r"""Download and parse upper air observations from an online archive.
@@ -86,10 +87,11 @@ class WyomingUpperAir(HTTPEndPoint):
                     'speed': 'knot',
                     'u_wind': 'knot',
                     'v_wind': 'knot'}
+        metadata=[]
         for item in list(meta_data.split('\n'))[1:-1]:
             var, value = item.split(': ')
-            df._metadata.append({var.strip(): value})
-        return df
+            metadata.append({var.strip(): value})
+        return df, metadata
 
     def _get_data_raw(self, time, site_id, region='naconf'):
         """Download data from the University of Wyoming's upper air archive.
