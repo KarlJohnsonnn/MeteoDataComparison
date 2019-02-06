@@ -1,5 +1,11 @@
-import sys
-import warnings
+########################################################################################################################
+# THE FOLLOWING 3 LINES ARE NECESSARY FOR INPUT OF modules/ FOLDER !!!
+#
+import sys, os
+SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
+########################################################################################################################
+import warnings,time
 
 import modules.NetCDF_Mod2 as nc2
 from modules.PlotLibrary_Mod2 import *
@@ -53,9 +59,10 @@ else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
     h_min = 0.0  # (km)  - lower y-axis limit
     h_max = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '20181203'  # in YYMMDD
+    date = '20190120'  # in YYMMDD
     time_intervall = '000000-235959'  # in HHMM-HHMM
 
+LIMRAD_path = LIMRAD_path + date[:4] + '/'
 
 warnings.filterwarnings("ignore")
 
@@ -92,12 +99,12 @@ print('         - height from: ', h_min, '(km)  to: ', h_max, ' (km) \n')
 #LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/VdResDiff/180810/LV1/', '180810', time_intervall, [h_min, h_max])
 #LR_lv1 = nc2.LIMRAD94('/Users/willi/data/MeteoData/LIMRad94/VdResDiff/180810/LV1/VdRes2cms_180810_055219_P10_ZEN.LV1.NC')
 
-LR_lv0 = nc2.LIMRAD94(LIMRAD_path, date, time_intervall, [h_min, h_max], 'LV0')
+#LR_lv0 = nc2.LIMRAD94(LIMRAD_path, date, time_intervall, [h_min, h_max], 'LV0')
 LR_lv1 = nc2.LIMRAD94(LIMRAD_path, date, time_intervall, [h_min, h_max], 'LV1')
 #LR_lv1.save('/Users/willi/Desktop/tmp/limrad_to_cloudnet/')
 
 # fig, plt = Plot_Time_Series(LR_lv1, ['ZE'])
-fig, plt = Plot_Time_Series(LR_lv0, ['VNoisePow'])
+#fig, plt = Plot_Time_Series(LR_lv0, ['VNoisePow'])
 fig, plt = Plot_Time_Series(LR_lv1, ['ZE', 'MeanVel', 'SpecWidth', 'SLDR', 'Skew'])
 ##
 file = meteo_path + date + '_' + time_intervall + '_time_series_LIMRAD94.png'
@@ -124,7 +131,7 @@ if pts: print('    Save Figure to File :: ' + file + '\n')
 '''
 
 
-mira_specs = nc2.MIRA35_spectra(MIRA_path + 'spectra/' + 'D20181203_T0000_0030_Pun_zspc2nc_v1_02_standard.nc4')
+#mira_specs = nc2.MIRA35_spectra(MIRA_path + 'spectra/' + 'D20181203_T0000_0030_Pun_zspc2nc_v1_02_standard.nc4')
 
 #mira_specs = nc2.MIRA35_spectra(MIRA_path, date, time_intervall, [h_min, h_max])
 

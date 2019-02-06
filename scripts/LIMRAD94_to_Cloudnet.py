@@ -21,7 +21,7 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, '..')))
    
    
    
-    The example call to the routine:    $  python LIMRAD94_to_Cloudnet.py 20180729 000000 240000
+    The example call to the routine:    $  python LIMRAD94_to_Cloudnet.py 20180729
 
 
 ####################################################################################################################
@@ -46,16 +46,12 @@ if pts:
 h_min = 0.0  # in X.XX     (float, unit: km - lower y-axis limit)
 h_max = 12.0  # in X.XX     (float, unit: km - upper y-axis limit)
 
-if len(sys.argv) >= 4:
+if len(sys.argv) >= 2:
     date = str(sys.argv[1])
-    time_intervall = str(sys.argv[2]) + '-' + str(sys.argv[3])
-    if len(sys.argv) == 6:
-        h_min, h_max = float(sys.argv[4]), float(sys.argv[5])
-
 else:
     date = '20181201'  # in YYMMDD
-    time_intervall = '000000-240000'  # in HHMMSS-HHMMSS
 
+time_intervall = '000000-240000'  # in HHMMSS-HHMMSS
 warnings.filterwarnings("ignore")
 
 start_time = time.time()
@@ -80,7 +76,7 @@ if pts:
 ######################################################################################################
 '''
 
-LR_lv1 = nc2.LIMRAD94(LIMRAD_path, date, time_intervall, [h_min, h_max], 'LV1')
+LR_lv1 = nc2.LIMRAD94(LIMRAD_path+date[:4]+'/', date, time_intervall, [h_min, h_max], 'LV1')
 
 LR_lv1.save(meteo_path)
 
