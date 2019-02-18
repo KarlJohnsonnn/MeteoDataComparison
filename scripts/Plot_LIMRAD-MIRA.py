@@ -62,8 +62,8 @@ else:
 
     hmin = 0.0  # (km)  - lower y-axis limit
     hmax = 12.00  # (km) - upper y-axis limit, highest range gate may be higher
-    date = '20181204'  # in YYMMDD
-    time_intervall = '000000-235959'  # in HHMM-HHMM
+    date = '20190123'  # in YYMMDD
+    time_intervall = '000000-040000'  # in HHMM-HHMM
 
 warnings.filterwarnings("ignore")
 
@@ -84,10 +84,10 @@ warnings.filterwarnings("ignore")
 print('    date: ', date, time_intervall, hmin, hmax)
 
 # ----- LIMRAD 94GHz Radar data extraction
-LR_lv1 = nc.LIMRAD94_LV1(LIMRAD_path, date, time_intervall, [hmin, hmax])
+LR_lv1 = nc.LIMRAD94_LV1(LIMRAD_path+date[:4]+'/', date, time_intervall, [hmin, hmax])
 
 
-# ----- MIRA 35GHz Raar data extraction
+# ----- MIRA 35GHz Radar data extraction
 MMCLX_data = nc.MIRA35_LV1(MIRA_path, date, time_intervall, [hmin, hmax], '*.mmclx')
 
 

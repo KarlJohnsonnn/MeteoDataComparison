@@ -39,7 +39,7 @@ from modules.Utility_Mod import *
 
 start_time = time.clock()
 
-n_std_diviations = 1.0
+n_std_diviations = -1.0
 
 # Print Head
 if pts:
@@ -63,8 +63,8 @@ if len(sys.argv) >= 4:
 
 else:
     # special case NoiseFac0_file = 'NoiseFac0/NoiseFac0_180810_052012_P01_ZEN.LV0.NC'
-    date = '20181218'  # in YYYYMMDD
-    time_intervall = '080000-090000'  # in HHMMSS-HHMMSS
+    date = '20190110'  # in YYYYMMDD
+    time_intervall = '120000-130000'  # in HHMMSS-HHMMSS
 
 warnings.filterwarnings("ignore")
 
@@ -128,15 +128,34 @@ if calc_doppler_spectra:
     for ic in range(LR_lv0.no_c):
         LR_lv0.VHSpec[ic] = np.ma.masked_less_equal(LR_lv0.VHSpec[ic], -999.0)
 
-    # Estimate Noise Floor for all chirps, timesteps and heighsteps aka. for all pixels
-    # Algorithm used: Hildebrand & Sekhon
-    mean_noise, threshold, variance, numnoise, integration_bounds = remove_noise(LR_lv0, n_std_diviations)
-    if pts: print('    - all noise removed ')
-
     if include_noise:
+
+        mean_noise = []
+        threshold = []
+        variance = []
+        numnoise = []
+        integration_bounds = []
+
+        n_t = LR_lv0.n_time
+
+        for ic in range(LR_lv0.no_c):
+            n_r = LR_lv0.n_height[ic]
+            mean_noise.append(np.zeros((n_t, n_r)))
+            threshold.append(np.zeros((n_t, n_r)))
+            variance.append(np.zeros((n_t, n_r)))
+            numnoise.append(np.zeros((n_t, n_r)))
+            integration_bounds.append(np.zeros((n_t, n_r, 2)))
+
         for ic in range(LR_lv0.no_c):
             integration_bounds[ic][:, :, 0] = 0
             integration_bounds[ic][:, :, 1] = -1
+    else:
+
+
+        # Estimate Noise Floor for all chirps, timesteps and heighsteps aka. for all pixels
+        # Algorithm used: Hildebrand & Sekhon
+        mean_noise, threshold, variance, numnoise, integration_bounds = remove_noise(LR_lv0, n_std_diviations)
+        if pts: print('    - all noise removed ')
 
     #  dimensions:
     #       -   LR_lv0.VHSpec       [Nchirps][Ntime,Nheight]
@@ -161,7 +180,7 @@ if calc_doppler_spectra:
     LR_lv0.diffsw = np.ma.subtract(LR_lv0.sw, LR_lv1.sw)
 
     # print mean differences of Ze, mdv, sw
-    compare_datasets(LR_lv0, LR_lv1)
+    if include_noise: compare_datasets(LR_lv0, LR_lv1)
 
     # this is just for debugging
 

@@ -101,12 +101,18 @@ class LIMRAD94():
 
                 # count LVx files in the given folder
                 files_path = folder_path + '*' + date_str[2:] + '*' + self.lvl + '.NC'
+                print('File path :: ', files_path)
                 all_ncfiles = [name for name in glob.glob(files_path)]
+                print('Files found :: ', all_ncfiles)
 
                 # Save only the files which are in between the time_int boundaries
                 ncfiles = []
                 for iFile in all_ncfiles:
                     pos_time = iFile.find('_P') - 6  # search for the position where the program number appears
+                    print('search file ::', iFile[pos_time:pos_time + 6],
+                          int(self.time_int[:6]) <= int(iFile[pos_time:pos_time + 6]),
+                          int(iFile[pos_time:pos_time + 6]) <= int(self.time_int[7:]))
+
                     if int(self.time_int[:6]) <= int(iFile[pos_time:pos_time + 6]) <= int(self.time_int[7:]):
                         ncfiles.append(iFile)
 
@@ -457,7 +463,7 @@ class LIMRAD94():
         # RangeOffsets ist der index in den daten, der dir
         # anzeigt wann eine andere chrip sequence läuft, in denen viele
         # parameter, wie vertikale auflösung, nyquist range, usw. verändern. (Nils Küchler)
-        range_offsets = np.ones((self.num_chirps[0]), dtype=np.float32)
+        range_offsets = np.ones((self.num_chirps[0]), dtype=np.uint32)
         for iC in range(self.num_chirps[0] - 1):
             range_offsets[iC + 1] = range_offsets[iC] + self.dimensions[0]['Range'][iC]
 

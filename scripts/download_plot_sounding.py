@@ -1,4 +1,4 @@
-#!/home/wschimmel/anaconda3/bin/python
+#!
 # Copyright (c) 2017 Siphon Contributors.
 # Distributed under the terms of the BSD 3-Clause License.
 # SPDX-License-Identifier: BSD-3-Clause
@@ -49,7 +49,7 @@ if len(sys.argv) == 5:
 else:
     year  = 2018
     month = 12
-    day   = 3
+    day   = 26
     hour  = 12
 
 
@@ -57,7 +57,7 @@ date = datetime(year, month, day, hour)
 
 ####################################################
 # Make the request (a pandas dataframe is returned).
-df = WyomingUpperAir.request_data(date, station)
+df,metadata = WyomingUpperAir.request_data(date, station)
 
 
 # Drop any rows with all NaN values for T, Td, winds
@@ -150,16 +150,9 @@ plt.legend(['Temperature','Dew Point','LCL','parcel profile'])
 filename= str(date.year) + str(date.month).zfill(2) + str(date.day).zfill(2) \
        +'_'+ str(date.hour) + '_'   + station
 
-<<<<<<< HEAD:download_plot_sounding.py
-file = '/projekt1/remsens/code/MeteoDataComparison' + filename  + '.png'
-fig.savefig(file, dpi=100, format='png')
-plt.close()
-
-df.to_csv('/projekt1/remsens/code/MeteoDataComparison'+ filename + '.txt',sep='\t',index=None)
-=======
 file = meteo_path + filename  + '.png'
 fig.savefig(file, dpi=100, format='png')
-plt.close()
+plt.show()
 
 df.to_csv(meteo_path + filename + '_sounding' + '.txt', sep='\t', index=None)
 
@@ -169,10 +162,5 @@ with open(meteo_path + filename +'_metadata' +'.txt', 'w') as f:
             f.write(str(item1) + '\t' + str(item2) + '\n')
 
 print('    Save File :: ' + file)
-<<<<<<< HEAD
-print('    Save File :: ' + meteo_path + filename + '.txt')
->>>>>>> d14eddbb9cf977873460e0fa7eaed80700c2b81a:scripts/download_plot_sounding.py
-=======
 print('    Save File :: ' + meteo_path + filename + '_metadata' + '.txt')
 print('    Save File :: ' + meteo_path + filename + '_sounding' + '.txt')
->>>>>>> 9975d6bccd9b629b8e7bef6cb3f4821b67736a25

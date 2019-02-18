@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 from matplotlib.ticker import LogFormatter
 
+#from sys import platform
+
+# for OS X
+#if platform == "darwin": mpl.use('TkAgg')
 ## for Palatino and other serif fonts use:
 # rc('font',**{'family':'serif','serif':['Palatino']})
 
@@ -17,7 +21,7 @@ plt.rcParams["axes.labelweight"] = "bold"
 
 from matplotlib import dates
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from modules.Interpolation_Mod import *
+#from modules.Interpolation_Mod import *
 
 from modules.Parameter_Mod import pts, interp_meth
 from modules.Utility_Mod import correlation
@@ -37,7 +41,10 @@ vmi_specwidth = 10 ** (-1.5)
 vma_specwidth = 10 ** 0.5
 vmi_ldr = -60
 vma_ldr = 0
-vmi_skew = 0
+vmi_skew = -1
+vma_skew = 1
+vmi_kurt = 0
+vma_kurt = 5
 
 site = 'Punta-Arenas'
 country = 'Chile'
@@ -129,12 +136,37 @@ def Plot_Time_Series(ds, variable):
                     cbar.set_ticklabels([-30, -25, -20, -15, -10, -5, 0])
                     cbar.set_label('dB')
 
-                elif variable[ivar] in ['ZE', 'ZE2', 'Kurt', 'Skew']:
+                elif variable[ivar] in ['ZE', 'ZE2']:
 
                     Z = np.ma.log10(np.ma.masked_less_equal(Z, 0.)) * 10.0
                     z_lab = variable[ivar] + ' (dBZ)'
 
                     cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_ze, vmax=vma_ze, cmap='jet')
+
+                    divider1 = make_axes_locatable(sub_plts[ivar])
+                    cax0 = divider1.append_axes("right", size="3%", pad=0.1)
+                    cbar = fig.colorbar(cp, cax=cax0, ax=sub_plts[ivar])
+                    cbar.set_label(z_lab)
+                    sub_plts[ivar].set_xticklabels([])
+                elif variable[ivar] in ['Skew']:
+
+                    #if variable[ivar]=='Skew': Z = np.ma.log10(np.ma.masked_less_equal(Z, 0.)) * 10.0
+                    z_lab = variable[ivar] + ' (-)'
+
+                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_skew, vmax=vma_skew, cmap='jet')
+
+                    divider1 = make_axes_locatable(sub_plts[ivar])
+                    cax0 = divider1.append_axes("right", size="3%", pad=0.1)
+                    cbar = fig.colorbar(cp, cax=cax0, ax=sub_plts[ivar])
+                    cbar.set_label(z_lab)
+                    sub_plts[ivar].set_xticklabels([])
+
+                elif variable[ivar] in ['Kurt']:
+
+                    #Z = np.ma.log10(np.ma.masked_less_equal(Z, 0.)) * 10.0
+                    z_lab = variable[ivar] + ' (-)'
+
+                    cp = sub_plts[ivar].pcolormesh(X, Y, Z, vmin=vmi_kurt, vmax=vma_kurt, cmap='jet')
 
                     divider1 = make_axes_locatable(sub_plts[ivar])
                     cax0 = divider1.append_axes("right", size="3%", pad=0.1)
@@ -186,7 +218,7 @@ def Plot_Time_Series(ds, variable):
 
     plt.tight_layout(rect=[0, 0.01, 1, 0.955])
     plt.subplots_adjust(hspace=0.025)
-    # plt.show()
+    #plt.show()
 
     return fig,  sub_plts[ivar]
 
